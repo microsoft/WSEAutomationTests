@@ -24,15 +24,29 @@ WSE e2e Automation Test Usage Guidelines
  
 6. Handling Test Results:
 •	Treat automation test results as confidential information and limit access to authorized personnel only.
+ 
+7. Reporting Issues and Bug filling:
+For Non-Microsoft Users
+Issue reporting link: https://github.com/WSETests/AutomationScripts/issues/new?template=Blank+issue
 
-7.Feedback Mechanism:
+For Microsoft Internal Users
+Bug filing link: https://microsoft.visualstudio.com/OS/_workitems/create/Bug
+Areapath: OS\ASG\Perception\Windows Studio Effects\MEP
+PLE area path: OS\ASG\Perception\Windows Studio Effects\Post Launch
+ 
+Bug Sample: Please include below details in the bug
+Device Details
+Windows OS
+Perception Core Version
+WSE Version
+Camera App version
+Sound Recorder App Version
+Repro Steps:
+Expected Result:
+Actual Result:
+Logs and video/screenshots
+ 
+8.Feedback Mechanism:
 •	We encourage you to provide feedback on the scripts to facilitate continuous improvement. Your input is valuable for enhancing the testing process.
  
-By following these guidelines, teams can effectively leverage automation tests from a security perspective. 
-
-## Trademarks
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+By following these guidelines, teams can effectively leverage automation tests from a security perspective.  

@@ -1,13 +1,3 @@
-# TODO: The maintainer of this repo has not yet edited this file
-
-**REPO OWNER**: Do you want Customer Service & Support (CSS) support for this product/project?
-
-- **No CSS support:** Fill out this template with information about how to file issues and get help.
-- **Yes CSS support:** Fill out an intake form at [aka.ms/onboardsupport](https://aka.ms/onboardsupport). CSS will work with/help you to determine next steps.
-- **Not sure?** Fill out an intake as though the answer were "Yes". CSS will help you decide.
-
-*Then remove this first heading from this SUPPORT.MD file before publishing your repo.*
-
 # Support
 
 ## How to file issues and get help  
@@ -16,9 +6,29 @@ This project uses GitHub Issues to track bugs and feature requests. Please searc
 issues before filing new issues to avoid duplicates.  For new issues, file your bug or 
 feature request as a new Issue.
 
-For help and questions about using this project, please **REPO MAINTAINER: INSERT INSTRUCTIONS HERE 
-FOR HOW TO ENGAGE REPO OWNERS OR COMMUNITY FOR HELP. COULD BE A STACK OVERFLOW TAG OR OTHER
-CHANNEL. WHERE WILL YOU HELP PEOPLE?**.
+Reporting Issues and Bug filling:
+For Non-Microsoft Users
+Issue reporting link: https://github.com/WSETests/AutomationScripts/issues/new?template=Blank+issue
+
+For Microsoft Internal Users
+Bug filing link: https://microsoft.visualstudio.com/OS/_workitems/create/Bug
+Areapath: OS\ASG\Perception\Windows Studio Effects\MEP
+PLE area path: OS\ASG\Perception\Windows Studio Effects\Post Launch
+ 
+Bug Sample: Please include below details in the bug
+Device Details
+Windows OS
+Perception Core Version
+MEP Version
+Camera App version
+Sound Recorder App Version
+Repro Steps:
+Expected Result:
+Actual Result:
+Logs and video/screenshots
+
+For help and questions about using this project, please refer- WSE e2e Automation Test Usage Guide.txt and Read-ME.txt under E2E\Documents
+contact jdugar@microsoft.com for further assistance
 
 ## Microsoft Support Policy  
 
