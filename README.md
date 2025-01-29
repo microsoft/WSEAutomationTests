@@ -1,28 +1,34 @@
-# Project
+WSE e2e Automation Test Usage Guidelines 
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+1. Understanding Automation Test Purpose:
+•	Familiarize yourself with the primary goal of automation testing, which is to ensure the consistent functionality and reliability of WSE audio and camera effects across various settings
+•	Understand that automation tests are designed specifically to confirm that WSE effects remain functional even under challenging conditions.
 
-As the maintainer of this project, please make a few updates:
+2. Access Control:
+•	Ensure that access to automation test scripts, tools, and results is restricted to authorized personnel only and is not to be shared further.
+•	Grant appropriate permissions based on team members' roles and responsibilities. 
+•	Limit the sharing of the logger tool to maintain security.
+ 
+3. Test Environment Setup:
+•	Set up the test environment with a stable network and dedicated Wi-Fi (for Smart Plug setup). 
+•	Configure the smart plug to execute automation tests with the device both plugged in and unplugged. 
+•	Arrange posters or mannequins with human faces to activate auto-framing animations.
+•	Conduct automation tests in a controlled manner to minimize any potential impact on the application or its surroundings.
+ 
+4. Test Execution Guidelines:
+•	Keep the device updated with the latest firmware and install the WSE under test. 
+•	Conduct a manual Sanity test: Camera app and Setting app page opens maximized, ensure the ability to toggle WSE effects (both audio and video) in the settings page and perform audio and video recordings.
+ 
+5. Readme-E2E script Overview and Execution Steps link:
+•	Refer to the Readme-E2E.txt document for an overview and detailed execution steps. Location:E2E/Documents
+ 
+6. Handling Test Results:
+•	Treat automation test results as confidential information and limit access to authorized personnel only.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
-
-## Contributing
-
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+7.Feedback Mechanism:
+•	We encourage you to provide feedback on the scripts to facilitate continuous improvement. Your input is valuable for enhancing the testing process.
+ 
+By following these guidelines, teams can effectively leverage automation tests from a security perspective. 
 
 ## Trademarks
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 

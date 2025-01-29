@@ -1,8 +1,8 @@
-MEP e2e Automation Test Usage Guidelines 
+WSE e2e Automation Test Usage Guidelines 
 
 1. Understanding Automation Test Purpose:
-•	Familiarize yourself with the primary goal of automation testing, which is to ensure the consistent functionality and reliability of MEP audio and camera effects across various settings
-•	Understand that automation tests are designed specifically to confirm that MEP effects remain functional even under challenging conditions.
+•	Familiarize yourself with the primary goal of automation testing, which is to ensure the consistent functionality and reliability of WSE audio and camera effects across various settings
+•	Understand that automation tests are designed specifically to confirm that WSE effects remain functional even under challenging conditions.
 
 2. Access Control:
 •	Ensure that access to automation test scripts, tools, and results is restricted to authorized personnel only and is not to be shared further.
@@ -16,8 +16,8 @@ MEP e2e Automation Test Usage Guidelines
 •	Conduct automation tests in a controlled manner to minimize any potential impact on the application or its surroundings.
  
 4. Test Execution Guidelines:
-•	Keep the device updated with the latest firmware and install the MEP under test. 
-•	Conduct a manual Sanity test: Camera app and Setting app page opens maximized, ensure the ability to toggle MEP effects (both audio and video) in the settings page and perform audio and video recordings.
+•	Keep the device updated with the latest firmware and install the WSE under test. 
+•	Conduct a manual Sanity test: Camera app and Setting app page opens maximized, ensure the ability to toggle WSE effects (both audio and video) in the settings page and perform audio and video recordings.
  
 5. Readme-E2E script Overview and Execution Steps link:
 •	Refer to the Readme-E2E.txt document for an overview and detailed execution steps. Location:E2E/Documents
@@ -38,7 +38,7 @@ Bug Sample: Please include below details in the bug
 Device Details
 Windows OS
 Perception Core Version
-MEP Version
+WSE Version
 Camera App version
 Sound Recorder App Version
 Repro Steps:
