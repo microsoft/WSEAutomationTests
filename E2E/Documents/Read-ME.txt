@@ -1,0 +1,86 @@
+Test Overview:
+The Automation script supports all Socs and MEP versions.
+ 
+Coverage and Validation:
+• Validates the availability and functionality of WSE (camera and audio) toggles, ensuring they can be toggled On/Off.
+• Validates video fps > 29fps.
+• Validates AvgWorkingSetSize < 250MB
+• Validates PeakWorkingSetSize does not increase by more than 1000KB during video recording.
+• Validates tests are conducted across various parameters, including resolutions, power states etc
+• Validates WSE is not supported in Photo Mode.
+• Validates the correct scenarioId is generated for both individual and combined effects
+• Verifies the number of frames exceeding 33ms in processing time.
+• Verifies that the PC session is properly initialized and completed, including logs for "Starting Microsoft.ASG.Perception" and "Stopping Microsoft.ASG.Perception."
+• Captures KPIs - time to first frame, camera Init Time, video fps
+• Captures NPU and CPU usage by taking Task Manager screenshots.
+
+Test Runs Description:
+We have below sets of Test Runs:
+1. CheckInTest.ps1:
+•  Runs tests with each effect enabled and verifies that effects can be toggled On/Off, and the correct scenario ID is generated. Also, includes an end-to-end test for both Camera and Voice Recorder, with device plugged in and unplugged.
+
+2. ReleaseTest.ps1:
+•  Runs 800+ tests with various combinations of Camera effects, Voice Focus, video/photo resolution, and plugged-in/unplugged scenarios.
+•  Supports multiple video and photo resolutions across different devices. You can adjust the resolutions based on the device being tested.
+
+3. StressTest.ps1:
+•  A series of tests designed to put the device under stress (both plugged in and unplugged). Includes Hibernation Tests too.
+
+4. MemoryUsage-Set.ps1:
+•   Captures PeakWorkingSetSize for the frame server process every few minutes while video recording with WSE effects (camera and audio) enabled, for both plugged-in and unplugged scenarios.
+
+5. Framedrop-Fps-Testing.ps1:
+•   Captures KPIs by running the same camerae2e scenario in a loop, with device plugged in and unplugged.
+
+ 
+Report Metrics: Sample- https://microsoft-my.sharepoint.com/:x:/p/jdugar/ET2SO8WbD19IgubwEp91xXEBuSB6_6gEC5blyvZqzvahFA?e=FIAXIs
+Please see Report.png file under E2E\Documents
+ 
+• Scenario Details
+• FramesAbove33ms
+• Average processing time per frame.
+• Minimum processing time per frame.
+• Maximum processing time per frame.
+• PCInItTime (time to first frame for PC)
+• Camera App Init Time (Camera App start time minus PC time to first frame).
+• Voice Recorder App Init Time (Voice Recorder App start time minus PC time to first frame).
+• Video fps
+• PeakWorkingSetSize
+• AvgWorkingSetSize
+• Test Status
+• Test failure Reason 
+ 
+How to Run the Script:
+1. Pre-test Steps:
+	Before running the script, manually verify the following:
+		Ensure you can toggle the audio and camera effects on the settings page.
+		Verify that audio and video recording works, and that the Camera app and Settings page open maximized.
+2. Download the E2E folder from the repository.
+3. Launch an elevated PowerShell session and navigate to the E2E folder.
+4. Execute the following command to run one of the test ps1
+C:\E2E> .\CheckInTest.ps1 -tokenId  -smartplugId -targetMepCameraVer -targetMepAudioVer -targetPerceptionCoreVer
+(Provide tokenId and smartplugId to run the test in both plugged-in and unplugged states. Provide expected MEP and PC version to validate targeted MEP and PC version)
+
+Logs Generation:
+Logs are saved in the following format: E2E\Logs\<DateTime>-<TestRunName>
+For eg: E2E\Logs\ 2023-12-12-09-26-02-Checkin-Test or E2E\Logs\ 2023-12-12-09-26-02-ReleaseTest
+ 
+Interpretation of Console Output:
+•	Scenario : Result (Execution Time in seconds)
+•	For example: Pluggedin\Automatic-Framing : Passed (159.27)
+ 
+Output sample for CheckinTest.ps1 and ReleaseTest.ps1: Please see Output-Sample-For-CheckinTest-and-ReleaseTest.png file under E2E\Documents
+ 
+ Logs captured here:
+•	Asgtrace: 2023-12-12-09-26-02-Checkin-Test\Pluggedin\AF\Asgtrace (Generated for each individual WSE effect (camera and audio) for both plugged in and unplugged).
+•	Console Result: 2023-12-12-09-26-02-Checkin-Test\ConsoleResults
+•	Report: 2023-12-12-09-26-02-Checkin-Test\Report.
+•	Test run logs: 2023-12-12-09-26-02-Checkin-Test\Pluggedin-AF (Generated for each individual WSE effect (camera and audio) effect).
+
+PS:  Smart plugs are used to support Pluggedin and Unplugged Scenarios.
+
+Abbreviations:
+MEP: Microsoft Effect Pack
+WSE: Windows Studio Effects
+video fps: video frame per seconds
+PC: Perception Core
