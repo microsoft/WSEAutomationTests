@@ -8,7 +8,7 @@ feature request as a new Issue.
 
 Reporting Issues and Bug filling:
 For Non-Microsoft Users
-Issue reporting link: https://github.com/WSETests/AutomationScripts/issues/new?template=Blank+issue
+Issue reporting link: https://github.com/microsoft/WSEAutomationTests/issues
 
 For Microsoft Internal Users
 Bug filing link: https://microsoft.visualstudio.com/OS/_workitems/create/Bug
