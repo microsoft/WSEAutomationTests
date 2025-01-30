@@ -63,22 +63,16 @@ foreach($camsnario in $deviceData["CameraScenario"])
             $unpluggedLast = -1
             $pluggedInLast = -1
 
-            # Running through all the tests in a single go for all possible combinations:
-            #     1. Camera Scenario :- Recording/Previewing, 
-            #     2. Video Resolution :- 1440p/1080p/720p etc, 
-            #     3. Photo Resolution :- 2.1MP/0.9MP/0.3MP, 
-            #     4. Voice Focus :- on/off/na
-            #     5. Toggle AI Effect :- PL+CF-I/AF+PL/AF+CF-A+PL+ECE+BBP etc.
-            #     6. Power State :- PluggedIn/Unplugged
-            # Approach:
-            #     1. Battery Check: At the start, the battery status is checked.
-            #     2. Unplugged Scenarios: If the battery is above 20%, the Unplugged scenarios will run. If the battery drops below 20% during the 
-            #        Unplugged scenarios, the device is immediately plugged in for charging.
-            #     3. Plugged-in Scenarios: We start executing pluggedIn tests during this state. This is done until either we complete all unplugged 
-            #        state tests, or we reach 80% charge.
-            #     4. Unplugged Scenarios Continuation: Once either of the above-mentioned state is attained, the remaining Unplugged scenarios are executed.
-            #     5. This loop continues until both the unplugged and pluggedIn tests are completed.
-
+            <#
+            Approach we follow to run all the tests:
+               1. Battery Check: At the start, the battery status is checked.
+               2. Unplugged Scenarios: If the battery is above 20%, the Unplugged scenarios will run. If the battery drops below 20% during the 
+                  Unplugged scenarios, the device is immediately plugged in for charging.
+               3. Plugged-in Scenarios: We start executing pluggedIn tests during this state. This is done until either we complete all unplugged 
+                  state tests, or we reach 80% charge.
+               4. Unplugged Scenarios Continuation: Once either of the above-mentioned state is attained, the remaining Unplugged scenarios are executed.
+               5. This loop continues until both the unplugged and pluggedIn tests are completed.
+            #>
             while ($true) {
                $batteryPercentage = Get-BatteryPercentage
 
