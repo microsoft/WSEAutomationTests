@@ -167,12 +167,12 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
 	# check MEP camera opt-in
 	if ($mepCameraOptedIn -ieq "n/a")
 	{
-		Write-Host "can not find Opt-in camera instance in registry, there is no 'FSMEnableMsEffects' key in registry" -ForegroundColor Red
+		Write-Host "cannot access opt-in flag" -ForegroundColor Red
 		return $false
 	}
 	elseif ($mepCameraOptedIn -ieq "False")
 	{
-		Write-Host "'FSMEnableMsEffects' key was not set to 1 in registry" -ForegroundColor Red
+		Write-Host "camera opt-in was not set" -ForegroundColor Red
 		return $false
 	}
 
