@@ -18,6 +18,9 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           TestOutputMessage $scenarioLogFolder "Skipped" $startTime "wsev2Policy Not Supported"
           return
        }
+
+
+       
        
        if($initSetUpDone -ne "true")
        {
