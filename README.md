@@ -37,3 +37,8 @@ Running the Tests
 
 Sample Report:  **[Link](https://microsoft-my.sharepoint.com/:x:/p/jdugar/ET2SO8WbD19IgubwEp91xXEBuSB6_6gEC5blyvZqzvahFA?e=FIAXIs)** 
 ---
+
+
+Trademarks
+-----
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow Microsoft's Trademark & Brand Guidelines. Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.
