@@ -1,12 +1,12 @@
 Purpose
 =======
-This repository contains the scripts and tools to conduct Windows Studio Effects (WSE) automated End-to-End Functional and Performance testing. These tests ensure the consistent functionality and reliability of WSE audio and camera effects across various settings.
-The tests utilize UIAutomationClient to automate UI interactions, simulating user actions like enabling/disabling effects or adjusting settings. By leveraging these automated tests, teams can confirm that WSE effects remain functional and performant, even under challenging conditions.
+This repository contains the scripts and tools to conduct Windows Studio Effects (WSE) automated End-to-End Functional and Performance testing. These tests ensure the consistent functionality and reliability of Windows Studio Effects audio and camera effects across various settings.
+The tests utilize UIAutomationClient to automate UI interactions, simulating user actions like enabling/disabling effects or adjusting settings. By leveraging these automated tests, teams can confirm that Windows Studio Effects effects remain functional and performant, even under challenging conditions.
 Logs are collected and a test report is generated to help provide detailed information to troubleshoot issues.
 
 State of the Repository
 =======================
-The repository is actively maintained and updated to ensure compatibility with the latest firmware and WSE versions. The repository is structured to facilitate easy access to the test scripts and guidelines, ensuring a smooth testing process for authorized personnel.
+The repository is actively maintained and updated to ensure compatibility with the latest firmware and Windows Studio Effects (WSE) versions. The repository is structured to facilitate easy access to the test scripts and guidelines, ensuring a smooth testing process for authorized personnel.
 
 Tests Overview
 ==============
@@ -14,7 +14,7 @@ Tests Overview
 1.    **CheckInTest.ps1:** Validate effects can be toggled On/Off in camera setting page, and the correct scenario ID is generated. Also, includes an end-to-end test for both Camera and Voice Recorder, with device plugged in and unplugged.
 2. **ReleaseTest.ps1:** Runs 800+ tests with various combinations of Camera effects, Voice Focus, video/photo resolution, and plugged-in/unplugged scenarios. Supports multiple video and photo resolutions across different devices.
 3. **StressTest.ps1:** A series of tests designed to put the device under stress (both plugged in and unplugged).
-4. **MemoryUsage-Set.ps1:** Captures PeakWorkingSetSize for the frame server process every few minutes while video recording with WSE effects (camera and audio) enabled, for both plugged-in and unplugged scenarios.
+4. **MemoryUsage-Set.ps1:** Captures PeakWorkingSetSize for the frame server process every few minutes while video recording with Windows Studio Effects(camera and audio) enabled, for both plugged-in and unplugged scenarios.
 5. **Framedrop-Fps-Testing.ps1:** Captures KPIs (video fps, processing time, frameabove33ms etc) by running the same camerae2e scenario in a loop, with device plugged in and unplugged.  
  
 How to Run the Script
