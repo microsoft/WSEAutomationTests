@@ -11,12 +11,14 @@ The repository is actively maintained and updated to ensure compatibility with t
 Tests Overview
 ==============
 
-1.    **CheckInTest.ps1:** Validate effects can be toggled On/Off in camera setting page, and the correct scenario ID is generated. Also, includes an end-to-end test for both Camera and Voice Recorder, with device plugged in and unplugged.
-2. **ReleaseTest.ps1:** Runs 800+ tests with various combinations of Camera effects, Voice Focus, video/photo resolution, and plugged-in/unplugged scenarios. Supports multiple video and photo resolutions across different devices.
+1.    **CheckInTest.ps1:** Validate effects can be toggled On/Off in camera setting page, and the correct scenario ID is generated. Also, includes an end-to-end test for both Camera and Voice Recorder, with device plugged in and unplugged. 
+2. **ReleaseTest.ps1:** Runs 800+ tests with various combinations of Camera effects, Voice Focus, video/photo resolution, and plugged-in/unplugged scenarios. Supports multiple video and photo resolutions across different devices. 
 3. **StressTest.ps1:** A series of tests designed to put the device under stress (both plugged in and unplugged).
 4. **MemoryUsage-Set.ps1:** Captures PeakWorkingSetSize for the frame server process every few minutes while video recording with Windows Studio Effects(camera and audio) enabled, for both plugged-in and unplugged scenarios.
-5. **Framedrop-Fps-Testing.ps1:** Captures KPIs (video fps, processing time, frameabove33ms etc) by running the same camerae2e scenario in a loop, with device plugged in and unplugged.  
- 
+5. **Framedrop-Fps-Testing.ps1:** Captures KPIs (video fps, processing time, frameabove33ms etc) by running the same camerae2e scenario in a loop, with device plugged in and unplugged.
+
+**[Test Result Sample](https://github.com/microsoft/WSEAutomationTests/blob/main/E2E/Documents/Output-Sample-For-CheckinTest-and-ReleaseTest.png)** Please refer to Output-Sample-For-CheckinTest-and-ReleaseTest.png shared under E2E\Documents.
+
 How to Run the Script
 =====================
 Test Environment Setup
@@ -35,8 +37,9 @@ Running the Tests
     - Readme-E2E.txt
     - WSE E2E Automation Test Usage Guidelines
 
-Sample Report:  **[Link](https://microsoft-my.sharepoint.com/:x:/p/jdugar/ET2SO8WbD19IgubwEp91xXEBuSB6_6gEC5blyvZqzvahFA?e=FIAXIs)** 
----
+**Sample Report**:  **[Link](https://microsoft-my.sharepoint.com/:x:/p/jdugar/ET2SO8WbD19IgubwEp91xXEBuSB6_6gEC5blyvZqzvahFA?e=FIAXIs)** (Microsoft Internals)
+**[Report.png](https://github.com/microsoft/WSEAutomationTests/blob/main/E2E/Documents/Report.png)** Please refer to Report.png shared under E2E/Documents.
+
 
 
 Trademarks
