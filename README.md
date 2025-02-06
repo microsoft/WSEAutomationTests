@@ -8,6 +8,7 @@ State of the Repository
 =======================
 The repository is actively maintained and updated to ensure compatibility with the latest firmware and Windows Studio Effects (WSE) versions. The repository is structured to facilitate easy access to the test scripts and guidelines, ensuring a smooth testing process for authorized personnel.
 
+
 Tests Overview
 ==============
 
