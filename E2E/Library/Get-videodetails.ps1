@@ -1,4 +1,17 @@
-﻿function GetVideoDetails($snarioName,$pathLogsFolder)
+﻿<#
+DESCRIPTION:
+    This function retrieves details of the most recent video recorded by the Camera app. It validates whether the video 
+    corresponds to the current test scenario based on the modification time. The function extracts and logs metadata such as 
+    frame rate, frame dimensions, and duration. If the frame rate doesn't meet expectations, the video is saved in the logs folder.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for organizing logs and validating the recorded video.
+    - pathLogsFolder [string] :- The path where logs and videos are stored if the validation criteria are not met.
+
+RETURN TYPE:
+    - void (Performs validation, logging, and saving operations without returning a value.)
+#>
+function GetVideoDetails($snarioName,$pathLogsFolder)
 {
     Write-Output "Checking latest video recording details in GetVideoDetails function"
     $cameraRoll = "$env:userprofile\Pictures\Camera Roll"

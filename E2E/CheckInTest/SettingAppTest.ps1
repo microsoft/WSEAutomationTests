@@ -1,5 +1,20 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function automates testing of the Windows Settings App, specifically focusing on camera AI effects.
+    It applies various AI effect configurations, collects performance traces, captures CPU and NPU usage, 
+    and verifies if logs are generated correctly.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
+    - testScenario [string] :- The test scenario defining specific AI effect settings to apply.
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void
+#>
 function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId) 
 {   
    try

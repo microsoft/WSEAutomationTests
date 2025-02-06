@@ -1,5 +1,16 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function navigates back and forth between camera settings pages in the Windows Settings app 
+    multiple times to validate UI behavior and responsiveness.
+
+INPUT PARAMETERS:
+    - times [int] :- Number of times the function will navigate back and forth in the camera settings.
+
+RETURN TYPE:
+    - void 
+#>
 function RevisitCameraSetting($times)
 {  
 
@@ -46,6 +57,20 @@ function RevisitCameraSetting($times)
    CloseApp 'systemsettings'
 }
 
+
+<#
+DESCRIPTION:
+    This function performs stress testing on the camera settings page by revisiting it multiple times, 
+    toggling AI effects on/off, and collecting memory usage data.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void 
+#>
 function RevisitCameraSettingPage($devPowStat, $token, $SPId)
 {
     $startTime = Get-Date 

@@ -1,4 +1,18 @@
-﻿function VerifyLogs($snarioName, $snarioId, $strtTime)
+﻿<#
+DESCRIPTION:
+    This function verifies PerceptionSessionUsageStats logs for a given scenario. It checks for 
+    specific scenario IDs, validates frame processing times, and logs results. It also verifies 
+    memory usage events if present.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for organizing and locating logs.
+    - snarioId [string] :- The scenario ID used to identify specific log entries.
+    - strtTime [datetime] :- The start time of the scenario, used for calculating durations.
+
+RETURN TYPE:
+    - void (Performs validation and logging without returning a value.)
+#>
+function VerifyLogs($snarioName, $snarioId, $strtTime)
 {  
    $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"
    Write-Output "Validating AsgTrace.txt logs"
@@ -109,6 +123,18 @@
        
 }
 
+<#
+DESCRIPTION:
+    This function retrieves the start and first frame processing times from PerceptionSessionUsageStats
+    logs for a given scenario ID.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for locating relevant logs.
+    - snarioId [string] :- The scenario ID used to filter log entries.
+
+RETURN TYPE:
+    - array (Returns an array containing the start time and first frame time if found, otherwise returns $false.)
+#>
 function PCStartandFirstFrameTime($snarioName, $snarioId)
 {
    $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"
@@ -194,6 +220,19 @@ function PCStartandFirstFrameTime($snarioName, $snarioId)
    }
           
 }
+
+<#
+DESCRIPTION:
+    This function calculates and logs the initialization time from the start of the perception core
+    to the first processed frame for a given scenario.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for locating relevant logs.
+    - snarioId [string] :- The scenario ID used to filter log entries.
+
+RETURN TYPE:
+    - void (Calculates and logs initialization time without returning a value.)
+#>
 function CheckInitTimePCOnly($snarioName, $snarioId)
 {  
    $PCStartandFirstFrameTime = PCStartandFirstFrameTime $snarioName $snarioId
@@ -222,6 +261,20 @@ function CheckInitTimePCOnly($snarioName, $snarioId)
       
    }
 }
+
+<#
+DESCRIPTION:
+    This function calculates and logs the initialization time from when the camera app starts 
+    until the first frame is processed.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for locating relevant logs.
+    - snarioId [string] :- The scenario ID used to filter log entries.
+    - camAppStatTme [datetime] :- The timestamp when the camera app was started.
+
+RETURN TYPE:
+    - void (Calculates and logs initialization time without returning a value.)
+#>
 function CheckInitTimeCameraApp($snarioName, $snarioId, $camAppStatTme)
 {  
    $PCStartandFirstFrameTime = PCStartandFirstFrameTime $snarioName $snarioId
@@ -235,6 +288,21 @@ function CheckInitTimeCameraApp($snarioName, $snarioId, $camAppStatTme)
       $Results.CameraAppInItTime = "${InitTimeCameraApp}sec"
    }      
 }
+
+<#
+DESCRIPTION:
+    This function calculates and logs the initialization times for the voice recorder app:
+    from when the app starts and from when the recording begins until the first frame is processed.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for locating relevant logs.
+    - snarioId [string] :- The scenario ID used to filter log entries.
+    - voiceRecderAppStatTme [datetime] :- The timestamp when the voice recorder app was started.
+    - audioRecdingStatTme [datetime] :- The timestamp when the audio recording was started.
+
+RETURN TYPE:
+    - void (Calculates and logs initialization times without returning a value.)
+#>
 function CheckInitTimeVoiceRecorderApp($snarioName, $snarioId , $voiceRecderAppStatTme, $audioRecdingStatTme)
 {  
    $PCStartandFirstFrameTime = PCStartandFirstFrameTime $snarioName $snarioId
@@ -252,6 +320,19 @@ function CheckInitTimeVoiceRecorderApp($snarioName, $snarioId , $voiceRecderAppS
       $Results.VoiceRecorderInItTime = "${InitTimeFromAudioRecordingStarts}sec"
    }     
 }
+
+<#
+DESCRIPTION:
+    This function verifies PerceptionSessionUsageStats logs specifically for audio blur scenarios.
+    It validates frame processing times and logs results if audio blur is enabled.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for organizing and locating logs.
+    - snarioId [string] :- The scenario ID used to identify specific log entries.
+
+RETURN TYPE:
+    - void (Performs validation and logging without returning a value.)
+#>
 function VerifyAudioBlurLogs($snarioName, $snarioId)
 {  
    $voiceFocusExists = CheckVoiceFocusPolicy 
@@ -312,7 +393,17 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
       }       
     }  
 }
-#Checks for PrivateUsage, PeakWorkingSetSize, PageFaultCount, AvgWorkingSetSize
+
+<#
+DESCRIPTION:
+    This function checks for PrivateUsage, PeakWorkingSetSize, PageFaultCount, AvgWorkingSetSize.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for locating relevant logs.
+
+RETURN TYPE:
+    - void (Logs memory usage statistics and highlights high memory usage without returning a value.)
+#>
 function CheckMemoryUsage($snarioName)
 {  
    $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"

@@ -1,6 +1,16 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
-#Captures CPU and NPU Usage and Stops Task Manager
+<#
+DESCRIPTION:
+    This function captures CPU and NPU Usage and Stops Task Manager.
+
+INPUT PARAMETERS:
+    - uitaskmgr [UIElement] :- The UI automation element representing the Task Manager window.
+    - Scenario [string] :- The name of the scenario to be included in the screenshot filenames.
+
+RETURN TYPE:
+    - void (Captures resource usage screenshots and closes Task Manager without returning a value.)
+#>
 function stopTaskManager($uitaskmgr,$Scenario){
    Write-Output "Entering stopTaskManager function"
    
@@ -13,7 +23,17 @@ function stopTaskManager($uitaskmgr,$Scenario){
    #Close Taskmanager App
    CloseApp 'Taskmgr'
 }
-#Sets Task Manager Real time Update speed to Low
+
+<#
+DESCRIPTION:
+    This function sets Task Manager Real time Update speed to Low.
+
+INPUT PARAMETERS:
+    - uiEle [UIElement] :- The UI automation element representing the Task Manager window.
+
+RETURN TYPE:
+    - void (Adjusts Task Manager settings without returning a value.)
+#>
 function setTMUpdateSpeedLow($uiEle)  
 {   
     Write-Output "Entering setTMUpdateSpeedLow function"
@@ -25,7 +45,18 @@ function setTMUpdateSpeedLow($uiEle)
     FindAndClick -uiEle $uitaskmgr -clsNme ComboBox -proptyNme "General, Real time update speed, Choose how often to update the system resource usage report"
     FindAndClick -uiEle $uitaskmgr -clsNme ComboBoxItem -proptyNme "Low"
 }
-#Navigate to CPU and take screenshot 
+
+<#
+DESCRIPTION:
+    This function navigate to CPU and take screenshot.
+
+INPUT PARAMETERS:
+    - uiEle [UIElement] :- The UI automation element representing the Task Manager window.
+    - Scenario [string] :- The name of the scenario to be included in the screenshot filename.
+
+RETURN TYPE:
+    - void (Captures a screenshot of CPU performance without returning a value.)
+#>
 function captureCPUUsage($uiEle, $Scenario) 
 {
    Write-Output "Entering captureCPUUsage function"
@@ -41,8 +72,19 @@ function captureCPUUsage($uiEle, $Scenario)
    #capture Screenshot for CPU Usage
    Take-Screenshot -FileName "CPU_Performance" -ScnrName $Scenario
    start-sleep -Seconds 1
-}
-#Navigate to NPU and take screenshot 
+} 
+
+<#
+DESCRIPTION:
+    This function navigate to NPU and take screenshot.
+
+INPUT PARAMETERS:
+    - uiEle [UIElement] :- The UI automation element representing the Task Manager window.
+    - Scenario [string] :- The name of the scenario to be included in the screenshot filename.
+
+RETURN TYPE:
+    - void (Captures a screenshot of NPU performance without returning a value.)
+#>
 function captureNPUUsage($uiEle, $Scenario) 
 { 
    #Navigate to Performance tab

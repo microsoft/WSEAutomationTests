@@ -1,4 +1,16 @@
-﻿function CheckServiceState($svcName){
+﻿<#
+DESCRIPTION:
+    This function checks the status of a specified service and waits until it stops. 
+    If the service remains running after 41 seconds, it forcibly stops the service 
+    and ensures related applications are closed.
+
+INPUT PARAMETERS:
+    - svcName [string] :- The display name of the service to check and stop if necessary.
+
+RETURN TYPE:
+    - void
+#>
+function CheckServiceState($svcName){
    $service = Get-Service -DisplayName $svcName 
    $serviceState =$service.Status
    while ($serviceState -eq "Running")

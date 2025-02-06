@@ -1,6 +1,19 @@
 ﻿#Pre-requisite for hibernation.
 #Setup wake timers- Open control panel>Power options>"Edit Plan setting" for the power plan u are using. Then Select "Change adavanced power setting". Go to Sleep > "Allow wake timers" and enable them
 #For Auto-login- Open Edit group policy>Click Administrative Templates> System > Power Management> Sleep Settings > Disable "Require a password when a computer wakes(plugged in) and "Require a password when a computer wakes(on battery)
+
+<#
+DESCRIPTION:
+    This function initiates a system hibernation. It schedules a task to wake up the system, 
+    performs necessary actions like simulating key presses after waking up, and ensures 
+    cleanup by deleting the scheduled task after completion.
+
+INPUT PARAMETERS:
+    - None
+
+RETURN TYPE:
+    - void (Performs hibernation, auto-login, and scheduled task handling without returning a value.)
+#>
 function Hibernation()
 {  
    Write-Output "Entering Hibernation function"   
@@ -32,6 +45,18 @@ function Hibernation()
    
    [console]::beep(500,300)
 }
+
+<#
+DESCRIPTION:
+    This function deletes the scheduled task used for waking up the system after hibernation. 
+    It ensures no redundant scheduled tasks exist post-hibernation.
+
+INPUT PARAMETERS:
+    - None
+
+RETURN TYPE:
+    - void (Deletes the scheduled task or raises an error if it doesn't exist.)
+#>
 function DeleteScheduledTask()
 {  
    Write-Output "Entering DeleteScheduledTask function"   
@@ -46,7 +71,18 @@ function DeleteScheduledTask()
    } 
 }
 
-#Verify each starting.Microsoft.ASG.Perception.provider has stopping.Microsoft.ASG.Perception.provider ending with same provider ID
+#
+<#
+DESCRIPTION:
+    This function verifies each starting.Microsoft.ASG.Perception.provider has stopping.Microsoft.ASG.Perception.provider 
+    ending with same provider ID
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario to validate logs.
+
+RETURN TYPE:
+    - void (Performs log validation and reporting without returning a value.)
+#>
 function VerifyLogs-Hibernation($snarioName)
 {  
    GenericError $snarioName
@@ -167,6 +203,18 @@ function VerifyLogs-Hibernation($snarioName)
       }
    }
 } 
+
+<#
+DESCRIPTION:
+    This function checks for any generic errors in the ASG trace logs and logs any errors 
+    found, except for known non-critical issues like "Orientation sensor hardware not detected."
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for identifying relevant logs.
+
+RETURN TYPE:
+    - void (Filters and logs generic errors without returning a value.)
+#>
 function GenericError($snarioName)
 {
    $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"

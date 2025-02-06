@@ -1,5 +1,19 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function performs an end-to-end test on the Camera App. It sets up AI effects, configures
+    the highest available photo and video resolutions, records a video, monitors system resource usage,
+    and verifies logs to validate the correctness of the recording process.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void
+#>
 function Camera-App-Playlist($devPowStat, $token, $SPId) 
 {   
     $startTime = Get-Date    

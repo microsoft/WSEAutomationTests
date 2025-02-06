@@ -1,5 +1,26 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function tests the Camera App by setting video and photo resolutions, adjusting AI effects,
+    toggling power states, and validating logs for recording and previewing scenarios.
+    It ensures proper logging, checks service states, and collects trace data.
+
+INPUT PARAMETERS:
+    - logFile [string] :- Path to the log file where test results will be recorded.
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+    - initSetUpDone [string] :- Indicates whether the initial setup has already been completed ("true"/"false").
+    - camsnario [string] :- Specifies whether the test scenario is "Recording" or "Previewing".
+    - vdoRes [string] :- Video resolution setting to be applied in the Camera App.
+    - ptoRes [string] :- Photo resolution setting to be applied in the Camera App.
+    - devPowStat [string] :- The device power state (e.g., "PluggedIn", "OnBattery").
+    - VF [string] :- Voice Focus setting ("On"/"Off"/"NA").
+    - toggleEachAiEffect [array] :- Array containing AI effect toggles for various camera settings.
+
+RETURN TYPE:
+    - void 
+#>
 function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$ptoRes,$devPowStat,$VF,$toggleEachAiEffect)
 {
    try
@@ -194,6 +215,17 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
     }                                
 }
 
+<#
+DESCRIPTION:
+    Copies log file content to a test-specific folder. It extracts relevant logs from the main log file
+    starting from the most recent test instance and saves them in a dedicated test-specific log file.
+
+INPUT PARAMETERS:
+    - scenarioLogFldr [string] :- The name of the scenario-specific folder where logs should be copied.
+
+RETURN TYPE:
+    - void
+#>
 function GetContentOfLogFileAndCopyToTestSpecificLogFile($scenarioLogFldr)
 {   
     #copy logs to test specific folder

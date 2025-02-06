@@ -1,5 +1,20 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function toggles a specified AI effect on and off for a given number of times 
+    in the Windows Settings App. It is used to test the stability and responsiveness 
+    of AI effect toggles.
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The UI automation element representing the Settings app window.
+    - clsNme [string] :- The class name of the UI element (e.g., "ToggleSwitch").
+    - proptyNme [string] :- The property name of the AI effect to be toggled (e.g., "Automatic framing").
+    - times [int] :- The number of times the AI effect should be toggled on and off.
+
+RETURN TYPE:
+    - void
+#>
 function OnandOffAiEffects($uiEle, $clsNme, $proptyNme, $times)
 { 
    
@@ -11,6 +26,20 @@ function OnandOffAiEffects($uiEle, $clsNme, $proptyNme, $times)
       $i++
    }
 }
+
+<#
+DESCRIPTION:
+    This function toggles various AI effects in the Windows Settings app multiple times to test system stability.
+    It collects logs, checks memory usage, verifies logs, and ensures the device returns to a neutral state.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void
+#>
 function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
 {
     $startTime = Get-Date 

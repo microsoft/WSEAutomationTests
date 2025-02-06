@@ -1,4 +1,17 @@
-﻿function GetDeviceDetails()
+﻿<#
+DESCRIPTION:
+    This function gathers device-specific details related to camera scenarios, video/photo resolutions,
+    power states, voice focus, and AI effects. It dynamically checks supported configurations
+    and returns them in a structured format.
+
+INPUT PARAMETERS:
+    - None
+
+RETURN TYPE:
+    - Hashtable: Contains supported configurations for camera scenarios, resolutions, power states,
+      voice focus, and AI effects.
+#>
+function GetDeviceDetails()
 {
    # Initialize an ArrayList for efficient result accumulation
    $results = New-Object System.Collections.ArrayList
@@ -54,6 +67,18 @@
 
    return $deviceData
 }
+
+<#
+DESCRIPTION:
+    This function retrieves the list of supported video resolutions from the Camera app settings.
+    It opens the Camera app, switches to video mode, and checks the available video quality options.
+
+INPUT PARAMETERS:
+    - videoResolutions [array]: An array of video resolution names to check for support.
+
+RETURN TYPE:
+    - Array: List of supported video resolutions.
+#>
 Function GetVideoResList($videoResolutions)
 {
      #Open Camera App
@@ -101,6 +126,18 @@ Function GetVideoResList($videoResolutions)
      start-sleep -s 1
      return $vdoResList
 }
+
+<#
+DESCRIPTION:
+    This function retrieves the list of supported photo resolutions from the Camera app settings.
+    It opens the Camera app and checks the available photo quality options.
+
+INPUT PARAMETERS:
+    - photoResolutions [array]: An array of photo resolution names to check for support.
+
+RETURN TYPE:
+    - Array: List of supported photo resolutions.
+#>
 Function GetPhotoResList($photoResolutions)
 {
    #Open Camera App

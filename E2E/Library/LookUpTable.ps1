@@ -1,4 +1,20 @@
-﻿function RetrieveValue($inputValue)
+﻿<#
+DESCRIPTION:
+    This function retrieves the corresponding value(s) for a given input key from a predefined 
+    set of mappings. These mappings include configurations for AI effects, camera resolutions, 
+    and other settings. It also considers the Windows Studio Effects (WSEV2) policy state to 
+    adjust values accordingly.
+
+INPUT PARAMETERS:
+    - inputValue [string] :- The key for which the corresponding value needs to be retrieved. 
+      This can be an AI effect combination (e.g., 'AF+EC'), a video resolution (e.g., '1080p'), 
+      or a photo resolution (e.g., '12.2MP').
+
+RETURN TYPE:
+    - [Object] (Returns a string or array of strings corresponding to the input key. If the key 
+      does not exist, it returns $null.)
+#>
+function RetrieveValue($inputValue)
 {
  
    $returnValues = @{}

@@ -1,4 +1,15 @@
-﻿function StartTrace($snarioName)
+﻿<#
+DESCRIPTION:
+    This function initiates tracing for a specified scenario using the tracelog utility.
+    It starts the trace session, enables system rundown tracing, and configures detailed trace logging.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for which tracing is initiated. This name is used to organize log files.
+
+RETURN TYPE:
+    - void (Starts the trace session and logs output without returning a value.)
+#>
+function StartTrace($snarioName)
 {   
     #path to logger binaries
     $pathlogger = ".\LoggerBinaries\tracelog.exe"
@@ -29,6 +40,17 @@
     }
 } 
 
+<#
+DESCRIPTION:
+    This function stops the active trace session for a specified scenario and processes the collected trace logs.
+    It converts the trace logs into a readable text format and stores them in the scenario-specific log folder.
+
+INPUT PARAMETERS:
+    - snarioName [string] :- The name of the scenario for which tracing is stopped. This name is used to locate the correct log files.
+
+RETURN TYPE:
+    - void (Stops the trace session and processes the logs without returning a value.)
+#>
 function StopTrace($snarioName)
 {   
     #path to logger binaries
