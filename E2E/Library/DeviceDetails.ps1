@@ -15,6 +15,8 @@
       $deviceData.VoiceFocus    = @("NA")
    }
    else
+
+   
    {
       $deviceData.VoiceFocus    = @("On", "Off")
    }
