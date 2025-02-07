@@ -4,6 +4,7 @@ This repository contains the scripts and tools to conduct Windows Studio Effects
 The tests utilize UIAutomationClient to automate UI interactions, simulating user actions like enabling/disabling effects or adjusting settings. By leveraging these automated tests, teams can confirm that Windows Studio Effects effects remain functional and performant, even under challenging conditions.
 Logs are collected and a test report is generated to help provide detailed information to troubleshoot issues.
 
+
 State of the Repository
 =======================
 The repository is actively maintained and updated to ensure compatibility with the latest firmware and Windows Studio Effects (WSE) versions. The repository is structured to facilitate easy access to the test scripts and guidelines, ensuring a smooth testing process for authorized personnel.
