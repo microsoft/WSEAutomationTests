@@ -1,5 +1,19 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function tests the Voice Recorder App with the Voice Focus effect enabled.
+    It starts an audio recording, verifies if logs are generated correctly, checks
+    system traces, and measures the initialization time of the Voice Recorder App.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void 
+#>
 function Voice-Recorder-Playlist($devPowStat, $token, $SPId) 
 {   
     $startTime = Get-Date    

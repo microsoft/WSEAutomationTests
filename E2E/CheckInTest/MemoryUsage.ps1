@@ -1,6 +1,15 @@
 ﻿$photoResolutionList = "2.1 megapixels, 16 by 9 aspect ratio,  1920 by 1080 resolution" , "3.8 megapixels, 16 by 9 aspect ratio,  2592 by 1458 resolution" ,  "12.2 megapixels, 4 by 3 aspect ratio,  4032 by 3024 resolution"
 
-#Captures Peakworkingset for frameserver process and returns.
+<#
+DESCRIPTION:
+    Captures the Peak Working Set Size (maximum amount of memory used) of the FrameServer process.
+
+INPUT PARAMETERS:
+    - None
+
+RETURN TYPE:
+    - int (Returns the Peak Working Set Size of the FrameServer process in bytes.)
+#>
 function PeakWorkingSetSize()
 {
    $processId = Get-WmiObject -Class Win32_Service -Filter "Name LIKE 'FrameServer'" | Select-Object -ExpandProperty ProcessId
@@ -8,6 +17,21 @@ function PeakWorkingSetSize()
    $peakWorkingSetSize = $processIddetails.PeakWorkingSetSize
    return $peakWorkingSetSize
 }
+
+<#
+DESCRIPTION:
+    This function measures memory usage of the Camera App while recording a video. 
+    It toggles AI effects, sets resolutions, records a video, captures Peak Working Set Size,
+    and checks if memory growth exceeds a threshold over a prolonged duration.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void 
+#>
 function MemoryUsage-Playlist($devPowStat, $token, $SPId) 
 {   
     $startTime = Get-Date    

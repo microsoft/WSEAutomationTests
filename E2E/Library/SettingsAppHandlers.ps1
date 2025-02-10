@@ -1,4 +1,16 @@
-﻿function FindCameraEffectsPage($uiEle){
+﻿<#
+DESCRIPTION:
+    This function navigates through the Settings app to find and open the Camera Effects page.
+    It clicks through the navigation items to access the camera settings, and identifies the 
+    appropriate camera for further adjustments.
+
+INPUT PARAMETERS:
+    - uiEle [Object] :- The UI Automation element representing the Settings app interface.
+
+RETURN TYPE:
+    - void (Performs UI navigation and clicking without returning a value.)
+#>
+function FindCameraEffectsPage($uiEle){
     FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem Apps
     Start-Sleep -m 500
     FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem "Bluetooth & devices"
@@ -24,7 +36,18 @@
     Start-Sleep -m 500
 }
 
-#This function help finding the Front facing camera when UI element name is same.on setting page
+<#
+DESCRIPTION:
+    This function help finding the Front facing camera when UI element name is same.on setting page
+
+INPUT PARAMETERS:
+    - uiEle [Object] :- The UI Automation element representing the Settings app interface.
+    - clsNme [string] :- The class name of the UI element to be clicked.
+    - proptyNme [string] :- The name of the UI element to be clicked.
+
+RETURN TYPE:
+    - void (Performs UI element selection and clicking without returning a value.)
+#>
 function ClickFrontCamera($uiEle, $clsNme, $proptyNme){
     $classNameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ClassNameProperty, $clsNme)
     $nameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::NameProperty, $proptyNme)
@@ -54,6 +77,19 @@ function ClickFrontCamera($uiEle, $clsNme, $proptyNme){
        $i++
     }    
 }
+
+<#
+DESCRIPTION:
+    This function navigates to the Voice Focus settings page in the Settings app. It checks 
+    for the presence of audio devices and navigates through the menus to find the audio 
+    enhancements section.
+
+INPUT PARAMETERS:
+    - uiEle [Object] :- The UI Automation element representing the Settings app interface.
+
+RETURN TYPE:
+    - void (Performs UI navigation and clicking without returning a value.)
+#>
 function FindVoiceFocusPage($uiEle){
     FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem Apps
     Start-Sleep -m 500
@@ -101,6 +137,18 @@ function FindVoiceFocusPage($uiEle){
     FindAndClick $uiEle ComboBoxItem "Microsoft Windows Studio Voice Focus"
   
 }
+
+<#
+DESCRIPTION:
+    This function toggles the Voice Focus setting in the Settings app. It first checks if 
+    the device supports Voice Focus, and then toggles the setting based on the provided value.
+
+INPUT PARAMETERS:
+    - proptyVal [string] :- The desired state of the Voice Focus toggle ("On" or "Off").
+
+RETURN TYPE:
+    - void (Performs UI interactions to toggle Voice Focus without returning a value.)
+#>
 Function VoiceFocusToggleSwitch($proptyVal)
 {    
      #Check if device supports audio blur functionality or not. Exit this function if audio blur is not supported. 
@@ -127,6 +175,30 @@ Function VoiceFocusToggleSwitch($proptyVal)
      #close settings app
      CloseApp 'systemsettings'
 }
+
+<#
+DESCRIPTION:
+    This function toggles various AI camera effects and audio enhancements in the Settings app. 
+    It handles different combinations of settings based on whether WSEV2 is supported.
+
+INPUT PARAMETERS:
+    - AFVal [string] :- Toggle value for Automatic Framing.
+    - PLVal [string] :- Toggle value for Portrait Light.
+    - BBVal [string] :- Toggle value for Background Effects.
+    - BSVal [string] :- Toggle value for Standard Blur.
+    - BPVal [string] :- Toggle value for Portrait Blur.
+    - ECVal [string] :- Toggle value for Eye Contact.
+    - ECSVal [string] :- Toggle value for Standard Eye Contact style.
+    - ECEVal [string] :- Toggle value for Teleprompter Eye Contact style.
+    - VFVal [string] :- Toggle value for Voice Focus.
+    - CF [string] :- Toggle value for Creative Filters.
+    - CFI [string] :- Toggle value for Illustrated Creative Filter.
+    - CFA [string] :- Toggle value for Animated Creative Filter.
+    - CFW [string] :- Toggle value for Watercolor Creative Filter.
+
+RETURN TYPE:
+    - void (Performs UI interactions to toggle camera and audio effects without returning a value.)
+#>
 Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECEVal,$VFVal,$CF,$CFI,$CFA,$CFW)
 {    
      Write-Output "Entering ToggleAIEffectsInSettingsApp function" 

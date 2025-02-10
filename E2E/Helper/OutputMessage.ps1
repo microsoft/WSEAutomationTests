@@ -1,6 +1,21 @@
 # Install Import-Excel module (if not already installed)
 Install-Module -Name ImportExcel -Force -Scope CurrentUser
 
+<#
+DESCRIPTION:
+    This function logs the test result message with its execution time. 
+    Depending on the test outcome (Pass, Fail, Exception, or Skipped), 
+    it updates the result status, logs to the console and writes to a result file.
+
+INPUT PARAMETERS:
+    - snario [string] :- The name of the test scenario.
+    - tstReslt [string] :- The result of the test (Pass, Fail, Exception, Skipped).
+    - strtTime [datetime] :- The start time of the test, used to calculate execution time.
+    - reasonForNotPass [string] :- The reason for failure or skipping (optional for Pass).
+
+RETURN TYPE:
+    - void (Logs the test result message and updates the result status.)
+#>
 function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
 {
     $Global:sequenceNumber++
@@ -58,6 +73,17 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
     }
 }
 
+<#
+DESCRIPTION:
+    This function resets all result fields to null except for the scenario name and reason for not passing. 
+    It is used to clear data between test cases.
+
+INPUT PARAMETERS:
+    - None
+
+RETURN TYPE:
+    - void (Resets global variables without returning a value.)
+#>
 function ResetFields {
    $Results.ScenarioName = $null
    $Results.FramesAbove33ms = $null
@@ -74,12 +100,34 @@ function ResetFields {
    $Results.ReasonForNotPass = $null
 }
 
+<#
+DESCRIPTION:
+    This function appends the test results to an output file and resets fields for the next test case.
+
+INPUT PARAMETERS:
+    - rslt [PSObject] :- The result object containing the test information.
+    - outputfile [string] :- The path to the output file where results are logged.
+
+RETURN TYPE:
+    - void (Writes results to a file and resets fields without returning a value.)
+#>
 function Reporting($rslt, $outputfile)
 {
    Write-output $rslt >> $outputfile
    ResetFields
 }
 
+<#
+DESCRIPTION:
+    This function converts the text file containing test results into an Excel file. 
+    It reads key-value pairs from the text file and writes them into an Excel sheet using the ImportExcel module.
+
+INPUT PARAMETERS:
+    - textFilePath [string] :- The path to the text file containing test results.
+
+RETURN TYPE:
+    - void (Converts and writes results to an Excel file without returning a value.)
+#>
 function ConvertTxtFileToExcel($textFilePath)
 {
    $excelFilePath = "$pathLogsFolder\Report.xlsx"
@@ -129,6 +177,19 @@ function ConvertTxtFileToExcel($textFilePath)
        Write-Host "Error: The content of the Report text file is null or empty." -ForegroundColor Red
    }
 }
+
+<#
+DESCRIPTION:
+    This function adds failed tests to a list for re-execution. 
+    It parses the failed test details and generates commands for rerunning them, 
+    saving the commands and failed test names to respective files.
+
+INPUT PARAMETERS:
+    - failedTests [string] :- The string containing the failed test information.
+
+RETURN TYPE:
+    - void (Adds failed tests to files without returning a value.)
+#>
 function AddToFailedTestsList($failedTests)
 {
    $splitEachTests = $failedTests -split "\\"

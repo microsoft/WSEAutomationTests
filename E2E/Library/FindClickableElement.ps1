@@ -1,5 +1,17 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function checks if a UI element with a specific class name and property name exists within the given UI element.
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - clsNme [string] :- The class name of the UI element to search for.
+    - proptyNme [string] :- The property name of the UI element to search for.
+
+RETURN TYPE:
+    - [object] :- Returns the UI element if found, otherwise returns $null.
+#>
 function CheckIfElementExists($uiEle, $clsNme, $proptyNme){
     $classNameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ClassNameProperty, $clsNme)
     $nameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::NameProperty, $proptyNme)
@@ -10,6 +22,18 @@ function CheckIfElementExists($uiEle, $clsNme, $proptyNme){
     return $elemt
 }
 
+<#
+DESCRIPTION:
+    This function finds a clickable UI element based on its class name and property name. It throws an error if the element is not found.
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - clsNme [string] :- The class name of the UI element to search for.
+    - proptyNme [string] :- The property name of the UI element to search for.
+
+RETURN TYPE:
+    - [object] :- Returns the clickable UI element if found.
+#>
 function FindClickableElement($uiEle, $clsNme, $proptyNme){
     if ($uiEle -eq $null)
     {
@@ -26,6 +50,18 @@ function FindClickableElement($uiEle, $clsNme, $proptyNme){
     }
     return $elemt
 }
+
+<#
+DESCRIPTION:
+    This function finds a clickable UI element based on its Automation ID. It throws an error if the element is not found.
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - autoID [string] :- The Automation ID of the UI element to search for.
+
+RETURN TYPE:
+    - [object] :- Returns the clickable UI element if found.
+#>
 function FindClickableElementByAutomationID($uiEle, $autoID){
     if ($uiEle -eq $null)
     {
@@ -41,6 +77,18 @@ function FindClickableElementByAutomationID($uiEle, $autoID){
     }
     return $elemt
 } 
+
+<#
+DESCRIPTION:
+    This function finds a clickable UI element based on its property name. It throws an error if the element is not found.
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - proptyNme [string] :- The property name of the UI element to search for.
+
+RETURN TYPE:
+    - [object] :- Returns the clickable UI element if found.
+#>
 function FindClickableElementByName($uiEle, $proptyNme){
     if ($uiEle -eq $null)
     {
@@ -54,6 +102,18 @@ function FindClickableElementByName($uiEle, $proptyNme){
     }
     return $elemt
 }
+
+<#
+DESCRIPTION:
+    This function retrieves the name of the first UI element found with the specified class name.
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - clsNme [string] :- The class name of the UI element to search for.
+
+RETURN TYPE:
+    - [string] :- Returns the name of the first matching UI element.
+#>
 function FindFirstElementsNameWithClassName($uiEle, $clsNme)
 {
     if ($uiEle -eq $null)
@@ -70,6 +130,19 @@ function FindFirstElementsNameWithClassName($uiEle, $clsNme)
     return $elemt.GetCurrentPropertyValue([Windows.Automation.AutomationElement]::NameProperty)
 }
     
+<#
+DESCRIPTION:
+    This function finds and clicks on a UI element based on class name, property name, or Automation ID. It supports multiple interaction patterns like Invoke, Select, Toggle, and Expand.
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - clsNme [string] :- The class name of the UI element (optional).
+    - proptyNme [string] :- The property name of the UI element (optional).
+    - autoID [string] :- The Automation ID of the UI element (optional).
+
+RETURN TYPE:
+    - void (Performs the click operation without returning a value.)
+#>
 function FindAndClick ($uiEle,$clsNme,$proptyNme,$autoID){
        if ($uiEle -eq $null)
        {
@@ -110,6 +183,19 @@ function FindAndClick ($uiEle,$clsNme,$proptyNme,$autoID){
            $clickableElement.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
        }
 }
+
+<#
+DESCRIPTION:
+    This function finds a UI element and retrieves its current value based on available patterns (Toggle or SelectionItem).
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - clsNme [string] :- The class name of the UI element.
+    - proptyNme [string] :- The property name of the UI element.
+
+RETURN TYPE:
+    - [string] :- Returns the current value of the UI element.
+#>
 function FindAndGetValue($uiEle, $clsNme, $proptyNme) 
 {      
        if ($uiEle -eq $null)
@@ -130,6 +216,20 @@ function FindAndGetValue($uiEle, $clsNme, $proptyNme)
        }   
        Write-Error "$proptyNme could not be found" -ErrorAction Stop  
 }
+
+<#
+DESCRIPTION:
+    This function finds a UI element and sets its value if it differs from the desired value. It supports Toggle and RadioButton elements.
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - clsNme [string] :- The class name of the UI element.
+    - proptyNme [string] :- The property name of the UI element.
+    - proptyVal [string] :- The desired value to set.
+
+RETURN TYPE:
+    - void (Performs the value setting operation without returning a value.)
+#>
 function FindAndSetValue($uiEle, $clsNme, $proptyNme, $proptyVal)
 {    
      $result = FindAndGetValue $uiEle $clsNme $proptyNme  #Will add parameters validation at the later point of time.
@@ -154,6 +254,19 @@ function FindAndSetValue($uiEle, $clsNme, $proptyNme, $proptyVal)
          Write-Output "$proptyNme is already $result"
      } 
 }
+
+<#
+DESCRIPTION:
+    This function finds and clicks on the first available element from a provided list of property names.
+
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - clsNme [string] :- The class name of the UI elements to search for.
+    - proptyNmeLst [string[]] :- A list of property names to search and click.
+
+RETURN TYPE:
+    - void (Performs the click operation without returning a value.)
+#>
 function FindAndClickList 
 {
    param (

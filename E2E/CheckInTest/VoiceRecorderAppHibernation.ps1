@@ -1,5 +1,19 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function tests the behavior of the Voice Recorder App during multiple hibernation cycles.
+    It toggles the Voice Focus effect, records audio, puts the device into hibernation, and 
+    verifies that proper logs are generated while monitoring system performance.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void
+#>
 function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId)
 {
     $startTime = Get-Date 

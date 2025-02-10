@@ -1,5 +1,19 @@
 Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function tests the Voice Focus feature in the Windows Settings app. 
+    It toggles the Voice Focus AI effect, collects system traces, and verifies 
+    if proper logs are generated to ensure the feature is functioning as expected.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void
+#>
 function VoiceFocus-Playlist($devPowStat, $token, $SPId) 
 {   
     $startTime = Get-Date    

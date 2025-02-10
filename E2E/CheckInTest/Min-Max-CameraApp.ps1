@@ -1,5 +1,19 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function tests the Camera App by repeatedly minimizing and maximizing it 50 times 
+    while toggling AI effects and collecting traces. It verifies if memory usage exceeds 
+    a certain threshold and checks for any generic errors in the logs.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void (Logs outputs and results to files without returning a value.)
+#>
 function Min-Max-CameraApp($devPowStat, $token, $SPId)
 {
     $startTime = Get-Date 

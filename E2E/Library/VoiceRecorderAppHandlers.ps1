@@ -1,4 +1,17 @@
-﻿function AudioRecording($scnds)
+﻿<#
+DESCRIPTION:
+    This function automates the process of recording audio using the Voice Recorder app on Windows.
+    It captures the start time of the app and the precise time when the recording starts, 
+    performs the recording for the specified duration, and stops the recording afterward.
+    The timestamps are formatted for compatibility with Asg trace logs (in UTC with milliseconds).
+
+INPUT PARAMETERS:
+    - scnds [int] :- The duration (in seconds) for which the audio will be recorded.
+
+RETURN TYPE:
+    - array (Returns an array containing the start time of the Voice Recorder app and the start time of the audio recording.)
+#>
+function AudioRecording($scnds)
 {    
      #open voice recorder App
      Write-Output "Open Voice Recorder App"

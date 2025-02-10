@@ -1,5 +1,19 @@
 ﻿Add-Type -AssemblyName UIAutomationClient
 
+<#
+DESCRIPTION:
+    This function simulates a test scenario where the Camera App is opened, switched to video mode, 
+    and the system undergoes multiple hibernation cycles. It verifies whether logs are generated correctly, 
+    checks service states, starts and stops traces, and ensures AI effect settings return to default.
+
+INPUT PARAMETERS:
+    - devPowStat [string] :- Specifies the device power state (e.g., "PluggedIn", "OnBattery").
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+
+RETURN TYPE:
+    - void 
+#>
 function CameraApp-Hibernation($devPowStat, $token, $SPId)
 {
     $startTime = Get-Date 
