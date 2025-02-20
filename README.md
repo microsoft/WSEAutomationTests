@@ -12,7 +12,7 @@ Set up Repo
 =============
 **Microsoft Employee**: Link your public GitHub account with Microsoft Corp ID following the steps shared here - **[Link](https://microsoft.sharepoint.com/:w:/r/teams/958_TOR/Shared%20Documents/Validation%20documents/SetupRepo.docx?d=w1768ccca7ad948a2b643c582ed018f69&csf=1&web=1&e=SLJekE)** to create PR and propose changes. 
 
-**Non-Microsoft**: For Creating a PR we don't need to give any access. They can fork the repo to propose changes.
+**Non-Microsoft**: No access required. Fork the repo to propose changes.
 * Fork the repository. 
 * Make changes.
 * Submit a pull request for review.
