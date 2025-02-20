@@ -8,6 +8,16 @@ State of the Repository
 =======================
 The repository is actively maintained and updated to ensure compatibility with the latest firmware and Windows Studio Effects (WSE) versions. The repository is structured to facilitate easy access to the test scripts and guidelines, ensuring a smooth testing process for authorized personnel.
 
+Set up Repo
+=============
+**Microsoft Employee**: Link your public GitHub account with Microsoft Corp ID following the steps shared here - **[Link](https://microsoft.sharepoint.com/:w:/r/teams/958_TOR/Shared%20Documents/Validation%20documents/SetupRepo.docx?d=w1768ccca7ad948a2b643c582ed018f69&csf=1&web=1&e=SLJekE)** to create PR and propose changes. 
+
+**Non-Microsoft**: No access required. Fork the repo to propose changes.
+* Fork the repository. 
+* Make changes.
+* Submit a pull request for review.
+*  Two reviewers must approve the PR before it can be merged.
+
 Tests Overview
 ==============
 
