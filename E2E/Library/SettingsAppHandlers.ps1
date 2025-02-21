@@ -23,15 +23,8 @@ function FindCameraEffectsPage($uiEle){
         ClickFrontCamera $uiEle Button More
     }
     else
-    {   
-        $propertyNameList = @(
-        'Connected enabled camera Surface Camera Front',
-        'Connected enabled camera OV01AS',
-        'Connected enabled camera ASUS FHD webcam'
-        'Connected enabled camera HP 9MP Camera'
-        'Connected enabled camera Integrated Camera'
-        )
-        FindAndClickList $uiEle Button $propertyNameList
+    {
+        FindAndClick $uiEle Button "Connected enabled camera $Global:validatedCameraFriendlyName"
     }  
     Start-Sleep -m 500
 }
