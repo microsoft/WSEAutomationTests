@@ -82,17 +82,31 @@ function parseOptInCameraInfoFromDxDiagInfo()
 	# Read the content of the generated output DxDiag file
 	$dxdiagContent = Get-Content -Path $outputDxDiagFilePath
 
-	# to extract information using Select-String and regex patterns,
-	$videoCaptureDeviceFriendlyNameArray = $dxdiagContent | Select-String -Pattern "^\s+FriendlyName: (.+)" | ForEach-Object { $_ -replace "^\s+FriendlyName: ", "" }
-	$videoCaptureDeviceCategoryArray = $dxdiagContent | Select-String -Pattern "^\s+Category: (.+)" | ForEach-Object { $_ -replace "^\s+Category: ", "" }
-	$videoCaptureDeviceDriverVersionArray = $dxdiagContent | Select-String -Pattern "^\s+DriverVersion: (.+)" | ForEach-Object { $_ -replace "^\s+DriverVersion: ", "" }
-	$videoCaptureDeviceHardwareIDArray = $dxdiagContent | Select-String -Pattern "^\s+HardwareID: (.+)" | ForEach-Object { $_ -replace "^\s+HardwareID: ", "" }
-	$videoCaptureDeviceMEPOptedInArray = $dxdiagContent | Select-String -Pattern "^\s+MEPOptedIn: (.+)" | ForEach-Object { $_ -replace "^\s+MEPOptedIn: ", "" }
-	$videoCaptureDeviceMEPVersionArray = $dxdiagContent | Select-String -Pattern "^\s+MEPVersion: (.+)" | ForEach-Object { $_ -replace "^\s+MEPVersion: ", "" }
-	$videoCaptureDeviceFMEPHighResModeArray = $dxdiagContent | Select-String -Pattern "^\s+MEPHighResMode: (.+)" | ForEach-Object { $_ -replace "^\s+MEPHighResMode: ", "" }
+	# Extract information using Select-String and regex patterns
+	$videoCaptureDeviceFriendlyNameArray = $dxdiagContent | Select-String -Pattern "^\s+FriendlyName: (.+)" | ForEach-Object { $_.Line -replace "^\s+FriendlyName: ", "" }
+	$videoCaptureDeviceCategoryArray = $dxdiagContent | Select-String -Pattern "^\s+Category: (.+)" | ForEach-Object { $_.Line -replace "^\s+Category: ", "" }
+	$videoCaptureDeviceDriverVersionArray = $dxdiagContent | Select-String -Pattern "^\s+DriverVersion: (.+)" | ForEach-Object { $_.Line -replace "^\s+DriverVersion: ", "" }
+	$videoCaptureDeviceHardwareIDArray = $dxdiagContent | Select-String -Pattern "^\s+HardwareID: (.+)" | ForEach-Object { $_.Line -replace "^\s+HardwareID: ", "" }
+	$videoCaptureDeviceMEPOptedInArray = $dxdiagContent | Select-String -Pattern "^\s+MEPOptedIn: (.+)" | ForEach-Object { $_.Line -replace "^\s+MEPOptedIn: ", "" }
+	$videoCaptureDeviceMEPVersionArray = $dxdiagContent | Select-String -Pattern "^\s+MEPVersion: (.+)" | ForEach-Object { $_.Line -replace "^\s+MEPVersion: ", "" }
+	$videoCaptureDeviceFMEPHighResModeArray = $dxdiagContent | Select-String -Pattern "^\s+MEPHighResMode: (.+)" | ForEach-Object { $_.Line -replace "^\s+MEPHighResMode: ", "" }
 
 	$optInCameraDeviceIndex = -1
 	$nonOptInCameraDeviceIndex = -1
+
+	# if there is only one object returned from the Select-String results, we can access the element directly
+	if (1 -eq $videoCaptureDeviceFriendlyNameArray.Count) {
+		# We are only focused on capture devices with the 'Category: Camera' property
+		if ("Camera" -ieq $videoCaptureDeviceCategoryArray) {
+			$parseResults.optinCameraFriendlyName	= $videoCaptureDeviceFriendlyNameArray
+			$parseResults.optinCameraDriverVersion	= $videoCaptureDeviceDriverVersionArray
+			$parseResults.optinCameraHardwareID		= $videoCaptureDeviceHardwareIDArray
+			$parseResults.mepCameraOptedIn			= $videoCaptureDeviceMEPOptedInArray
+			$parseResults.mepDriverVersion			= $videoCaptureDeviceMEPVersionArray
+			$parseResults.optinCameraMepHighResMode	= $videoCaptureDeviceFMEPHighResModeArray
+		}
+		return $parseResults
+	}
 
 	for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
 		# We are only focused on capture devices with the 'Category: Camera' property
@@ -100,7 +114,7 @@ function parseOptInCameraInfoFromDxDiagInfo()
 			if ("True" -ieq $videoCaptureDeviceMEPOptedInArray[$i]) {
 				$optInCameraDeviceIndex = $i
 				break;
-			} elseif ((-1 -eq $nonOptInCameraDeviceIndex) -and ("False" -ieq $videoCaptureDeviceMEPOptedInArray[$i]) ) {
+			} elseif ((-1 -eq $nonOptInCameraDeviceIndex) -and ("False" -ieq $videoCaptureDeviceMEPOptedInArray[$i])) {
 				$nonOptInCameraDeviceIndex = $i
 			}
 		}
