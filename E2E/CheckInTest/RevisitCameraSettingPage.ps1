@@ -38,15 +38,8 @@ function RevisitCameraSetting($times)
           ClickFrontCamera $ui Button More
       }
       else
-      {   
-          $propertyNameList = @(
-          'Connected enabled camera Surface Camera Front',
-          'Connected enabled camera OV01AS',
-          'Connected enabled camera ASUS FHD webcam'
-          'Connected enabled camera HP 9MP Camera'
-          'Connected enabled camera Integrated Camera'
-          )
-          FindAndClickList $ui Button $propertyNameList
+      {
+          FindAndClick $ui Button "Connected enabled camera $Global:validatedCameraFriendlyName"
       }  
        Start-Sleep -s 2
        $i++

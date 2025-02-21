@@ -210,6 +210,7 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
 
 	if ($optinCameraFriendlyName) {
 		outputMessage "Opt-In Camera FriendlyName: $optinCameraFriendlyName"
+		$Global:validatedCameraFriendlyName = $optinCameraFriendlyName
 	} else {
 		Write-Host "Opt-In Camera FriendlyName Info not found"
 	}
