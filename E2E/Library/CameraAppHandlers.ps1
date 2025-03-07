@@ -222,7 +222,7 @@ function StartVideoRecording($scnds)
 
      # Call python modules for task manager Before starting the test case
 	 $pythonCommand = @"
-python -c "import sys; sys.path.append(r'$($escapedpythonLibPath)'); from interface_wrapper import ResourceMonitor; monitor = ResourceMonitor(r'$escapedPathLogsFolder', $scnds); monitor.start_task_manager(); monitor.switch_to_performance_tab(); monitor.log_utilization();"
+python -c "import sys; sys.path.append(r'$($escapedpythonLibPath)'); from npu_cpu_memory_utilization import ResourceMonitor; monitor = ResourceMonitor(r'$escapedPathLogsFolder', $scnds); monitor.start_task_manager(); monitor.switch_to_performance_tab(); monitor.log_utilization();"
 "@
 	 Invoke-Expression $pythonCommand
      [System.Windows.Forms.SendKeys]::SendWait(' ');
