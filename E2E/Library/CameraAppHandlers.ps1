@@ -210,15 +210,21 @@ function StartVideoRecording($scnds)
      
      #Coverting the string back to date format for time calculation in code later in CheckInitTimeCameraApp function.
      $cameraAppStartTime = [System.DateTime]::ParseExact($cameraAppStartTostring,'yyyy/MM/dd HH:mm:ss:fff',$null)
-                                  
+
      #Switch to video mode if not in video mode
-     SwitchModeInCameraApp $ui "Switch to video mode" "Take video" 
-     Start-Sleep -s 2
-     
+	 $ui.SetFocus()
+     SwitchModeInCameraApp $ui "Switch to video mode" "Take video"
+
      #record video inbetween space presses
      Write-Output "Start recording a video for $scnds seconds"
      [System.Windows.Forms.SendKeys]::SendWait(' ');
-     Start-Sleep -s $scnds
+     Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
+
+     # Call python modules for task manager Before starting the test case
+	 $pythonCommand = @"
+python -c "import sys; sys.path.append(r'$($escapedpythonLibPath)'); from interface_wrapper import ResourceMonitor; monitor = ResourceMonitor(r'$escapedPathLogsFolder', $scnds); monitor.start_task_manager(); monitor.switch_to_performance_tab(); monitor.log_utilization();"
+"@
+	 Invoke-Expression $pythonCommand
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
      Write-Output "video recording stopped after $scnds seconds"
@@ -226,7 +232,6 @@ function StartVideoRecording($scnds)
      #restores photo mode for the next run(This line will be uncommented once camera issue is fixed)
      #SwitchModeInCameraApp $ui "Switch to photo mode" "Take photo"
      Start-Sleep -s 2
-
      #Close camera App
      CloseApp 'WindowsCamera'
      Start-Sleep -s 1  

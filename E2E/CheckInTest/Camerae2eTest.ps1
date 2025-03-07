@@ -37,7 +37,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         Set-SystemSettingsInCamera
        
         #Set photo resolution
-	     $photoResName = SetHighestPhotoResolutionInCameraApp 
+	    $photoResName = SetHighestPhotoResolutionInCameraApp 
         $phoResNme = RetrieveValue $photoResName[-1]
         
         #Set video resolution
@@ -47,7 +47,6 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         $scenarioLogFolder = "$scenarioName\$phoResNme\$vdoResNme" 
 
         CreateScenarioLogsFolder $scenarioLogFolder
-        
         $powerMode = $devPowStat -replace '^\d+-', ''
         $devState = CheckDevicePowerState $powerMode $token $SPId
         if($devState -eq $false)
@@ -62,21 +61,25 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         #Strating to collect Traces
         Write-Output "Entering StartTrace function"
         StartTrace $scenarioLogFolder
-
         #Open Task Manager
-        Write-output "Opening Task Manager"
+        Write-Output "Opening Task Manager"
         $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
         Start-Sleep -s 1
         setTMUpdateSpeedLow -uiEle $uitaskmgr
-                             
-        #Start video recording and close the camera app once finished recording 
+        
+		# Call python modules for task manager Before starting the test case
+		$pythonCommand = @"
+python -c "import sys; sys.path.append(r'$($escapedpythonLibPath)'); from interface_wrapper import ResourceMonitor; monitor = ResourceMonitor(r'$escapedPathLogsFolder', 5); monitor.start_task_manager(); monitor.switch_to_performance_tab(); monitor.log_utilization();"
+"@
+		Invoke-Expression $pythonCommand
+        
+		#Start video recording and close the camera app once finished recording
         Write-Output "Entering StartVideoRecording function"
         $InitTimeCameraApp = StartVideoRecording "60"
         $cameraAppStartTime = $InitTimeCameraApp[-1]
-        Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
-
+        
         #Capture CPU and NPU Usage
-        Write-output "Entering CPUandNPU-Usage function to capture CPU and NPU usage Screenshot"  
+        Write-Output "Entering CPUandNPU-Usage function to capture CPU and NPU usage Screenshot"  
         stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
         
         #Checks if frame server is stopped
@@ -130,4 +133,3 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
        Error-Exception -snarioName $scenarioLogFolder -strttme $startTime -rslts $Results -logFile $logFile -token $token -SPID $SPID
     }
 }
-
