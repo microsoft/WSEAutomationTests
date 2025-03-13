@@ -1,4 +1,4 @@
-﻿Add-Type -AssemblyName UIAutomationClient
+Add-Type -AssemblyName UIAutomationClient
 
 <#
 DESCRIPTION:
@@ -200,7 +200,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
         CheckServiceState 'Windows Camera Frame Server'
         Write-Log -Message $_ -IsOutput
         TestOutputMessage $scenarioLogFolder "Exception" $startTime $_.Exception.Message
-        Write-Log -Message "$_" | Out-File -FilePath "$pathLogsFolder\ConsoleResults.txt" -Append
+        Write-Log -Message "$_" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
         Reporting $Results "$pathLogsFolder\Report.txt"
         GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioLogFolder
         $getLogs = Get-Content -Path "$pathLogsFolder\$scenarioLogFolder\log.txt" -raw
