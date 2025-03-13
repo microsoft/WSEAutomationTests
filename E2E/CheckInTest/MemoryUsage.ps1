@@ -3,10 +3,8 @@
 <#
 DESCRIPTION:
     Captures the Peak Working Set Size (maximum amount of memory used) of the FrameServer process.
-
 INPUT PARAMETERS:
     - None
-
 RETURN TYPE:
     - int (Returns the Peak Working Set Size of the FrameServer process in bytes.)
 #>
@@ -23,12 +21,10 @@ DESCRIPTION:
     This function measures memory usage of the Camera App while recording a video. 
     It toggles AI effects, sets resolutions, records a video, captures Peak Working Set Size,
     and checks if memory growth exceeds a threshold over a prolonged duration.
-
 INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
-
 RETURN TYPE:
     - void 
 #>
@@ -53,7 +49,7 @@ function MemoryUsage-Playlist($devPowStat, $token, $SPId)
         CreateScenarioLogsFolder $scenarioLogFolder
 
         #Toggling All effects on
-        Write-Output "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On"
+        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                      -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
@@ -69,7 +65,7 @@ function MemoryUsage-Playlist($devPowStat, $token, $SPId)
         foreach ($ptoRes in $photoResolutionList)
         {
            #Create scenario folder specific to photoresolution for collecting logs
-           Write-Output "Creating folder for capturing logs"
+           Write-Log -Message "Creating folder for capturing logs" -IsOutput
            $ptoResfolder = $ptoRes.Split(", ") | Select-Object -First 1
            $ptoResfoldername = $ptoResfolder + "MP"
            $scenarioLogFolder = "$scenarioName\$ptoResfoldername" 
@@ -79,16 +75,16 @@ function MemoryUsage-Playlist($devPowStat, $token, $SPId)
            if($result[-1]  -ne $false)
            {
               #Checks if frame server is stopped
-              Write-Output "Entering CheckServiceState function"
+              Write-Log -Message "Entering CheckServiceState function" -IsOutput
               CheckServiceState 'Windows Camera Frame Server'
                             
               #Strating to collect Traces
-              Write-Output "Entering StartTrace function"
+              Write-Log -Message "Entering StartTrace function" -IsOutput
               StartTrace $scenarioLogFolder
               
               #Start video recording and close the camera app once finished recording 
               #Open Camera App
-              Write-Output "Open camera App"
+              Write-Log -Message "Open camera App" -IsOutput
               $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
               Start-Sleep -s 1
                                                                         
@@ -97,7 +93,7 @@ function MemoryUsage-Playlist($devPowStat, $token, $SPId)
               Start-Sleep -s 2
               
               #record video inbetween space presses
-              Write-Output "Start recording a video for $scnds seconds"
+              Write-Log -Message "Start recording a video for $scnds seconds" -IsOutput
               [System.Windows.Forms.SendKeys]::SendWait(' ');
               
               #Sleep for 1 minute before capturing PeakWorkingSetSize
@@ -107,18 +103,16 @@ function MemoryUsage-Playlist($devPowStat, $token, $SPId)
               {  
                  #Capture Initial PeakWorkingSetSize before starting sleep again for adiitional $sec secs 
                  $pekWorkSetSiz = PeakWorkingSetSize
-                 Write-host "Initial PeakWorkingSetSize before starting sleep again for adiitional $sec secs: $pekWorkSetSiz"
-                 Write-Output "Initial PeakWorkingSetSize before starting sleep again for adiitional $sec secs: $pekWorkSetSiz"
+                 Write-Log -Message "Initial PeakWorkingSetSize before starting sleep again for adiitional $sec secs: $pekWorkSetSiz" -IsOutput -IsHost
 
                  #Sleep for additional 20 minute before capturing PeakWorkingSetSize
                  start-Sleep -s $sec
                  $pekWorkSetSiz20min = PeakWorkingSetSize
-                 Write-host "PeakWorkingSetSize after $sec secs : $pekWorkSetSiz20min" 
-                 Write-Output "PeakWorkingSetSize after $sec secs: $pekWorkSetSiz20min"
+                 Write-Log -Message "PeakWorkingSetSize after $sec secs : $pekWorkSetSiz20min" -IsOutput -IsHost
                  
                  #Compare the Peakworking set and check if the difference is greater than 1000KB between every $sec secs
                  $difference = $pekWorkSetSiz20min - $pekWorkSetSiz
-                 Write-Output "Difference between PeakWorkingSet after every $sec secs: $difference"
+                 Write-Log -Message "Difference between PeakWorkingSet after every $sec secs: $difference" -IsOutput
                  if(($difference -gt 0) -and ($difference -gt 1000))
                  {
                     $greaterThan1000KB = $True
@@ -127,7 +121,7 @@ function MemoryUsage-Playlist($devPowStat, $token, $SPId)
                  } 
                  else
                  {
-                    write-host "PeakworkingSet difference is not greater than 1000KB for run $i. Difference after every $sec is: $difference = $pekWorkSetSiz20min - $pekWorkSetSiz"
+                    Write-Log -Message "PeakworkingSet difference is not greater than 1000KB for run $i. Difference after every $sec is: $difference = $pekWorkSetSiz20min - $pekWorkSetSiz" -IsHost
                  }
                  $i++
               
@@ -139,11 +133,11 @@ function MemoryUsage-Playlist($devPowStat, $token, $SPId)
               
                                         
               #Checks if frame server is stopped
-              Write-Output "Entering CheckServiceState function"
+              Write-Log -Message "Entering CheckServiceState function" -IsOutput
               CheckServiceState 'Windows Camera Frame Server' 
               
               #Stop the Trace
-              Write-Output "Entering StopTrace function"
+              Write-Log -Message "Entering StopTrace function" -IsOutput
               StopTrace $scenarioLogFolder
               
               #Fail the test if Peakworkingset size difference is greater than 1000KB

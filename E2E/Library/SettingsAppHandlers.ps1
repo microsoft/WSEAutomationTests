@@ -3,10 +3,8 @@ DESCRIPTION:
     This function navigates through the Settings app to find and open the Camera Effects page.
     It clicks through the navigation items to access the camera settings, and identifies the 
     appropriate camera for further adjustments.
-
 INPUT PARAMETERS:
     - uiEle [Object] :- The UI Automation element representing the Settings app interface.
-
 RETURN TYPE:
     - void (Performs UI navigation and clicking without returning a value.)
 #>
@@ -32,12 +30,10 @@ function FindCameraEffectsPage($uiEle){
 <#
 DESCRIPTION:
     This function help finding the Front facing camera when UI element name is same.on setting page
-
 INPUT PARAMETERS:
     - uiEle [Object] :- The UI Automation element representing the Settings app interface.
     - clsNme [string] :- The class name of the UI element to be clicked.
     - proptyNme [string] :- The name of the UI element to be clicked.
-
 RETURN TYPE:
     - void (Performs UI element selection and clicking without returning a value.)
 #>
@@ -76,10 +72,8 @@ DESCRIPTION:
     This function navigates to the Voice Focus settings page in the Settings app. It checks 
     for the presence of audio devices and navigates through the menus to find the audio 
     enhancements section.
-
 INPUT PARAMETERS:
     - uiEle [Object] :- The UI Automation element representing the Settings app interface.
-
 RETURN TYPE:
     - void (Performs UI navigation and clicking without returning a value.)
 #>
@@ -135,10 +129,8 @@ function FindVoiceFocusPage($uiEle){
 DESCRIPTION:
     This function toggles the Voice Focus setting in the Settings app. It first checks if 
     the device supports Voice Focus, and then toggles the setting based on the provided value.
-
 INPUT PARAMETERS:
     - proptyVal [string] :- The desired state of the Voice Focus toggle ("On" or "Off").
-
 RETURN TYPE:
     - void (Performs UI interactions to toggle Voice Focus without returning a value.)
 #>
@@ -157,11 +149,11 @@ Function VoiceFocusToggleSwitch($proptyVal)
      Start-Sleep -m 500
 
      #Navigate to audio effects page to toggle voice focus On/Off  
-     Write-Output "Navigate to audio effects page"
+     Write-Log -Message "Navigate to audio effects page" -IsOutput
      FindVoiceFocusPage $ui
      Start-Sleep -m 500
      
-     Write-Output "Turn $proptyVal all audio effects"
+     Write-Log -Message "Turn $proptyVal all audio effects" -IsOutput
      FindAndSetValue $ui ToggleSwitch "Voice Focus" $proptyVal
      Start-Sleep -s 1
 
@@ -173,7 +165,6 @@ Function VoiceFocusToggleSwitch($proptyVal)
 DESCRIPTION:
     This function toggles various AI camera effects and audio enhancements in the Settings app. 
     It handles different combinations of settings based on whether WSEV2 is supported.
-
 INPUT PARAMETERS:
     - AFVal [string] :- Toggle value for Automatic Framing.
     - PLVal [string] :- Toggle value for Portrait Light.
@@ -188,24 +179,23 @@ INPUT PARAMETERS:
     - CFI [string] :- Toggle value for Illustrated Creative Filter.
     - CFA [string] :- Toggle value for Animated Creative Filter.
     - CFW [string] :- Toggle value for Watercolor Creative Filter.
-
 RETURN TYPE:
     - void (Performs UI interactions to toggle camera and audio effects without returning a value.)
 #>
 Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECEVal,$VFVal,$CF,$CFI,$CFA,$CFW)
 {    
-     Write-Output "Entering ToggleAIEffectsInSettingsApp function" 
+     Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function" -IsOutput
      
      #open settings app and obtain ui automation from it
      $ui = OpenApp 'ms-settings:' 'Settings'
      Start-Sleep -s 1
      
      #open camera effects page and turn all effects off
-     Write-Output "Navigate to camera effects setting page"
+     Write-Log -Message "Navigate to camera effects setting page" -IsOutput
      FindCameraEffectsPage $ui
      Start-Sleep -s 1
 
-     Write-Output "Toggle camera effects in setting Page"
+     Write-Log -Message "Toggle camera effects in setting Page" -IsOutput
      FindAndSetValue $ui ToggleSwitch "Automatic framing" $AFVal
      FindAndSetValue $ui ToggleSwitch "Eye contact" $ECVal
      FindAndSetValue $ui ToggleSwitch "Background effects" $BBVal
@@ -218,7 +208,7 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,
      $wsev2PolicyState = CheckWSEV2Policy
      if($wsev2PolicyState -eq $true)
      {
-        Write-Output "Toggle camera effects in setting Page"
+        Write-Log -Message "Toggle camera effects in setting Page" -IsOutput
                
         FindAndSetValue $ui ToggleSwitch "Portrait light" $PLVal
         FindAndSetValue $ui ToggleSwitch "Creative filters" $CF

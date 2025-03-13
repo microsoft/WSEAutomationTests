@@ -3,16 +3,13 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName UIAutomationClient
 
-
 <#
 DESCRIPTION:
     This function captures a full-screen screenshot, including all monitors in a multi-monitor setup,
     and saves it as a PNG file in the specified scenario folder.
-
 INPUT PARAMETERS:
     - FileName [string] :- The name of the file to save the screenshot (without extension).
     - ScnrName [string] :- The name of the scenario, used to create a corresponding folder for storing screenshots.
-
 RETURN TYPE:
     - void (Captures and saves a screenshot without returning a value.)
 #>
@@ -57,12 +54,10 @@ DESCRIPTION:
     This function captures a screenshot of a specific window based on its title. 
     If the window is found, it brings the window to the foreground and captures the screenshot.
     The image is saved as a PNG file in the specified scenario folder.
-
 INPUT PARAMETERS:
     - FileName [string] :- The name of the file to save the screenshot (without extension).
     - ScnrName [string] :- The name of the scenario, used to create a corresponding folder for storing screenshots.
     - windowTitleNme [string] :- The title of the window to capture. The function will search for this window and bring it to the foreground.
-
 RETURN TYPE:
     - void (Captures and saves the window screenshot without returning a value.)
 #>
@@ -108,7 +103,7 @@ function Take-ForegroundWindowShot
    if($clipboard)
    {
        $clipboard.Save($filePath, [System.Drawing.Imaging.ImageFormat]::Png)
-       Write-output "Screenshot saved to $filePath"
+       Write-Log -Message "Screenshot saved to $filePath" -IsOutput
    }
    else
    {

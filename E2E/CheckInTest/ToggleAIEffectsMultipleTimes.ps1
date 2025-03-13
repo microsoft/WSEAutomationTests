@@ -5,13 +5,11 @@ DESCRIPTION:
     This function toggles a specified AI effect on and off for a given number of times 
     in the Windows Settings App. It is used to test the stability and responsiveness 
     of AI effect toggles.
-
 INPUT PARAMETERS:
     - uiEle [object] :- The UI automation element representing the Settings app window.
     - clsNme [string] :- The class name of the UI element (e.g., "ToggleSwitch").
     - proptyNme [string] :- The property name of the AI effect to be toggled (e.g., "Automatic framing").
     - times [int] :- The number of times the AI effect should be toggled on and off.
-
 RETURN TYPE:
     - void
 #>
@@ -31,12 +29,10 @@ function OnandOffAiEffects($uiEle, $clsNme, $proptyNme, $times)
 DESCRIPTION:
     This function toggles various AI effects in the Windows Settings app multiple times to test system stability.
     It collects logs, checks memory usage, verifies logs, and ensures the device returns to a neutral state.
-
 INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
-
 RETURN TYPE:
     - void
 #>
@@ -58,26 +54,26 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
 	{  
       
         #Create scenario specific folder for collecting logs
-        Write-Output "Creating folder for capturing logs"
+        Write-Log -Message "Creating folder for capturing logs" -IsOutput
         CreateScenarioLogsFolder $scenarioName
 
-        #Strating to collect Traces for generic error
-        Write-Output "Entering StartTrace"
+        # Starting to collect Traces for generic error
+        Write-Log -Message "Entering StartTrace" -IsOutput
         StartTrace $scenarioName
 
-       #open Camera App and set default setting to "Use system settings" 
+       # Open Camera App and set default setting to "Use system settings" 
        Set-SystemSettingsInCamera
 
-        #open settings app and obtain ui automation from it
+        # Open settings app and obtain UI automation from it
         $ui = OpenApp 'ms-settings:' 'Settings'
         Start-Sleep -m 500
         
-        #open camera effects page and toggle AI effects
-        Write-Output "Navigate to camera effects setting page"
+        # Open camera effects page and toggle AI effects
+        Write-Log -Message "Navigate to camera effects setting page" -IsOutput
         FindCameraEffectsPage $ui
         Start-Sleep -m 500 
                
-        Write-Output "Toggle camera effects in setting Page"
+        Write-Log -Message "Toggle camera effects in setting Page" -IsOutput
         OnandOffAiEffects $ui ToggleSwitch "Automatic framing" "2"
         OnandOffAiEffects $ui ToggleSwitch "Eye contact" "2"
         OnandOffAiEffects $ui ToggleSwitch "Background effects" "2"
@@ -89,26 +85,25 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
            OnandOffAiEffects $ui ToggleSwitch "Creative filters" "2"
         } 
 
-        #close settings app
+        # Close settings app
         CloseApp 'systemsettings'
         start-sleep -s 1
 
-        #Change AI toggle in camera App UI(We will have change once the effects are available in camera App UI)
+        # Change AI toggle in camera App UI (We will have change once the effects are available in camera App UI)
         ToggleAiEffectsInCameraApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECEVal "True" `
-                                     -CF "On" -CFI "False" -CFA "False" -CFW "True" 
+                                   -ECVal "On" -ECSVal "False" -ECEVal "True" `
+                                   -CF "On" -CFI "False" -CFA "False" -CFW "True" 
 
-        
-        #open settings app and obtain ui automation from it
+        # Open settings app and obtain UI automation from it
         $ui = OpenApp 'ms-settings:' 'Settings'
         Start-Sleep -m 500
         
-        #open camera effects page and toggle AI effects
-        Write-Output "Navigate to camera effects setting page"
+        # Open camera effects page and toggle AI effects
+        Write-Log -Message "Navigate to camera effects setting page" -IsOutput
         FindCameraEffectsPage $ui
         Start-Sleep -m 500 
 
-        Write-Output "Toggle camera effects in setting Page"
+        Write-Log -Message "Toggle camera effects in setting Page" -IsOutput
         OnandOffAiEffects $ui ToggleSwitch "Automatic framing" "2"
         OnandOffAiEffects $ui ToggleSwitch "Eye contact" "2"
         OnandOffAiEffects $ui ToggleSwitch "Background effects" "2"
@@ -119,25 +114,25 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
            OnandOffAiEffects $ui ToggleSwitch "Creative filters" "2"
         }
 
-        #close settings app
+        # Close settings app
         CloseApp 'systemsettings'
         start-sleep -s 1
                      
-        #Change AI toggle in camera App UI (We will have change once the effects are available in camera App UI)
+        # Change AI toggle in camera App UI (We will have change once the effects are available in camera App UI)
         ToggleAiEffectsInCameraApp -AFVal "Off" -PLVal "Off" -BBVal "On" -BSVal "True" -BPVal "False" `
                                      -ECVal "On" -ECSVal "True" -ECEVal "False" `
                                      -CF "On" -CFI "True" -CFA "False" -CFW "False" 
 
-        #open settings app and obtain ui automation from it
+        # Open settings app and obtain UI automation from it
         $ui = OpenApp 'ms-settings:' 'Settings'
         Start-Sleep -m 500
         
-        #open camera effects page and toggle AI effects
-        Write-Output "Navigate to camera effects setting page"
+        # Open camera effects page and toggle AI effects
+        Write-Log -Message "Navigate to camera effects setting page" -IsOutput
         FindCameraEffectsPage $ui
         Start-Sleep -m 500 
 
-        Write-Output "Toggle camera effects in setting Page"
+        Write-Log -Message "Toggle camera effects in setting Page" -IsOutput
         OnandOffAiEffects $ui ToggleSwitch "Automatic framing" "2"
         OnandOffAiEffects $ui ToggleSwitch "Eye contact" "2"
         OnandOffAiEffects $ui ToggleSwitch "Background effects" "2"
@@ -160,73 +155,73 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         
         Start-Sleep -s 2
         #Toggling All effects on
-        Write-Output "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On"
+        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                      -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
         Start-Sleep -s 2       
 
-        #close settings app
+        # Close settings app
         CloseApp 'systemsettings'
 
-        #Close camera App
+        # Close camera App
         CloseApp 'WindowsCamera'
 
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function"
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
 
-        #Stop the Trace for generic error
-        Write-Output "Entering StopTrace function"
+        # Stop the Trace for generic error
+        Write-Log -Message "Entering StopTrace function" -IsOutput
         StopTrace $scenarioName
 
-        #check for generic error
+        # Check for generic error
         GenericError $scenarioName
 
-        #Check if AvgMemoryUsage is greater than 250MB
+        # Check if AvgMemoryUsage is greater than 250MB
         CheckMemoryUsage $scenarioName
 
-        #Create scenario specific folder for collecting logs
-        Write-Output "Creating folder for capturing logs"
+        # Create scenario specific folder for collecting logs
+        Write-Log -Message "Creating folder for capturing logs" -IsOutput
         $scenarioName = "$devPowStat\ToggleAIEffectsMultipleTimes-ValidateScenarioID"
         CreateScenarioLogsFolder $scenarioName
                       
-        #Strating to collect Traces
-        Write-Output "Entering StartTrace function"
+        # Starting to collect Traces
+        Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName
 
-        #Open camera App
+        # Open camera App
         $InitTimeCameraApp = CameraPreviewing "20"
         $cameraAppStartTime = $InitTimeCameraApp[-1]
-        Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
+        Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
         
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function"
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
 
-        #Stop the Trace
-        Write-Output "Entering StopTrace function"
+        # Stop the Trace
+        Write-Log -Message "Entering StopTrace function" -IsOutput
         StopTrace $scenarioName
 
         $wsev2PolicyState = CheckWSEV2Policy
         if($wsev2PolicyState -eq $false)
         {  
-           #ScenarioID 81968 is based on v1 effects.   
-           Write-Output "Entering Verifylogs function"
+           # ScenarioID 81968 is based on v1 effects.   
+           Write-Log -Message "Entering Verifylogs function" -IsOutput
            Verifylogs $scenarioName "81968" $startTime
 
-           #calculate Time from camera app started until PC trace first frame processed
-           Write-Output "Entering CheckInitTimeCameraApp function" 
+           # Calculate Time from camera app started until PC trace first frame processed
+           Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
            CheckInitTimeCameraApp $scenarioName "81968" $cameraAppStartTime
         }
         else
         { 
-           #ScenarioID 737312 is based on v1+v2 effects.   
-           Write-Output "Entering Verifylogs function"
+           # ScenarioID 737312 is based on v1+v2 effects.   
+           Write-Log -Message "Entering Verifylogs function" -IsOutput
            Verifylogs $scenarioName "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
 
-           #calculate Time from camera app started until PC trace first frame processed
-           Write-Output "Entering CheckInitTimeCameraApp function" 
+           # Calculate Time from camera app started until PC trace first frame processed
+           Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
            CheckInitTimeCameraApp $scenarioName "2834432" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
         }
         #collect data for Reporting
@@ -241,15 +236,3 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
        Error-Exception -snarioName $scenarioName -strttme $startTime -rslts $Results -logFile $logFile -token $token -SPID $SPID
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

@@ -8,7 +8,7 @@
 .".\CheckInTest\Helper-library.ps1"
 InitializeTest 'ReleaseTest' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
 $deviceData = GetDeviceDetails 
-write-output $deviceData >> "$pathLogsFolder\CameraAppTest.txt"
+Write-Log -Message "$deviceData" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
 
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
@@ -25,7 +25,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
       #Retrieve video resolution from hash table
       $vdoResDetails = RetrieveValue $vdoRes
 
-      Write-Output "Setting up video Res to $vdoResDetails" >> "$pathLogsFolder\CameraAppTest.txt"
+      Write-Log -Message "Setting up video Res to $vdoResDetails" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
       
       #skip the test if video resolution is not available. 
       $result = SetvideoResolutionInCameraApp $scenarioName $startTime $vdoResDetails
@@ -42,7 +42,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
          #Retrieve photo resolution from hash table
          $ptoResDetails = RetrieveValue $ptoRes
 
-         Write-Output "Setting up Photo Res to $ptoResDetails" >> "$pathLogsFolder\CameraAppTest.txt"
+         Write-Log -Message "Setting up Photo Res to $ptoResDetails" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
 
          #skip the test if photo resolution is not available. 
          $result = SetphotoResolutionInCameraApp $scenarioName $startTime $ptoResDetails
@@ -56,7 +56,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
          {  
             if($VF -ne "NA")
             {
-               Write-Output "Setting up Voice Focus to $VF" >> "$pathLogsFolder\CameraAppTest.txt"
+               Write-Log -Message "Setting up Voice Focus to $VF" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
                VoiceFocusToggleSwitch $VF >> "$pathLogsFolder\CameraAppTest.txt"
             }
 
@@ -100,7 +100,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
 
                # Exit loop when all tests are completed
                if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
-                  Write-Host "breaking from the while loop"
+                  Write-Log -Message "breaking from the while loop" -IsHost
                   break
                }
             }

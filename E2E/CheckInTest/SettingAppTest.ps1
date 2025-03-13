@@ -5,13 +5,11 @@ DESCRIPTION:
     This function automates testing of the Windows Settings App, specifically focusing on camera AI effects.
     It applies various AI effect configurations, collects performance traces, captures CPU and NPU usage, 
     and verifies if logs are generated correctly.
-
 INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - testScenario [string] :- The test scenario defining specific AI effect settings to apply.
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
-
 RETURN TYPE:
     - void
 #>
@@ -33,12 +31,12 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
        }
 
        #Create scenario specific folder for collecting logs
-       Write-Output "Creating folder for capturing logs"
+       Write-Log -Message "Creating folder for capturing logs" -IsOutput
        CreateScenarioLogsFolder $scenarioName
 
-       Write-Output "Start Tests for $scenarioName"   
+       Write-Log -Message "Start Tests for $scenarioName" -IsOutput
        
-       #Retrieve value for scenario from LookUp table for camera effects
+       # Retrieve value for scenario from LookUp table for camera effects
        $testScenario = RetrieveValue $testScenario
        if($testScenario.length -eq 0)
        {
@@ -46,20 +44,20 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
           return
        }
        
-       #Toggling Ai effects as per scenarios
-       #Open system setting page
+       # Toggling AI effects as per scenarios
+       # Open system setting page
        $ui = OpenApp 'ms-settings:' 'Settings'
        Start-Sleep -m 500
        
-       #open camera effects page 
-       Write-Output "Navigate to camera effects setting page"
+       # Open camera effects page 
+       Write-Log -Message "Navigate to camera effects setting page" -IsOutput
        FindCameraEffectsPage $ui
        Start-Sleep -m 500 
        
-      #Setting up AI effects for tests in camera setting page 
-      $scenarioID = $testScenario[13]
+       # Setting up AI effects for tests in camera setting page 
+       $scenarioID = $testScenario[13]
                     
-      Write-Output "Setting up the camera Ai effects"       
+       Write-Log -Message "Setting up the camera Ai effects" -IsOutput      
 
       FindAndSetValue $ui ToggleSwitch "Automatic framing" $testScenario[0]
       FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[5]
@@ -90,44 +88,44 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
        CloseApp 'systemsettings'
        
        #Checks if frame server is stopped
-       Write-Output "Entering CheckServiceState function" 
+       Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server'
        
-       #Start collecting Traces before opening setting page
-       Write-Output "Entering StartTrace function"
+       # Start collecting Traces before opening setting page
+       Write-Log -Message "Entering StartTrace function" -IsOutput
        StartTrace $scenarioName
        
-       #Open Task Manager
-       Write-output "Opening Task Manager"
+       # Open Task Manager
+       Write-Log -Message "Opening Task Manager" -IsOutput
        $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
        Start-Sleep -s 1
        
-       Write-Output "Open Setting Page"
+       Write-Log -Message "Open Setting Page" -IsOutput
        $ui = OpenApp 'ms-settings:' 'Settings'
        Start-Sleep -m 500
        
-       #Open camera system setting page and wait for 5 secs
-       Write-Output "Entering FindCameraEffectsPage function"
+       # Open camera system setting page and wait for 5 secs
+       Write-Log -Message "Entering FindCameraEffectsPage function" -IsOutput
        FindCameraEffectsPage $ui
        Start-Sleep -s 5
        
-       #Close system setting page 
+       # Close system setting page 
        CloseApp 'systemsettings'
        
-       #Capture CPU and NPU Usage
-       Write-output "Entering CPUandNPU-Usage function to capture CPU and NPU usage Screenshot"  
+       # Capture CPU and NPU Usage
+       Write-Log -Message "Entering CPUandNPU-Usage function to capture CPU and NPU usage Screenshot" -IsOutput
        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioName
        
-       #Checks if frame server is stopped
-       Write-Output "Entering CheckServiceState function" 
+       # Checks if frame server is stopped
+       Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server'
        
-       #Stop collecting trace
-       Write-Output "Entering StopTrace function"
+       # Stop collecting trace
+       Write-Log -Message "Entering StopTrace function" -IsOutput
        StopTrace $scenarioName 
        
-       #Verify and validate if proper logs are generated or not.
-       Write-Output "Entering Verifylogs function"
+       # Verify and validate if proper logs are generated or not.
+       Write-Log -Message "Entering Verifylogs function" -IsOutput
        Verifylogs $scenarioName $scenarioID $startTime
        
        #collect data for Reporting

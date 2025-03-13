@@ -1,5 +1,6 @@
 ﻿.".\Helper\SetAsgTraceFolders.ps1"
 .".\Helper\InitializeTest.ps1"
+.".\Helper\LoggingHelper.ps1"
 .".\Helper\OpenCloseApp.ps1"
 .".\Helper\CheckFrameServerServiceStateandCloseService.ps1"
 .".\Helper\OutputMessage.ps1"

@@ -4,18 +4,16 @@ DESCRIPTION:
     It captures the start time of the app and the precise time when the recording starts, 
     performs the recording for the specified duration, and stops the recording afterward.
     The timestamps are formatted for compatibility with Asg trace logs (in UTC with milliseconds).
-
 INPUT PARAMETERS:
     - scnds [int] :- The duration (in seconds) for which the audio will be recorded.
-
 RETURN TYPE:
     - array (Returns an array containing the start time of the Voice Recorder app and the start time of the audio recording.)
 #>
 function AudioRecording($scnds)
 {    
      #open voice recorder App
-     Write-Output "Open Voice Recorder App"
-     #TODO: Don't use full exe path to open voice recorder.we may have to set the path in the envoronment variable	
+     Write-Log -Message "Open Voice Recorder App" -IsOutput
+     #TODO: Don't use full exe path to open voice recorder. We may have to set the path in the environment variable	
      $ui = OpenApp "C:\Program Files\WindowsApps\Microsoft.WindowsSoundRecorder_*_arm64__8wekyb3d8bbwe\VoiceRecorder.exe" 'Sound Recorder'
      
      Start-Sleep -m 500
@@ -29,13 +27,13 @@ function AudioRecording($scnds)
 
      #Convert the date to string format to add the milliseconds 
      $voiceRecorderAppStartTostring = $voiceRecorderAppStartinUTC.ToString('yyyy/MM/dd HH:mm:ss:fff')
-     Write-Output "voiceRecorder App start time in local time zone: ${voiceRecorderAppStartTostring}"
+     Write-Log -Message "voiceRecorder App start time in local time zone: ${voiceRecorderAppStartTostring}" -IsOutput
 
-     #Coverting the string back to date format for time calculation in code later in CheckInitTimeVoiceRecorderApp function.
+     #Converting the string back to date format for time calculation in code later in CheckInitTimeVoiceRecorderApp function.
      $voiceRecorderAppStartTime = [System.DateTime]::ParseExact($voiceRecorderAppStartTostring,'yyyy/MM/dd HH:mm:ss:fff',$null)
 
      #Start audio recording
-     Write-Output "Start Audio recording for $scnds"
+     Write-Log -Message "Start Audio recording for $scnds" -IsOutput
      FindAndClick $ui Button "Start recording"
 
      #Capture the time record button was pressed. 
@@ -49,11 +47,11 @@ function AudioRecording($scnds)
      #Convert the date to string format to add the milliseconds 
      $audioRecordingStartTostring = $audioRecordingStartinUTC.ToString('yyyy/MM/dd HH:mm:ss:fff')
      
-     #Coverting the string back to date format for time calculation in code later in CheckInitTimeVoiceRecorderApp function.
+     #Converting the string back to date format for time calculation in code later in CheckInitTimeVoiceRecorderApp function.
      $audioRecordingStartTime = [System.DateTime]::ParseExact($audioRecordingStartTostring,'yyyy/MM/dd HH:mm:ss:fff',$null)
               
      #Stop audio recording
-     Write-Output "Stop Audio recording"
+     Write-Log -Message "Stop Audio recording" -IsOutput
      FindAndClick $ui Button "Stop recording"
      start-sleep -s 2
 
