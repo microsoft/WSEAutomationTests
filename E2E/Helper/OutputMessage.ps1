@@ -57,7 +57,7 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
                  
                     
         "Skipped"{
-                    Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Skipped " -ForegroundColor Yellow; Write-Log -Message "(${reasonForNotPass})" "(${totalExecutionTimeInSeconds}s)" -IsHost
+                    Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Skipped " -ForegroundColor Yellow; Write-Log -Message "(${reasonForNotPass}) (${totalExecutionTimeInSeconds}s)" -IsHost
                     Write-Log -Message "$currNum ${snario}:Skipped (${reasonForNotPass})(${totalExecutionTimeInSeconds}s)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
 
                     # Reseting all field values to empty for skipped case scenario exception for Status and ReasonForNotPass
