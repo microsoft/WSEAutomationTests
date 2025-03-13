@@ -5,12 +5,10 @@ DESCRIPTION:
     This function tests the behavior of the Windows Settings App during multiple hibernation cycles.
     It toggles AI effects, navigates to the camera effects settings page, initiates hibernation cycles, 
     and validates if logs are correctly generated while monitoring system performance.
-
 INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
-
 RETURN TYPE:
     - void 
 #>
@@ -31,64 +29,64 @@ function SettingApp-Hibernation($devPowStat, $token, $SPId)
     try
 	{  
         #Create scenario specific folder for collecting logs
-        Write-Output "Creating folder for capturing logs"
+        Write-Log -Message "Creating folder for capturing logs" -IsOutput
         CreateScenarioLogsFolder $scenarioName
                           
-        #Toggling All effects on
-        Write-Output "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On"
+        # Toggling All effects on
+        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                                 -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
-                                                 -CF "On" -CFI "False" -CFA "False" -CFW "True"
+                                     -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
+                                     -CF "On" -CFI "False" -CFA "False" -CFW "True"
                 
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function"
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
                       
-        #Strating to collect Traces
-        Write-Output "Entering StartTrace function"
+        # Starting to collect Traces
+        Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName
 
-        #open settings app and obtain ui automation from it
+        # Open settings app and obtain UI automation from it
         $ui = OpenApp 'ms-settings:' 'Settings'
         Start-Sleep -m 500
         
-        #open camera effects page and turn all effects off
-        Write-Output "Navigate to camera effects setting page"
+        # Open camera effects page and turn all effects off
+        Write-Log -Message "Navigate to camera effects setting page" -IsOutput
         FindCameraEffectsPage $ui
         Start-Sleep -s 10
 
-        #Entering while loop
+        # Entering while loop
         $i = 1
         While($i -lt 4)
         {  
-           #Entering Hibernation function    
+           # Entering Hibernation function    
            Hibernation 
-           Write-host "End of $i hibernation"
+           Write-Log -Message "End of $i hibernation" -IsOutput
            $i++
         } 
 
-        #close settings app
+        # Close settings app
         CloseApp 'systemsettings'
 
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function"
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
 
-        #Stop the Trace
-        Write-Output "Entering StopTrace function"
+        # Stop the Trace
+        Write-Log -Message "Entering StopTrace function" -IsOutput
         StopTrace $scenarioName
                                               
         $wsev2PolicyState = CheckWSEV2Policy
         if($wsev2PolicyState -eq $false)
         {  
-           #ScenarioID 81968 is based on v1 effects.   
-           Write-Output "Entering Verifylogs function"
+           # ScenarioID 81968 is based on v1 effects.   
+           Write-Log -Message "Entering Verifylogs function" -IsOutput
            Verifylogs $scenarioName "81968" $startTime
         }
         else
         { 
-           #ScenarioID 737312 is based on v1+v2 effects.   
-           Write-Output "Entering Verifylogs function"
+           # ScenarioID 737312 is based on v1+v2 effects.   
+           Write-Log -Message "Entering Verifylogs function" -IsOutput
            Verifylogs $scenarioName "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
         }
 

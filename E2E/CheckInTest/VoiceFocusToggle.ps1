@@ -5,12 +5,10 @@ DESCRIPTION:
     This function tests the Voice Focus feature in the Windows Settings app. 
     It toggles the Voice Focus AI effect, collects system traces, and verifies 
     if proper logs are generated to ensure the feature is functioning as expected.
-
 INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
-
 RETURN TYPE:
     - void
 #>
@@ -36,42 +34,42 @@ function VoiceFocus-Playlist($devPowStat, $token, $SPId)
 
     try
 	{   #Create scenario specific folder for collecting logs
-        Write-Output "Creating folder for capturing logs"
+        Write-Log -Message "Creating folder for capturing logs" -IsOutput
         CreateScenarioLogsFolder $scenarioName
         
-        #Toggling Voice Focus effect on
-        Write-Output "Entering ToggleAIEffectsInSettingsApp function to toggle Voice Focus effect on"
+        # Toggling Voice Focus effect on
+        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle Voice Focus effect on" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
                                      -ECVal "Off" -ECSVal "False" -ECEVal "False" -VFVal "On" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
                        
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function"
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'    
                 
-        #Start collecting Traces before opening setting page
-        Write-Output "Entering StartTrace function"
+        # Start collecting Traces before opening setting page
+        Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName
 
-        #Open setting page
-        Write-Output "Open Setting Page"
+        # Open setting page
+        Write-Log -Message "Open Setting Page" -IsOutput
         $ui = OpenApp 'ms-settings:' 'Settings'
         Start-Sleep -m 500
 
-        #Open Audio system setting page
-        Write-Output "Entering FindVoiceFocusPage function"
+        # Open Audio system setting page
+        Write-Log -Message "Entering FindVoiceFocusPage function" -IsOutput
         FindVoiceFocusPage $ui
         Start-Sleep -s 5
         
-        #Close system setting page and stop collecting Trace
+        # Close system setting page and stop collecting Trace
         CloseApp 'systemsettings'
                      
-        #Stop collecting trace
-        Write-Output "Entering StopTrace function"
+        # Stop collecting trace
+        Write-Log -Message "Entering StopTrace function" -IsOutput
         StopTrace $scenarioName
         
-        #Verify and validate if proper logs are generated or not.
-        Write-Output "Entering Verifylogs function"
+        # Verify and validate if proper logs are generated or not.
+        Write-Log -Message "Entering Verifylogs function" -IsOutput
         Verifylogs $scenarioName "512" $startTime
 
         #collect data for Reporting
