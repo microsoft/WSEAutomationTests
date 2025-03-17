@@ -5,12 +5,10 @@ DESCRIPTION:
     This function tests the Voice Recorder App with the Voice Focus effect enabled.
     It starts an audio recording, verifies if logs are generated correctly, checks
     system traces, and measures the initialization time of the Voice Recorder App.
-
 INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
-
 RETURN TYPE:
     - void 
 #>
@@ -42,41 +40,41 @@ function Voice-Recorder-Playlist($devPowStat, $token, $SPId)
     try
 	{  
         #Create scenario specific folder for collecting logs
-        Write-Output "Creating folder for capturing logs"
+        Write-Log -Message "Creating folder for capturing logs" -IsOutput
         CreateScenarioLogsFolder $scenarioName
         
-        #Toggling Voice Focus effect on
-        Write-Output "Entering ToggleAIEffectsInSettingsApp function to toggle Voice Focus effect on"
+        # Toggling Voice Focus effect on
+        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle Voice Focus effect on" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
                                      -ECVal "Off" -ECSVal "False" -ECEVal "False" -VFVal "On" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
          
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function" 
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
                                          
-        #Strating to collect Traces
-        Write-Output "Entering StartTrace function"
+        # Starting to collect Traces
+        Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName
         
-        #Start audio recording and close the sound recorder app once finished recording 
-        Write-Output "Entering AudioRecording function"
+        # Start audio recording and close the sound recorder app once finished recording 
+        Write-Log -Message "Entering AudioRecording function" -IsOutput
         $InitTimeVoiceRecorderApp = AudioRecording "10" 
         $voiceRecorderAppStartTime = [System.DateTime]$($InitTimeVoiceRecorderApp[-2])
         $audioRecordingStartTime = $InitTimeVoiceRecorderApp[-1]
-        Write-Output "Voice Recorder App start time in UTC: ${voiceRecorderAppStartTime}"  
-        Write-Output "Audio recording start time in UTC: ${audioRecordingStartTime}"   
+        Write-Log -Message "Voice Recorder App start time in UTC: ${voiceRecorderAppStartTime}" -IsOutput
+        Write-Log -Message "Audio recording start time in UTC: ${audioRecordingStartTime}" -IsOutput
         
-        #Stop the Trace
-        Write-Output "Entering StopTrace function"
+        # Stop the Trace
+        Write-Log -Message "Entering StopTrace function" -IsOutput
         StopTrace $scenarioName
               
-        #Verify and validate if proper logs are generated or not.  
-        Write-Output "Entering Verifylogs function"      
+        # Verify and validate if proper logs are generated or not.  
+        Write-Log -Message "Entering Verifylogs function" -IsOutput
         Verifylogs $scenarioName "512" $startTime
         
-        #calculate Time from audio recording started until PC trace first frame processed
-        Write-Output "Entering CheckInitTimeVoiceRecorderApp function" 
+        # Calculate Time from audio recording started until PC trace first frame processed
+        Write-Log -Message "Entering CheckInitTimeVoiceRecorderApp function" -IsOutput
         CheckInitTimeVoiceRecorderApp $scenarioName "512" $voiceRecorderAppStartTime $audioRecordingStartTime
 
         #collect data for Reporting
@@ -91,4 +89,3 @@ function Voice-Recorder-Playlist($devPowStat, $token, $SPId)
        CloseApp 'VoiceRecorder'
     }
 }
-

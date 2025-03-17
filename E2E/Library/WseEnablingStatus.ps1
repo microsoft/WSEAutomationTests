@@ -12,8 +12,9 @@ Set-Variable OUTPUT_TRAGET_FILE_NAME				-Option ReadOnly -Value "WseEnablingStat
 	This function output message to console and target file.
 #>
 function outputMessage($message) {
-	Write-Host $message
-	Write-Output $message >> $pathLogsFolder\$OUTPUT_TRAGET_FILE_NAME
+	Write-Log -Message $message -IsHost
+	Write-Log -Message $message -IsOutput >> "$pathLogsFolder\$OUTPUT_TRAGET_FILE_NAME"
+
 }
 
 <#
@@ -75,7 +76,7 @@ function parseOptInCameraInfoFromDxDiagInfo()
 	$dxdiagProcess = Start-Process "dxdiag.exe" -ArgumentList "/t $outputDxDiagFilePath" -Wait -PassThru
 
 	if ($dxdiagProcess.ExitCode -ne 0) {
-		Write-Host "DxDiag process failed with exit code $($dxdiagProcess.ExitCode)" -ForegroundColor Red
+		Write-Log -Message "DxDiag process failed with exit code $($dxdiagProcess.ExitCode)" -IsHost -ForegroundColor Red
 		return $parseResults
 	}
 
@@ -195,7 +196,7 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
 	# check device manager for NPU opt-in
 	$wseCameraDriverInstance = getWseCameraDriverInstance
 	if ($null -eq $wseCameraDriverInstance) {
-		Write-Host "can not find '$WSE_CAMERA_DRIVER_FRIENDLY_NAME' in device manager, extension .inf for MEP camera was not correctly deployed" -ForegroundColor Red
+		Write-Log -Message "can not find '$WSE_CAMERA_DRIVER_FRIENDLY_NAME' in device manager, extension .inf for MEP camera was not correctly deployed" -IsHost -ForegroundColor Red
 		return $false
 	}
 
@@ -212,10 +213,10 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
 	# check MEP camera opt-in
 	if ($mepCameraOptedIn -ieq "n/a")
 	{
-		Write-Host "can not find Opt-in camera instance" -ForegroundColor Red
+		Write-Log -Message "can not find Opt-in camera instance" -IsHost -ForegroundColor Red
 		return $false
 	} elseif ($mepCameraOptedIn -ieq "False") {
-		Write-Host "camera opt-in was not set" -ForegroundColor Red
+		Write-Log -Message "camera opt-in was not set" -IsHost -ForegroundColor Red
 		return $false
 	}
 
@@ -226,32 +227,32 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
 		outputMessage "Opt-In Camera FriendlyName: $optinCameraFriendlyName"
 		$Global:validatedCameraFriendlyName = $optinCameraFriendlyName
 	} else {
-		Write-Host "Opt-In Camera FriendlyName Info not found"
+		Write-Log -Message "Opt-In Camera FriendlyName Info not found" -IsHost
 	}
 
 	if ($optinCameraHardwareID) {
 		outputMessage "Opt-In Camera Hardware ID: $optinCameraHardwareID"
 	} else {
-		Write-Host "Opt-In Camera Hardware Info not found"
+		Write-Log -Message "Opt-In Camera Hardware Info not found" -IsHost
 	}
 
 	if ($optinCameraDriverVersion){
 		outputMessage "Opt-In Camera Driver: $optInCameraDriverVersion"
 	} else {
-		Write-Host "Opt-In Camera Driver Info not found"
+		Write-Log -Message "Opt-In Camera Driver Info not found" -IsHost
 	}
 
 	if ($optinCameraMepHighResMode){
 		outputMessage "Opt-In Camera HighRes Mode: $optinCameraMepHighResMode"
 	} else {
-		Write-Host "Opt-In Camera HighRes Info not found"
+		Write-Log -Message "Opt-In Camera HighRes Info not found" -IsHost
 	}
 
 	# output WSE camera driver info if exists
 	if ($wseCameraDriverInstance) {
 		outputDriverInfoByFriendlyName $wseCameraDriverInstance
 		if ($targetMepCameraVer -and ($targetMepCameraVer -ne $wseCameraDriverInstance.driverVersion)) {
-			Write-Host "User input MEP-camera version: $targetMepCameraVer"
+			Write-Log -Message "User input MEP-camera version: $targetMepCameraVer" -IsHost
 			return $false
 		}
 	}
@@ -261,7 +262,7 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
 	if ($wseAudioDriverInstance) {
 		outputDriverInfoByFriendlyName $wseAudioDriverInstance
 		if ($targetMepAudioVer -and ($targetMepAudioVer -ne $wseAudioDriverInstance.driverVersion)) {
-			Write-Host "User input MEP-audio version: $targetMepAudioVer"
+			Write-Log -Message "User input MEP-audio version: $targetMepAudioVer" -IsHost
 			return $false
 		}
 	}
@@ -285,11 +286,11 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
 			}
 		}
 		if (!($isPerceptionCoreVersionMatched)) {
-			Write-Host "User input PerceptionCore version: $targetPerceptionCoreVer"
+			Write-Log -Message "User input PerceptionCore version: $targetPerceptionCoreVer" -IsHost
 			return $false
 		}
 	} else {
-		Write-Host "PerceptionCore.dll not found"
+		Write-Log -Message "PerceptionCore.dll not found" -IsHost
 		return $false
 	}
 

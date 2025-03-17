@@ -6,13 +6,11 @@ DESCRIPTION:
     This function logs the test result message with its execution time. 
     Depending on the test outcome (Pass, Fail, Exception, or Skipped), 
     it updates the result status, logs to the console and writes to a result file.
-
 INPUT PARAMETERS:
     - snario [string] :- The name of the test scenario.
     - tstReslt [string] :- The result of the test (Pass, Fail, Exception, Skipped).
     - strtTime [datetime] :- The start time of the test, used to calculate execution time.
     - reasonForNotPass [string] :- The reason for failure or skipping (optional for Pass).
-
 RETURN TYPE:
     - void (Logs the test result message and updates the result status.)
 #>
@@ -25,15 +23,15 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
     switch ($tstReslt)
     {
         "Pass" {
-                  Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Passed " -ForegroundColor Green; Write-Host "(${totalExecutionTimeInSeconds}s)"
-                  write-output "$currNum ${snario}:Passed (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
+                  Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Passed " -ForegroundColor Green; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                  Write-Log -Message "$currNum ${snario}:Passed (${totalExecutionTimeInSeconds}s)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
                   $Results.Status = "Pass"
                   $Results.ReasonForNotPass = $null
                }
         "Fail" {
-                 Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Failed " -ForegroundColor Red; Write-Host "(${totalExecutionTimeInSeconds}s)"
+                 Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Failed " -ForegroundColor Red; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
                  AddToFailedTestsList "$currNum ${snario}"
-                 write-output "$currNum ${snario}:Failed (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
+                 Write-Log -Message "$currNum ${snario}:Failed (${totalExecutionTimeInSeconds}s)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
                  
                  # Reseting all field values to empty for failed case scenario exception for Status and ReasonForNotPass
                  ResetFields
@@ -45,9 +43,9 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
 
                
         "Exception" {
-                       Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Failed " -ForegroundColor Red; Write-Host  "(${totalExecutionTimeInSeconds}s)"
+                       Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Failed " -ForegroundColor Red; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
                        AddToFailedTestsList "$currNum ${snario}"
-                       write-output "$currNum ${snario}:Failed(Exception) (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
+                       Write-Log -Message "$currNum ${snario}:Failed(Exception) (${totalExecutionTimeInSeconds}s)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
 
                        # Reseting all field values to empty for Exception case scenario exception for Status and ReasonForNotPass
                        ResetFields
@@ -59,8 +57,8 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
                  
                     
         "Skipped"{
-                    Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Skipped " -ForegroundColor Yellow; Write-Host  "(${reasonForNotPass})" "(${totalExecutionTimeInSeconds}s)"
-                    write-output "$currNum ${snario}:Skipped (${reasonForNotPass})(${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
+                    Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Skipped " -ForegroundColor Yellow; Write-Log -Message "(${reasonForNotPass}) (${totalExecutionTimeInSeconds}s)" -IsHost
+                    Write-Log -Message "$currNum ${snario}:Skipped (${reasonForNotPass})(${totalExecutionTimeInSeconds}s)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
 
                     # Reseting all field values to empty for skipped case scenario exception for Status and ReasonForNotPass
                     ResetFields
@@ -77,10 +75,8 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
 DESCRIPTION:
     This function resets all result fields to null except for the scenario name and reason for not passing. 
     It is used to clear data between test cases.
-
 INPUT PARAMETERS:
     - None
-
 RETURN TYPE:
     - void (Resets global variables without returning a value.)
 #>
@@ -103,11 +99,9 @@ function ResetFields {
 <#
 DESCRIPTION:
     This function appends the test results to an output file and resets fields for the next test case.
-
 INPUT PARAMETERS:
     - rslt [PSObject] :- The result object containing the test information.
     - outputfile [string] :- The path to the output file where results are logged.
-
 RETURN TYPE:
     - void (Writes results to a file and resets fields without returning a value.)
 #>
@@ -121,10 +115,8 @@ function Reporting($rslt, $outputfile)
 DESCRIPTION:
     This function converts the text file containing test results into an Excel file. 
     It reads key-value pairs from the text file and writes them into an Excel sheet using the ImportExcel module.
-
 INPUT PARAMETERS:
     - textFilePath [string] :- The path to the text file containing test results.
-
 RETURN TYPE:
     - void (Converts and writes results to an Excel file without returning a value.)
 #>
@@ -154,7 +146,7 @@ function ConvertTxtFileToExcel($textFilePath)
                       Value = $value
                   }
               } else {
-                  Write-Host "Warning: Line does not match expected format: $_" -ForegroundColor Yellow
+                  Write-Log -Message "Warning: Line does not match expected format: $_" -IsHost -ForegroundColor Yellow
               }
           }
    
@@ -170,11 +162,11 @@ function ConvertTxtFileToExcel($textFilePath)
    
        # Export all rows to Excel
        $rows | Export-Excel -Path $excelFilePath
-       Write-host "   Report generated here:$excelFilePath"
+       Write-Log -Message "   Report generated here:$excelFilePath" -IsHost
    } 
    else
    {
-       Write-Host "Error: The content of the Report text file is null or empty." -ForegroundColor Red
+       Write-Log -Message "Error: The content of the Report text file is null or empty." -IsHost -ForegroundColor Red
    }
 }
 
@@ -183,10 +175,8 @@ DESCRIPTION:
     This function adds failed tests to a list for re-execution. 
     It parses the failed test details and generates commands for rerunning them, 
     saving the commands and failed test names to respective files.
-
 INPUT PARAMETERS:
     - failedTests [string] :- The string containing the failed test information.
-
 RETURN TYPE:
     - void (Adds failed tests to files without returning a value.)
 #>
@@ -205,11 +195,11 @@ function AddToFailedTestsList($failedTests)
    $SPID ="333444"
    if($functionToCall -eq  "CameraAppTest")
    {
-      write-output "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
-      write-output $failedTests >> $pathLogsFolder\failedTests.txt
+      Write-Log -Message "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" -IsOutput >> $pathLogsFolder\ReRunFailedTests.ps1
+      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
    }
    else
    {
-      write-output $failedTests >> $pathLogsFolder\failedTests.txt
+      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
    }
 }
