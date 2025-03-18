@@ -83,6 +83,7 @@ RETURN TYPE:
 function ResetFields {
    $Results.ScenarioName = $null
    $Results.FramesAbove33ms = $null
+   $Results.TotalNumberOfFrames = $null 								   
    $Results.AvgProcessingTimePerFrame =$null
    $Results.MaxProcessingTimePerFrame =$null
    $Results.MinProcessingTimePerFrame =$null
@@ -190,16 +191,18 @@ function AddToFailedTestsList($failedTests)
    $vdoRes = $splitEachTests[2]
    $ptoRes = $splitEachTests[3]
    $devPowStat = $splitEachTests[4]
-   $togAiEfft = $splitEachTests[5]
+   $VFdetails  = $splitEachTests[5] -split "-"
+   $VF = $VFdetails[1]
+   $togAiEfft = $splitEachTests[6]
    $token = "111222"
    $SPID ="333444"
    if($functionToCall -eq  "CameraAppTest")
    {
-      Write-Log -Message "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" -IsOutput >> $pathLogsFolder\ReRunFailedTests.ps1
-      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
+      write-output "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -VF $VF -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
+      write-output $failedTests >> $pathLogsFolder\failedTests.txt
    }
    else
    {
-      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
+      write-output $failedTests >> $pathLogsFolder\failedTests.txt
    }
 }

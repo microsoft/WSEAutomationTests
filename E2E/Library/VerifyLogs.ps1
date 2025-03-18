@@ -73,6 +73,7 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
           
           #Reading log file to get frames Processing time details
           $numberOfFramesAbove33ms = $frameProcessingDetails[20].Trim()
+		    $totalnoOfFrames = $frameProcessingDetails[9].Trim()
           $minProcessingTimePerFrame = [math]::round(($frameProcessingDetails[12]/1000000),2)
           $avgProcessingTimePerFrame = [math]::round(($frameProcessingDetails[11]/1000000),2)
           $maxProcessingTimePerFrame = [math]::round(($frameProcessingDetails[13]/1000000),2)
@@ -83,7 +84,8 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
 
           $Results.ScenarioName = $snarioName
           $Results.FramesAbove33ms = $numberOfFramesAbove33ms
-          $Results.AvgProcessingTimePerFrame = "${avgProcessingTimePerFrame}ms"
+		    $Results.TotalNumberOfFrames = $totalnoOfFrames
+		    $Results.AvgProcessingTimePerFrame = "${avgProcessingTimePerFrame}ms"
           $Results.MaxProcessingTimePerFrame = "${maxProcessingTimePerFrame}ms"
           $Results.MinProcessingTimePerFrame = "${minProcessingTimePerFrame}ms"
           
@@ -419,7 +421,8 @@ function CheckMemoryUsage($snarioName)
          if ( $avgWorkingSetSize -ge 250 )
          {   
             #Prints to the console if $avgWorkingSetSize is greater than or equal to 250MBs
-            Write-Log -Message "AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount}, AvgWorkingSetSize:${avgWorkingSetSize}MBs]" -IsOutput -IsHost -BackgroundColor Red >> $pathLogsFolder\ConsoleResults.txt
+            Write-Host "   AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount} , AvgWorkingSetSize:${avgWorkingSetSize}MBs] " -BackgroundColor Red
+            Write-Log -Message "AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount}, AvgWorkingSetSize:${avgWorkingSetSize}MBs]" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
             Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -IsOutput >> $pathLogsFolder\ConsoleResults.txt
          }
          $i++
