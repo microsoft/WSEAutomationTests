@@ -196,13 +196,13 @@ function AddToFailedTestsList($failedTests)
    $togAiEfft = $splitEachTests[6]
    $token = "111222"
    $SPID ="333444"
-   if($functionToCall -eq  "CameraAppTest")
+if($functionToCall -eq  "CameraAppTest")
    {
-      write-output "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -VF $VF -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
-      write-output $failedTests >> $pathLogsFolder\failedTests.txt
+      Write-Log -Message "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" -IsOutput >> $pathLogsFolder\ReRunFailedTests.ps1
+      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
    }
    else
    {
-      write-output $failedTests >> $pathLogsFolder\failedTests.txt
+      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
    }
 }
