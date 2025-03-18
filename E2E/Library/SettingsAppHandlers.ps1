@@ -9,12 +9,8 @@ RETURN TYPE:
     - void (Performs UI navigation and clicking without returning a value.)
 #>
 function FindCameraEffectsPage($uiEle){
-    FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem Apps
-    Start-Sleep -m 500
     FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem "Bluetooth & devices"
-    Start-Sleep -m 500
     FindAndClick $uiEle ListViewItem Cameras
-    Start-Sleep -m 500
     $exists = CheckIfElementExists $uiEle Button More
     if ($exists)
     {
@@ -24,7 +20,6 @@ function FindCameraEffectsPage($uiEle){
     {
         FindAndClick $uiEle Button "Connected enabled camera $Global:validatedCameraFriendlyName"
     }  
-    Start-Sleep -m 500
 }
 
 <#
@@ -51,12 +46,10 @@ function ClickFrontCamera($uiEle, $clsNme, $proptyNme){
        if ( $clickableElement.GetCurrentPropertyValue([Windows.Automation.AutomationElement]::IsInvokePatternAvailableProperty) ){
            $clickableElement.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
        }
-       sleep -s 1
        $exists = CheckIfElementExists $uiEle ToggleSwitch "Automatic framing" 
        if (!$exists)
 	   {
           FindAndClick $uiEle Button Back
-          sleep -s 1
           
        }
        else
@@ -78,12 +71,8 @@ RETURN TYPE:
     - void (Performs UI navigation and clicking without returning a value.)
 #>
 function FindVoiceFocusPage($uiEle){
-    FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem Apps
-    Start-Sleep -m 500
     FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem System
-    Start-Sleep -m 500
     FindAndClick $uiEle ListViewItem Sound
-    Start-Sleep -m 500
     $exists = CheckIfElementExists $uiEle Button More
     if ($exists)
     {
@@ -101,7 +90,6 @@ function FindVoiceFocusPage($uiEle){
            Write-Error " No Sound devices button found is Sound Setting page " -ErrorAction Stop     
         }
     }
-    Start-Sleep -m 500
     $i=0
     $allSoundDevices = @( "Internal Microphone" , "Microphone on SoundWire Device" , "Microphone Array" ,"Internal Microphone Array - Front")
     $exists = CheckIfElementExists $uiEle Button $allSoundDevices[$i]
@@ -118,7 +106,6 @@ function FindVoiceFocusPage($uiEle){
     {
        Write-Error " Microphone Array not found in Sound setting Page " -ErrorAction Stop     
     } 
-    Start-Sleep -m 500
     FindAndClick $uiEle ComboBox "Audio enhancements"
     Start-Sleep -m 500
     FindAndClick $uiEle ComboBoxItem "Microsoft Windows Studio Voice Focus"
