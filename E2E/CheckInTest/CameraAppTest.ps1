@@ -198,9 +198,9 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
         CloseApp 'Taskmgr'
         StopTrace $scenarioLogFolder
         CheckServiceState 'Windows Camera Frame Server'
-        Write-Log -Message $_ -IsOutput
+        Write-Output $_
         TestOutputMessage $scenarioLogFolder "Exception" $startTime $_.Exception.Message
-        Write-Log -Message "$_" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+        Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
         Reporting $Results "$pathLogsFolder\Report.txt"
         GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioLogFolder
         $getLogs = Get-Content -Path "$pathLogsFolder\$scenarioLogFolder\log.txt" -raw
@@ -213,22 +213,4 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
     }                                
 }
 
-<#
-DESCRIPTION:
-    Copies log file content to a test-specific folder. It extracts relevant logs from the main log file
-    starting from the most recent test instance and saves them in a dedicated test-specific log file.
-INPUT PARAMETERS:
-    - scenarioLogFldr [string] :- The name of the scenario-specific folder where logs should be copied.
-RETURN TYPE:
-    - void
-#>
-function GetContentOfLogFileAndCopyToTestSpecificLogFile($scenarioLogFldr)
-{   
-    #copy logs to test specific folder
-    $logCopyFrom = "$pathLogsFolder\$logFile"
-    $logCopyTo =  "$pathLogsFolder\$scenarioLogFldr\log.txt" 
-    $search="Starting Test for "
-    $linenumber = Get-Content $logCopyFrom | select-string $search | Select-Object -Last 1
-    $lne = $linenumber.LineNumber - 1
-    Get-Content -Path $logCopyFrom | Select -Skip $lne > $logCopyTo 
-}
+   

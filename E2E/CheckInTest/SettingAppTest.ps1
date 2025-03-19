@@ -34,7 +34,7 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
        Write-Log -Message "Creating folder for capturing logs" -IsOutput
        CreateScenarioLogsFolder $scenarioName
 
-       Write-Log -Message "Start Tests for $scenarioName" -IsOutput
+       Write-Log -Message "Starting Test for $scenarioName" -IsOutput
        
        # Retrieve value for scenario from LookUp table for camera effects
        $testScenario = RetrieveValue $testScenario
@@ -127,13 +127,34 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
        # Verify and validate if proper logs are generated or not.
        Write-Log -Message "Entering Verifylogs function" -IsOutput
        Verifylogs $scenarioName $scenarioID $startTime
-       
+
+       # Copy logs to test scenario specific folder
+       Write-Log -Message "Entering GetContentOfLogFileAndCopyToTestSpecificLogFile function" -IsOutput
+       GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioName
+             
        #collect data for Reporting
        Reporting $Results "$pathLogsFolder\Report.txt"
          
      }
      catch
      {  
-        Error-Exception -snarioName $scenarioName -strttme $startTime -rslts $Results -logFile $logFile -token $token -SPID $SPID
+        Take-Screenshot "Error-Exception" $scenarioName
+        Write-Log -Message "Error occurred and entered catch statement" -IsOutput
+        CloseApp 'systemsettings'
+        CloseApp 'WindowsCamera'
+        CloseApp 'Taskmgr'
+        StopTrace $scenarioName
+        CheckServiceState 'Windows Camera Frame Server'
+        Write-Output $_
+        TestOutputMessage $scenarioName "Exception" $startTime $_.Exception.Message
+        Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
+        Reporting $Results "$pathLogsFolder\Report.txt"
+        GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioName
+        $getLogs = Get-Content -Path "$pathLogsFolder\$scenarioName\log.txt" -Raw
+        Write-Log -Message $getLogs -IsHost
+        $logs = resolve-path "$pathLogsFolder\$scenarioName\log.txt"
+        Write-Log -Message "(Logs saved here:$logs)" -IsHost
+        SetSmartPlugState $token $SPID 1
      }
+                 
 }
