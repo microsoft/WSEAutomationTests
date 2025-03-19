@@ -73,6 +73,7 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
           
           #Reading log file to get frames Processing time details
           $numberOfFramesAbove33ms = $frameProcessingDetails[20].Trim()
+		  $totalnoOfFrames = $frameProcessingDetails[9].Trim()
           $minProcessingTimePerFrame = [math]::round(($frameProcessingDetails[12]/1000000),2)
           $avgProcessingTimePerFrame = [math]::round(($frameProcessingDetails[11]/1000000),2)
           $maxProcessingTimePerFrame = [math]::round(($frameProcessingDetails[13]/1000000),2)
@@ -83,7 +84,8 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
 
           $Results.ScenarioName = $snarioName
           $Results.FramesAbove33ms = $numberOfFramesAbove33ms
-          $Results.AvgProcessingTimePerFrame = "${avgProcessingTimePerFrame}ms"
+		  $Results.TotalNumberOfFrames = $totalnoOfFrames
+		  $Results.AvgProcessingTimePerFrame = "${avgProcessingTimePerFrame}ms"
           $Results.MaxProcessingTimePerFrame = "${maxProcessingTimePerFrame}ms"
           $Results.MinProcessingTimePerFrame = "${minProcessingTimePerFrame}ms"
           
