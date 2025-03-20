@@ -146,7 +146,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        if($camsnario -eq "Recording")
        {
            #Start video recording and close the camera app once finished recording 
-           $InitTimeCameraApp = StartVideoRecording "20" #video recording duration can be adjusted depending on the number os scenarios
+           $InitTimeCameraApp = StartVideoRecording "20" $devPowStat #video recording duration can be adjusted depending on the number os scenarios
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
        }

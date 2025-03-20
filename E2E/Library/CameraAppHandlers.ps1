@@ -191,8 +191,10 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
-function StartVideoRecording($scnds)
+function StartVideoRecording($scnds, $devPowStat)
 {  
+     $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
+     $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
      #Open Camera App
      Write-Output "Open camera App"
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
@@ -221,10 +223,8 @@ function StartVideoRecording($scnds)
      Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
 
      # Call python modules for task manager Before starting the test case
-	 $pythonCommand = @"
-python -c "import sys; sys.path.append(r'$($escapedpythonLibPath)'); from npu_cpu_memory_utilization import ResourceMonitor; monitor = ResourceMonitor(r'$escapedPathLogsFolder', $scnds); monitor.start_task_manager(); monitor.switch_to_performance_tab(); monitor.log_utilization();"
-"@
-	 Invoke-Expression $pythonCommand
+     Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scnds -NoNewWindow -Wait
+     $ui.SetFocus()
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
      Write-Output "video recording stopped after $scnds seconds"

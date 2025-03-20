@@ -20,13 +20,14 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
     $ErrorActionPreference='Stop'
     $scenarioName = "$devPowStat\Camerae2eTest"
     $logFile = "$devPowStat-Camerae2eTest.txt"
+    $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
         
     try
 	{  
         #Create Scenario folder
         $scenarioLogFolder = $scenarioName
         CreateScenarioLogsFolder $scenarioLogFolder
-     
+        $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
         #Toggling All effects on
         Write-Output "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On"
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
@@ -68,14 +69,10 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         setTMUpdateSpeedLow -uiEle $uitaskmgr
         
 		# Call python modules for task manager Before starting the test case
-		$pythonCommand = @"
-python -c "import sys; sys.path.append(r'$($escapedpythonLibPath)'); from npu_cpu_memory_utilization import ResourceMonitor; monitor = ResourceMonitor(r'$escapedPathLogsFolder', 5); monitor.start_task_manager(); monitor.switch_to_performance_tab(); monitor.log_utilization();"
-"@
-		Invoke-Expression $pythonCommand
-        
-		#Start video recording and close the camera app once finished recording
+        Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, 5 -NoNewWindow -Wait
+        #Start video recording and close the camera app once finished recording
         Write-Output "Entering StartVideoRecording function"
-        $InitTimeCameraApp = StartVideoRecording "60"
+        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         
         #Capture CPU and NPU Usage

@@ -1,18 +1,21 @@
 import os
 import re
+import sys
 import statistics
 import time
+
 from pywinauto import Application  # type: ignore
 
 
 class ResourceMonitor:
-    def __init__(self, log_folder, duration=10):
-        self.log_file = os.path.join(log_folder,
-                                     "resource_utilization.txt")
-        self.duration = duration  # Monitor duration in seconds
+    def __init__(self, log_file, duration=10):
+        self.log_file = log_file
+        self.duration = int(duration)  # Monitor duration in seconds
         self.cpu_usage = []
         self.npu_usage = []
         self.memory_usage = []
+        self.app = None
+        self.taskmgr = None
 
     def start_task_manager(self):
         """Launches Task Manager if not already open,
@@ -117,12 +120,15 @@ class ResourceMonitor:
     def log_utilization(self):
         """Log Resource (CPU/NPU/Memory) utilization to a text file
         with timestamp and summarize with Peak, Median and Average Values."""
-        # Check if file already exists
+
         file_exists = os.path.isfile(self.log_file)
 
-        with open(self.log_file, "a") as log:
+        # Choose mode: 'w' for new file, 'a' for append
+        mode = "a" if file_exists else "w"
+
+        with open(self.log_file, mode) as log:
             if not file_exists:
-                # If log file is newly created, add headers
+                # If creating a new file, add headers
                 log.write("Before Test Execution\n")
                 log.write(
                     "Timestamp, "
@@ -133,9 +139,15 @@ class ResourceMonitor:
             else:
                 log.write("\nAfter Test Execution\n")
 
-            for _ in range(self.duration):
+            interval = 1  # interval between measurements (in seconds)
+
+            for i in range(self.duration):
+                iteration_start = time.time()
+
+                # Get utilization data
                 cpu, memory, npu = self.get_utilization()
 
+                # Append utilization values if they are valid
                 if cpu is not None:
                     self.cpu_usage.append(cpu)
                 if memory is not None:
@@ -143,11 +155,18 @@ class ResourceMonitor:
                 if npu is not None:
                     self.npu_usage.append(npu)
 
+                # Log current utilization with timestamp
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
                 log.write(f"{timestamp}, {cpu}, {memory}, {npu}\n")
-                time.sleep(1)  # Collect data every second
 
-            # Calculate statistics
+                # Calculate time taken for the iteration
+                elapsed = time.time() - iteration_start
+                sleep_time = max(0, interval - elapsed)
+
+                # Sleep only the remaining time to maintain consistent interval
+                time.sleep(sleep_time)
+
+            # After collecting data, calculate and write statistics
             self.calculate_statistics(log)
 
     def calculate_statistics(self, log):
@@ -200,3 +219,26 @@ class ResourceMonitor:
     def close_task_manager(self):
         """Closes Task Manager."""
         self.taskmgr.close()
+
+    def start_resource_monitoring(self):
+        self.start_task_manager()
+        self.switch_to_performance_tab()
+        self.log_utilization()
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print(
+            "Usage: python npu_cpu_utilization.py <method_name> [method_args]")
+        sys.exit(1)
+
+    method_name = sys.argv[1]
+    log_path = sys.argv[2]
+    duration = int(sys.argv[3]) if len(sys.argv) > 3 else 10
+    resource_monitor = ResourceMonitor(log_path, duration)
+    # Dynamically call the method by name, and pass arguments
+    if hasattr(resource_monitor, method_name):
+        func = getattr(resource_monitor, method_name)
+        func()
+    else:
+        print(f"Method not defined: {method_name}")
