@@ -93,15 +93,10 @@ function SetDefaultSettingInCameraApp($uiEle, $selSetting)
      #Set Default setting to "Use System settings"
      Write-Log -Message "Set default setting to $selSetting" -IsOutput
      FindAndClick $uiEle Button "Open Settings Menu"
-     Start-Sleep -s 1
      FindAndClick $uiEle Microsoft.UI.Xaml.Controls.Expander "Camera settings"
-     Start-Sleep -s 1
      FindAndClick $uiEle ComboBox "Default settings - These settings apply to the Camera app at the start of each session"
-     Start-Sleep -s 1
      FindAndClick $uiEle ComboBoxItem $selSetting
-     Start-Sleep -s 1
      FindAndClick $uiEle Button "Back"
-     Start-Sleep -s 2
 }
 
 <#
@@ -161,12 +156,10 @@ function SwitchModeInCameraApp($uiEle, $swtchMde, $chkEle)
     if ($return -eq $null){
         Write-Log -Message "$swtchMde" -IsOutput
         FindAndClick $uiEle Button $swtchMde
-        Start-Sleep -s 2  
     }
     else
     {
        Write-Log -Message "Already in $chkEle mode" -IsOutput
-       Start-Sleep -s 2 
     }
 }
 
@@ -281,17 +274,12 @@ function SetHighestVideoResolutionInCameraApp{
      
      #Set Default setting to "Use System settings"
      FindAndClick $ui Button "Open Settings Menu"
-     Start-Sleep -s 1
      FindAndClickList -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.Expander -proptyNmeLst @('Videos settings','Video settings')
-     Start-Sleep -s 1
      FindAndClick $ui ComboBox "Video quality"
-     Start-Sleep -s 1
      $videoResName = FindFirstElementsNameWithClassName $ui ComboBoxItem
      FindAndClick $ui ComboBoxItem $videoResName
      Write-Log -Message "Set video resolution to $videoResName in camera app" -IsOutput
-     Start-Sleep -s 1
      FindAndClick $ui Button "Back"
-     Start-Sleep -s 2
      
      #Close Camera App
      CloseApp 'WindowsCamera'
@@ -314,17 +302,12 @@ function SetHighestPhotoResolutionInCameraApp{
      
      #Set Default setting to "Use System settings"
      FindAndClick  $ui Button "Open Settings Menu"
-     Start-Sleep -s 1
      FindAndClickList -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.Expander -proptyNmeLst @('Photos settings','Photo settings')
-     Start-Sleep -s 1
      FindAndClick  $ui ComboBox "Photo quality"
-     Start-Sleep -s 1
      $photoResName = FindFirstElementsNameWithClassName $ui ComboBoxItem
      FindAndClick  $ui ComboBoxItem $photoResName
      Write-Log -Message "Set Photo resolution to $photoResName in camera app" -IsOutput
-     Start-Sleep -s 1
      FindAndClick  $ui Button "Back"
-     Start-Sleep -s 2
          
      #Close Camera App
      CloseApp 'WindowsCamera'
@@ -356,15 +339,12 @@ function SetvideoResolutionInCameraApp($snarioName, $strtTime, $vdoRes)
 
      #set video quality 
      FindAndClick $ui Button "Open Settings Menu"
-     Start-Sleep -s 1
      Write-Log -Message "Set video quality to $vdoRes" -IsOutput
 
      #Find video settings and click
      FindAndClickList -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.Expander -proptyNmeLst @('Videos settings','Video settings')
 
-     Start-Sleep -s 1
      FindAndClick $ui ComboBox "Video quality"
-     Start-Sleep -s 1
 
      #Select the video resolution if supported
      $return = CheckIfElementExists $ui ComboBoxItem $vdoRes
@@ -376,7 +356,6 @@ function SetvideoResolutionInCameraApp($snarioName, $strtTime, $vdoRes)
      else
      {
          FindAndClick $ui ComboBoxItem $vdoRes
-         Start-Sleep -s 1
          CloseApp 'WindowsCamera'
      }
      
@@ -402,16 +381,13 @@ function SetphotoResolutionInCameraApp($snarioName, $strtTime, $photRes)
 
      #set photo quality
      FindAndClick $ui Button "Open Settings Menu"
-     Start-Sleep -s 1 
      Write-Log -Message "Set photo quality to $photRes" -IsOutput
 
 
      #Find Photo settings and click
      FindAndClickList -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.Expander -proptyNmeLst @('Photos settings','Photo settings')
      
-     Start-Sleep -s 1
      FindAndClick $ui ComboBox "Photo quality"
-     Start-Sleep -s 1
 
      #Select the photo resolution if supported
      $return = CheckIfElementExists $ui ComboBoxItem $photRes
@@ -423,7 +399,6 @@ function SetphotoResolutionInCameraApp($snarioName, $strtTime, $photRes)
      else
      {
          FindAndClick $ui ComboBoxItem $photRes
-         Start-Sleep -s 1
          CloseApp 'WindowsCamera'
          
      } 

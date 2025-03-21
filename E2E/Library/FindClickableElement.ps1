@@ -7,16 +7,24 @@ INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
     - proptyNme [string] :- The property name of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [object] :- Returns the UI element if found, otherwise returns $null.
 #>
-function CheckIfElementExists($uiEle, $clsNme, $proptyNme){
+function CheckIfElementExists($uiEle, $clsNme, $proptyNme, $timeoutSeconds = 2) {
     $classNameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ClassNameProperty, $clsNme)
     $nameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::NameProperty, $proptyNme)
     $jointCondition = New-Object Windows.Automation.AndCondition($classNameCondition, $nameCondition)
 
-    $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $jointCondition)
-    sleep -s 2
+    $elemt = $null
+    $endTime = [DateTime]::Now.AddSeconds($timeoutSeconds)
+    while ([DateTime]::Now -lt $endTime -and $elemt -eq $null) {
+        $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $jointCondition)
+        Start-Sleep -Milliseconds 100  # Check every 100ms
+    }
+    if ($elemt -eq $null){
+        Write-Error " $proptyNme not found " -ErrorAction Stop  
+    }        
     return $elemt
 }
 
@@ -27,10 +35,11 @@ INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
     - proptyNme [string] :- The property name of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [object] :- Returns the clickable UI element if found.
 #>
-function FindClickableElement($uiEle, $clsNme, $proptyNme){
+function FindClickableElement($uiEle, $clsNme, $proptyNme, $timeoutSeconds = 2){
     if ($uiEle -eq $null)
     {
       Write-Error " UI Element for $proptyNme is Null" -ErrorAction Stop  
@@ -38,9 +47,15 @@ function FindClickableElement($uiEle, $clsNme, $proptyNme){
     $classNameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ClassNameProperty, $clsNme)
     $nameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::NameProperty, $proptyNme)
     $jointCondition = New-Object Windows.Automation.AndCondition($classNameCondition, $nameCondition)
+ 
+    $endTime = [DateTime]::Now.AddSeconds($timeoutSeconds)
+    $elemt = $null
 
-    $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $jointCondition)
-    sleep -s 2
+    while ([DateTime]::Now -lt $endTime -and $elemt -eq $null) {
+        $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $jointCondition)
+        Start-Sleep -Milliseconds 100  # Check every 100ms
+    }
+
     if ($elemt -eq $null){
         Write-Error " $proptyNme not found " -ErrorAction Stop  
     }
@@ -53,10 +68,11 @@ DESCRIPTION:
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - autoID [string] :- The Automation ID of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [object] :- Returns the clickable UI element if found.
 #>
-function FindClickableElementByAutomationID($uiEle, $autoID){
+function FindClickableElementByAutomationID($uiEle, $autoID, $timeoutSeconds = 2){
     if ($uiEle -eq $null)
     {
       Write-Error " UI Element for automation ID $autoID is Null" -ErrorAction Stop  
@@ -64,10 +80,16 @@ function FindClickableElementByAutomationID($uiEle, $autoID){
     $autoIDCondition = [System.Windows.Automation.PropertyCondition]::new(
                        [System.Windows.Automation.AutomationElementIdentifiers]::AutomationIdProperty, $autoID)
 
-    $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $autoIDCondition)
-    sleep -s 2
-    if ($elemt -eq $null){
-        Write-Error " $autoID not found " -ErrorAction Stop  
+    $endTime = [DateTime]::Now.AddSeconds($timeoutSeconds)
+    $elemt = $null    
+
+    while ([DateTime]::Now -lt $endTime -and $elemt -eq $null) {
+        $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $autoIDCondition)
+        Start-Sleep -Milliseconds 100  # Check every 100ms
+    }
+
+    if ($elemt -eq $null) {
+        Write-Error "$autoID not found" -ErrorAction Stop  
     }
     return $elemt
 } 
@@ -78,21 +100,29 @@ DESCRIPTION:
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - proptyNme [string] :- The property name of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [object] :- Returns the clickable UI element if found.
 #>
-function FindClickableElementByName($uiEle, $proptyNme){
+function FindClickableElementByName($uiEle, $proptyNme, $timeoutSeconds = 2){
     if ($uiEle -eq $null)
     {
       Write-Error " UI Element for $proptyNme is Null" -ErrorAction Stop  
     }
     $nameCondition = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElementIdentifiers]::NameProperty, $proptyNme)
-    $elemt = $uiEle.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$nameCondition)
-    sleep -s 2
-    if ($elemt -eq $null){
-        Write-Error " $proptyNme not found " -ErrorAction Stop  
+    
+    $endTime = [DateTime]::Now.AddSeconds($timeoutSeconds)
+    $elemt = $null    
+
+    while ([DateTime]::Now -lt $endTime -and $elemt -eq $null) {
+        $elemt = $uiEle.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$nameCondition)
+        Start-Sleep -Milliseconds 100  # Check every 100ms
     }
-    return $elemt
+
+    if ($elemt -eq $null) {
+        Write-Error "$proptyNme not found" -ErrorAction Stop  
+    }
+    return $elemt    
 }
 
 <#
@@ -101,10 +131,11 @@ DESCRIPTION:
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [string] :- Returns the name of the first matching UI element.
 #>
-function FindFirstElementsNameWithClassName($uiEle, $clsNme)
+function FindFirstElementsNameWithClassName($uiEle, $clsNme, $timeoutSeconds = 2)
 {
     if ($uiEle -eq $null)
     {
@@ -112,12 +143,19 @@ function FindFirstElementsNameWithClassName($uiEle, $clsNme)
     }
 
     $classNameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ClassNameProperty, $clsNme)
-    $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $classNameCondition)
-    sleep -s 2
-    if ($elemt -eq $null){
-        Write-Error " $clsNme not found " -ErrorAction Stop
+
+    $endTime = [DateTime]::Now.AddSeconds($timeoutSeconds)
+    $elemt = $null    
+
+    while ([DateTime]::Now -lt $endTime -and $elemt -eq $null) {
+        $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $classNameCondition)
+        Start-Sleep -Milliseconds 100  # Check every 100ms
     }
-    return $elemt.GetCurrentPropertyValue([Windows.Automation.AutomationElement]::NameProperty)
+
+    if ($elemt -eq $null) {
+        Write-Error "$clsNme not found" -ErrorAction Stop  
+    }
+    return $elemt.GetCurrentPropertyValue([Windows.Automation.AutomationElement]::NameProperty)     
 }
     
 <#
@@ -226,7 +264,6 @@ function FindAndSetValue($uiEle, $clsNme, $proptyNme, $proptyVal)
      {
          Write-Log -Message "Updating property [$proptyNme] from [$result] to [$proptyVal]" -IsOutput
          FindAndClick $uiEle $clsNme $proptyNme
-         Start-Sleep -Seconds 1
          $result = FindAndGetValue $uiEle $clsNme $proptyNme 
          if($result -ne $proptyVal)
          {

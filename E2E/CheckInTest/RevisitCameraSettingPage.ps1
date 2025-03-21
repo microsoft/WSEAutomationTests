@@ -39,7 +39,6 @@ function RevisitCameraSetting($times)
       {
           FindAndClick $ui Button "Connected enabled camera $Global:validatedCameraFriendlyName"
       }  
-       Start-Sleep -s 2
        $i++
    }
 
