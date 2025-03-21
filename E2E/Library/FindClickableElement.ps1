@@ -7,6 +7,7 @@ INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
     - proptyNme [string] :- The property name of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [object] :- Returns the UI element if found, otherwise returns $null.
 #>
@@ -20,7 +21,10 @@ function CheckIfElementExists($uiEle, $clsNme, $proptyNme, $timeoutSeconds = 2) 
     while ([DateTime]::Now -lt $endTime -and $elemt -eq $null) {
         $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $jointCondition)
         Start-Sleep -Milliseconds 100  # Check every 100ms
-    }    
+    }
+    if ($elemt -eq $null){
+        Write-Error " $proptyNme not found " -ErrorAction Stop  
+    }        
     return $elemt
 }
 
@@ -31,6 +35,7 @@ INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
     - proptyNme [string] :- The property name of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [object] :- Returns the clickable UI element if found.
 #>
@@ -63,6 +68,7 @@ DESCRIPTION:
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - autoID [string] :- The Automation ID of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [object] :- Returns the clickable UI element if found.
 #>
@@ -94,6 +100,7 @@ DESCRIPTION:
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - proptyNme [string] :- The property name of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [object] :- Returns the clickable UI element if found.
 #>
@@ -124,6 +131,7 @@ DESCRIPTION:
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [string] :- Returns the name of the first matching UI element.
 #>
