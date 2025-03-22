@@ -1,11 +1,10 @@
-﻿Add-Type -AssemblyName UIAutomationClient
+Add-Type -AssemblyName UIAutomationClient
 
 <#
 DESCRIPTION:
     This function tests the Camera App by setting video and photo resolutions, adjusting AI effects,
     toggling power states, and validating logs for recording and previewing scenarios.
     It ensures proper logging, checks service states, and collects trace data.
-
 INPUT PARAMETERS:
     - logFile [string] :- Path to the log file where test results will be recorded.
     - token [string] :- Authentication token required to control the smart plug.
@@ -17,7 +16,6 @@ INPUT PARAMETERS:
     - devPowStat [string] :- The device power state (e.g., "PluggedIn", "OnBattery").
     - VF [string] :- Voice Focus setting ("On"/"Off"/"NA").
     - toggleEachAiEffect [array] :- Array containing AI effect toggles for various camera settings.
-
 RETURN TYPE:
     - void 
 #>
@@ -28,8 +26,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        $startTime = Get-Date
        $VFdetails= "VF-$VF"
        $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoRes\$ptoRes\$devPowStat\$VFdetails\$toggleEachAiEffect"
-       Write-Output "`nStarting Test for $scenarioLogFolder`n"
-       Write-Output "Creating the log folder" 
+       Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
+       Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder
 
        #Retrieve value for scenario from Hash table
@@ -47,7 +45,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
          
           #Set the device Power state
           #if token and SPid is available than run scenarios for both pluggedin and unplugged 
-          Write-Output "Start Tests for $devPowStat scenario" 
+          Write-Log -Message "Start Tests for $devPowStat scenario" -IsOutput
           $devState = CheckDevicePowerState $devPowStat $token $SPId
           if($devState -eq $false)
           {   
@@ -62,31 +60,31 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           }
           
           #video resolution 
-          Write-Output "Setting up the video resolution to $vdoRes"
+          Write-Log -Message "Setting up the video resolution to $vdoRes" -IsOutput
           
           #Retrieve video resolution from hash table
-          Write-Output "Retrieve $vdoRes value from hash table"
+          Write-Log -Message "Retrieve $vdoRes value from hash table" -IsOutput
           $vdoRes = RetrieveValue $vdoRes
           
           #skip the test if video resolution is not available. 
           $result = SetvideoResolutionInCameraApp $scenarioLogFolder $startTime $vdoRes
           if($result[-1]  -eq $false)
           {
-             Write-Output "$vdoRes is not supported"
+             Write-Log -Message "$vdoRes is not supported" -IsOutput
              return
           }  
           
           #photo resolution 
-          Write-Output "Setting up the Photo resolution to $ptoRes"
+          Write-Log -Message "Setting up the Photo resolution to $ptoRes" -IsOutput
           
           #Retrieve photo resolution from hash table
-          Write-Output "Retrieve $ptoRes value from hash table"
+          Write-Log -Message "Retrieve $ptoRes value from hash table" -IsOutput
           $ptoRes = RetrieveValue $ptoRes
           #skip the test if photo resolution is not available. 
           $result = SetphotoResolutionInCameraApp $scenarioLogFolder $startTime $ptoRes
           if($result[-1]  -eq $false)
           {
-             Write-Output "$PtoRes is not supported"
+             Write-Log -Message "$PtoRes is not supported" -IsOutput
              return
           }
        
@@ -96,7 +94,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        Start-Sleep -m 500
        
        #open camera effects page and turn all effects off
-       Write-Output "Navigate to camera effects setting page"
+       Write-Log -Message "Navigate to camera effects setting page" -IsOutput
        FindCameraEffectsPage $ui
        Start-Sleep -m 500 
        
@@ -104,7 +102,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        $scenarioID = $toggleEachAiEffect[13]
                     
        #Setting AI effects for Tests in camera setting page 
-       Write-Output "Setting up the camera Ai effects"       
+       Write-Log -Message "Setting up the camera Ai effects" -IsOutput
        
        FindAndSetValue $ui ToggleSwitch "Automatic framing" $toggleEachAiEffect[0]
        FindAndSetValue $ui ToggleSwitch "Eye contact" $toggleEachAiEffect[5]
@@ -136,40 +134,40 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        CloseApp 'systemsettings'
        
        #Checks if frame server is stopped
-       Write-Output "Entering CheckServiceState function"
+       Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server'
                              
        #Strating to collect Traces
        StartTrace $scenarioLogFolder
 
-       Write-Output "Start test for $camsnario"
+       Write-Log -Message "Start test for $camsnario" -IsOutput
        if($camsnario -eq "Recording")
        {
            #Start video recording and close the camera app once finished recording 
            $InitTimeCameraApp = StartVideoRecording "20" $devPowStat #video recording duration can be adjusted depending on the number os scenarios
            $cameraAppStartTime = $InitTimeCameraApp[-1]
-           Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
+           Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
        else
        {   
            #Start Previewing and close the camera app once finished. 
            $InitTimeCameraApp = CameraPreviewing "20" #video Previewing duration can be adjusted depending on the number os scenarios
            $cameraAppStartTime = $InitTimeCameraApp[-1]
-           Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
+           Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
        #Checks if frame server is stopped
-       Write-Output "Entering CheckServiceState function"
+       Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server' 
        
        #Stop the Trace
-       Write-Output "Entering StopTrace function"
+       Write-Log -Message "Entering StopTrace function" -IsOutput
        StopTrace $scenarioLogFolder
    
        #Verify and validate if proper logs are generated or not.        
        Verifylogs $scenarioLogFolder $scenarioID $startTime
        
        #calculate Time from camera app started until PC trace first frame processed
-       Write-Output "Entering CheckInitTimeCameraApp function" 
+       Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
        CheckInitTimeCameraApp $scenarioLogFolder $scenarioID $cameraAppStartTime
        
        if($camsnario -eq "Recording")
@@ -184,7 +182,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
            GetVideoDetails $scenarioLogFolder $pathLogsFolder
        }
        
-       Write-Output "Entering GetContentOfLogFileAndCopyToTestSpecificLogFile function"
+       Write-Log -Message "Entering GetContentOfLogFileAndCopyToTestSpecificLogFile function" -IsOutput
        GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioLogFolder
        
        #collect data for Reporting
@@ -194,21 +192,21 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
     catch
     {
         Take-Screenshot "Error-Exception" $scenarioLogFolder
-        Write-Output "Error occured and enter catch statement"
+        Write-Log -Message "Error occured and enter catch statement" -IsOutput
         CloseApp 'systemsettings'
         CloseApp 'WindowsCamera'
         CloseApp 'Taskmgr'
         StopTrace $scenarioLogFolder
         CheckServiceState 'Windows Camera Frame Server'
-        Write-Output $_
+        Write-Log -Message $_ -IsOutput
         TestOutputMessage $scenarioLogFolder "Exception" $startTime $_.Exception.Message
-        Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
+        Write-Log -Message "$_" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
         Reporting $Results "$pathLogsFolder\Report.txt"
         GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioLogFolder
         $getLogs = Get-Content -Path "$pathLogsFolder\$scenarioLogFolder\log.txt" -raw
-        write-host $getLogs
+        Write-Log -Message $getLogs -IsHost
         $logs = resolve-path "$pathLogsFolder\$scenarioLogFolder\log.txt"
-        Write-Host "(Logs saved here:$logs)"
+        Write-Log -Message "(Logs saved here:$logs)" -IsHost
         SetSmartPlugState $token $SPId 1
               
         continue;
@@ -219,10 +217,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
 DESCRIPTION:
     Copies log file content to a test-specific folder. It extracts relevant logs from the main log file
     starting from the most recent test instance and saves them in a dedicated test-specific log file.
-
 INPUT PARAMETERS:
     - scenarioLogFldr [string] :- The name of the scenario-specific folder where logs should be copied.
-
 RETURN TYPE:
     - void
 #>
@@ -236,4 +232,3 @@ function GetContentOfLogFileAndCopyToTestSpecificLogFile($scenarioLogFldr)
     $lne = $linenumber.LineNumber - 1
     Get-Content -Path $logCopyFrom | Select -Skip $lne > $logCopyTo 
 }
-   

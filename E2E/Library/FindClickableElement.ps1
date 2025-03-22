@@ -3,12 +3,10 @@
 <#
 DESCRIPTION:
     This function checks if a UI element with a specific class name and property name exists within the given UI element.
-
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
     - proptyNme [string] :- The property name of the UI element to search for.
-
 RETURN TYPE:
     - [object] :- Returns the UI element if found, otherwise returns $null.
 #>
@@ -25,12 +23,10 @@ function CheckIfElementExists($uiEle, $clsNme, $proptyNme){
 <#
 DESCRIPTION:
     This function finds a clickable UI element based on its class name and property name. It throws an error if the element is not found.
-
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
     - proptyNme [string] :- The property name of the UI element to search for.
-
 RETURN TYPE:
     - [object] :- Returns the clickable UI element if found.
 #>
@@ -54,11 +50,9 @@ function FindClickableElement($uiEle, $clsNme, $proptyNme){
 <#
 DESCRIPTION:
     This function finds a clickable UI element based on its Automation ID. It throws an error if the element is not found.
-
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - autoID [string] :- The Automation ID of the UI element to search for.
-
 RETURN TYPE:
     - [object] :- Returns the clickable UI element if found.
 #>
@@ -81,11 +75,9 @@ function FindClickableElementByAutomationID($uiEle, $autoID){
 <#
 DESCRIPTION:
     This function finds a clickable UI element based on its property name. It throws an error if the element is not found.
-
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - proptyNme [string] :- The property name of the UI element to search for.
-
 RETURN TYPE:
     - [object] :- Returns the clickable UI element if found.
 #>
@@ -106,11 +98,9 @@ function FindClickableElementByName($uiEle, $proptyNme){
 <#
 DESCRIPTION:
     This function retrieves the name of the first UI element found with the specified class name.
-
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
-
 RETURN TYPE:
     - [string] :- Returns the name of the first matching UI element.
 #>
@@ -133,13 +123,11 @@ function FindFirstElementsNameWithClassName($uiEle, $clsNme)
 <#
 DESCRIPTION:
     This function finds and clicks on a UI element based on class name, property name, or Automation ID. It supports multiple interaction patterns like Invoke, Select, Toggle, and Expand.
-
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element (optional).
     - proptyNme [string] :- The property name of the UI element (optional).
     - autoID [string] :- The Automation ID of the UI element (optional).
-
 RETURN TYPE:
     - void (Performs the click operation without returning a value.)
 #>
@@ -187,12 +175,10 @@ function FindAndClick ($uiEle,$clsNme,$proptyNme,$autoID){
 <#
 DESCRIPTION:
     This function finds a UI element and retrieves its current value based on available patterns (Toggle or SelectionItem).
-
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element.
     - proptyNme [string] :- The property name of the UI element.
-
 RETURN TYPE:
     - [string] :- Returns the current value of the UI element.
 #>
@@ -220,13 +206,11 @@ function FindAndGetValue($uiEle, $clsNme, $proptyNme)
 <#
 DESCRIPTION:
     This function finds a UI element and sets its value if it differs from the desired value. It supports Toggle and RadioButton elements.
-
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element.
     - proptyNme [string] :- The property name of the UI element.
     - proptyVal [string] :- The desired value to set.
-
 RETURN TYPE:
     - void (Performs the value setting operation without returning a value.)
 #>
@@ -235,12 +219,12 @@ function FindAndSetValue($uiEle, $clsNme, $proptyNme, $proptyVal)
      $result = FindAndGetValue $uiEle $clsNme $proptyNme  #Will add parameters validation at the later point of time.
      if ($clsNme -eq "RadioButton" -and $proptyVal -eq "False" -and $result -eq "True")
      {
-        Write-Output "A value of $proptyVal cannot be set to $proptyNme  when it is $result as it is of type $clsNme."
+        Write-Log -Message "A value of $proptyVal cannot be set to $proptyNme when it is $result as it is of type $clsNme." -IsOutput
         return
      }
      if($result -ne $proptyVal)
      {
-         Write-Output "Updating property [$proptyNme] from [$result] to [$proptyVal]" 
+         Write-Log -Message "Updating property [$proptyNme] from [$result] to [$proptyVal]" -IsOutput
          FindAndClick $uiEle $clsNme $proptyNme
          Start-Sleep -Seconds 1
          $result = FindAndGetValue $uiEle $clsNme $proptyNme 
@@ -251,19 +235,17 @@ function FindAndSetValue($uiEle, $clsNme, $proptyNme, $proptyVal)
      }
      else
      {
-         Write-Output "$proptyNme is already $result"
+        Write-Log -Message "$proptyNme is already $result" -IsOutput
      } 
 }
 
 <#
 DESCRIPTION:
     This function finds and clicks on the first available element from a provided list of property names.
-
 INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI elements to search for.
     - proptyNmeLst [string[]] :- A list of property names to search and click.
-
 RETURN TYPE:
     - void (Performs the click operation without returning a value.)
 #>
@@ -295,5 +277,3 @@ function FindAndClickList
       Write-Error "Could not locate element in this list: $($proptyNmeLst -join ', ')" -ErrorAction Stop
    }
 }
-
-

@@ -5,12 +5,10 @@ DESCRIPTION:
     This function performs an end-to-end test on the Camera App. It sets up AI effects, configures
     the highest available photo and video resolutions, records a video, monitors system resource usage,
     and verifies logs to validate the correctness of the recording process.
-
 INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
-
 RETURN TYPE:
     - void
 #>
@@ -29,7 +27,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         CreateScenarioLogsFolder $scenarioLogFolder
         $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
         #Toggling All effects on
-        Write-Output "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On"
+        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                      -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
@@ -55,71 +53,73 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
            TestOutputMessage $scenarioLogFolder "Skipped" $startTime "Token is empty"  
            return
         }
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function"
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
                       
-        #Strating to collect Traces
-        Write-Output "Entering StartTrace function"
+        # Starting to collect Traces
+        Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioLogFolder
-        #Open Task Manager
-        Write-Output "Opening Task Manager"
+
+
+        # Open Task Manager
+        Write-Log -Message "Opening Task Manager" -IsOutput
         $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
         Start-Sleep -s 1
         setTMUpdateSpeedLow -uiEle $uitaskmgr
-        
-		# Call python modules for task manager Before starting the test case
-        Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, 5 -NoNewWindow -Wait
-        #Start video recording and close the camera app once finished recording
-        Write-Output "Entering StartVideoRecording function"
+        # Call python modules for task manager Before starting the test case
+        Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, 5 -NoNewWindow -Wait                     
+        # Start video recording and close the camera app once finished recording 
+        Write-Log -Message "Entering StartVideoRecording function" -IsOutput
         $InitTimeCameraApp = StartVideoRecording "60" $devPowStat
         $cameraAppStartTime = $InitTimeCameraApp[-1]
-        
-        #Capture CPU and NPU Usage
-        Write-Output "Entering CPUandNPU-Usage function to capture CPU and NPU usage Screenshot"  
+        Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
+
+        # Capture CPU and NPU Usage
+        Write-Log -Message "Entering CPUandNPU-Usage function to capture CPU and NPU usage Screenshot" -IsOutput
         stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
         
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function"
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server' 
         
-        #Stop the Trace
-        Write-Output "Entering StopTrace function"
+        # Stop the Trace
+        Write-Log -Message "Entering StopTrace function" -IsOutput
         StopTrace $scenarioLogFolder
                                          
-        #Verify and validate if proper logs are generated or not.   
+        # Verify and validate if proper logs are generated or not.   
         $wsev2PolicyState = CheckWSEV2Policy
         if($wsev2PolicyState -eq $false)
         {  
-           #ScenarioID 81968 is based on v1 effects.
-           Write-Output "Entering Verifylogs function"   
+           # ScenarioID 81968 is based on v1 effects.
+           Write-Log -Message "Entering Verifylogs function" -IsOutput
            Verifylogs $scenarioLogFolder "81968" $startTime 
            
-           #calculate Time from camera app started until PC trace first frame processed
-           Write-Output "Entering CheckInitTimeCameraApp function" 
+           # Calculate Time from camera app started until PC trace first frame processed
+           Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
            CheckInitTimeCameraApp $scenarioLogFolder "81968" $cameraAppStartTime
         }
         else
         {
-           #ScenarioID  is based on v1+v2 effects.
-           Write-Output "Entering Verifylogs function"  
+           # ScenarioID is based on v1+v2 effects.
+           Write-Log -Message "Entering Verifylogs function" -IsOutput
            Verifylogs $scenarioLogFolder "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
         
-           #calculate Time from camera app started until PC trace first frame processed
-           Write-Output "Entering CheckInitTimeCameraApp function" 
+           # Calculate Time from camera app started until PC trace first frame processed
+           Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
            CheckInitTimeCameraApp $scenarioLogFolder "2834432" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
         }
         
-        #Get the properties of latest video recording
-        Write-Output "Entering GetVideoDetails function"
+        # Get the properties of latest video recording
+        Write-Log -Message "Entering GetVideoDetails function" -IsOutput
         GetVideoDetails $scenarioLogFolder $pathLogsFolder
         
-        #collect data for Reporting
+        # Collect data for Reporting
         Reporting $Results "$pathLogsFolder\Report.txt"
                      
    
-        #Restore the default state for AI effects
-        Write-Output "Entering ToggleAIEffectsInSettingsApp function to Restore the default state for AI effects"
+        # Restore the default state for AI effects
+        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to Restore the default state for AI effects" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
                                      -ECVal "Off" -ECSVal "False" -ECEVal "False" -VFVal "Off" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"

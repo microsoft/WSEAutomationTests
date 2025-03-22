@@ -7,16 +7,14 @@ DESCRIPTION:
     This function initiates a system hibernation. It schedules a task to wake up the system, 
     performs necessary actions like simulating key presses after waking up, and ensures 
     cleanup by deleting the scheduled task after completion.
-
 INPUT PARAMETERS:
     - None
-
 RETURN TYPE:
     - void (Performs hibernation, auto-login, and scheduled task handling without returning a value.)
 #>
 function Hibernation()
 {  
-   Write-Output "Entering Hibernation function"   
+   Write-Log -Message "Entering Hibernation function" -IsOutput  
    $time = Get-Date
    $time=$time.AddMinutes(5)
    $time
@@ -50,16 +48,14 @@ function Hibernation()
 DESCRIPTION:
     This function deletes the scheduled task used for waking up the system after hibernation. 
     It ensures no redundant scheduled tasks exist post-hibernation.
-
 INPUT PARAMETERS:
     - None
-
 RETURN TYPE:
     - void (Deletes the scheduled task or raises an error if it doesn't exist.)
 #>
 function DeleteScheduledTask()
 {  
-   Write-Output "Entering DeleteScheduledTask function"   
+   Write-Log -Message "Entering DeleteScheduledTask function" -IsOutput  
    $task = Get-ScheduledTask | Where-Object {$_.TaskName -eq "hiber"} | Select-Object -First 1    
    if($task -ne $null)
    {
@@ -71,15 +67,12 @@ function DeleteScheduledTask()
    } 
 }
 
-#
 <#
 DESCRIPTION:
     This function verifies each starting.Microsoft.ASG.Perception.provider has stopping.Microsoft.ASG.Perception.provider 
     ending with same provider ID
-
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario to validate logs.
-
 RETURN TYPE:
     - void (Performs log validation and reporting without returning a value.)
 #>
@@ -119,7 +112,7 @@ function VerifyLogs-Hibernation($snarioName)
    #Validate starting and stopping logs has same count
    if($startingLogs.Count -ne $stoppingLogs.Count)
    {
-      Write-Host "Starting and Stopping logs count are not equal" -ForegroundColor Yellow
+      Write-Log -Message "Starting and Stopping logs count are not equal" -IsHost -ForegroundColor Yellow
    } 
    For($i=0; $i -lt $startingLogs.Count; $i++) 
    {
@@ -136,11 +129,11 @@ function VerifyLogs-Hibernation($snarioName)
          #Match provider ID for starting and stopping logs
          if($startingPerceptionProviderID -eq $stoppingPerceptionProviderID)
          {
-            Write-Host "Starting:${startingPerceptionProviderID} and Stopping:${stoppingPerceptionProviderID} logs matched" -ForegroundColor Green
+            Write-Log -Message "Starting:${startingPerceptionProviderID} and Stopping:${stoppingPerceptionProviderID} logs matched" -IsHost -ForegroundColor Green
          }
          else
          {
-            Write-Host  "Starting:${startingPerceptionProviderID} and Stopping:${stoppingPerceptionProviderID} logs NOT matched" -ForegroundColor Yellow
+            Write-Log -Message "Starting:${startingPerceptionProviderID} and Stopping:${stoppingPerceptionProviderID} logs NOT matched" -IsHost -ForegroundColor Yellow
          }
 
           #Validate targeted scenarioID after each cycle of hibernation
@@ -161,11 +154,11 @@ function VerifyLogs-Hibernation($snarioName)
                 $scenarioIDMatch = $result | Select-String -Pattern $pattern5
                 if($scenarioIDMatch -eq $null)
                 {
-                   Write-host "Scenario ID 512 not found .Logs saved here:$pathAsgTraceLogs" -ForegroundColor Red
+                   Write-Log -Message "Scenario ID 512 not found .Logs saved here:$pathAsgTraceLogs" -IsHost -ForegroundColor Red
                 }
                 else
                 {
-                   Write-host "ScenarioID $pattern5 found"
+                  Write-Log -Message "ScenarioID $pattern5 found" -IsHost  
                 }
              }
              else
@@ -176,30 +169,30 @@ function VerifyLogs-Hibernation($snarioName)
                    $scenarioIDMatch = $result | Select-String -Pattern $pattern4
                    if($scenarioIDMatch -eq $null)
                    {  
-                      Write-host "Scenario ID 81968 or 81936 not found. Logs saved here:$pathAsgTraceLogs" -ForegroundColor Red
+                      Write-Log -Message "Scenario ID 81968 or 81936 not found. Logs saved here:$pathAsgTraceLogs" -IsHost -ForegroundColor Red
                    }
                    else
                    {
-                      Write-host "ScenarioID $pattern4 found"
+                      Write-Log -Message "ScenarioID $pattern4 found" -IsHost  
                    }
                    
                  }
                  else
                  {
-                    Write-host "ScenarioID $pattern3 found"
+                    Write-Log -Message "ScenarioID $pattern3 found" -IsHost 
                  }
              }
           }
           else
           {
-             Write-Host "Incomplete Asgtrace generated" -ForegroundColor Red
+            Write-Log -Message "Incomplete Asgtrace generated" -IsHost -ForegroundColor Red
           }   
              
       }
       #Once the array for starting.Microsoft.ASG.Perception.provider is empty, Print below. 
       else 
       {
-         write-host "Logs ended for starting.Microsoft.ASG.Perception.provider"
+         Write-Log -Message "Logs ended for starting.Microsoft.ASG.Perception.provider" -IsHost  
       }
    }
 } 
@@ -208,10 +201,8 @@ function VerifyLogs-Hibernation($snarioName)
 DESCRIPTION:
     This function checks for any generic errors in the ASG trace logs and logs any errors 
     found, except for known non-critical issues like "Orientation sensor hardware not detected."
-
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario for identifying relevant logs.
-
 RETURN TYPE:
     - void (Filters and logs generic errors without returning a value.)
 #>
@@ -238,14 +229,8 @@ function GenericError($snarioName)
       }
       else
       {
-         write-host "GenericError - $errorMessage $errorMessage1" -BackgroundColor Red
-         write-Output "GenericError - $errorMessage $errorMessage1" >> $pathLogsFolder\ConsoleResults.txt
+         Write-Log -Message "GenericError - $errorMessage $errorMessage1" -IsOutput -IsHost -BackgroundColor Red >> $pathLogsFolder\ConsoleResults.txt
 
       }
    }
 }
-
-
-
-
-

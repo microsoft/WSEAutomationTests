@@ -3,19 +3,17 @@ DESCRIPTION:
     This function verifies PerceptionSessionUsageStats logs for a given scenario. It checks for 
     specific scenario IDs, validates frame processing times, and logs results. It also verifies 
     memory usage events if present.
-
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario for organizing and locating logs.
     - snarioId [string] :- The scenario ID used to identify specific log entries.
     - strtTime [datetime] :- The start time of the scenario, used for calculating durations.
-
 RETURN TYPE:
     - void (Performs validation and logging without returning a value.)
 #>
 function VerifyLogs($snarioName, $snarioId, $strtTime)
 {  
    $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"
-   Write-Output "Validating AsgTrace.txt logs"
+   Write-Log -Message "Validating AsgTrace.txt logs" -IsOutput
    if (Test-path -Path $pathAsgTraceTxt) 
    {   
       $pathAsgTraceLogs = resolve-path $pathAsgTraceTxt
@@ -75,17 +73,19 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
           
           #Reading log file to get frames Processing time details
           $numberOfFramesAbove33ms = $frameProcessingDetails[20].Trim()
+		  $totalnoOfFrames = $frameProcessingDetails[9].Trim()
           $minProcessingTimePerFrame = [math]::round(($frameProcessingDetails[12]/1000000),2)
           $avgProcessingTimePerFrame = [math]::round(($frameProcessingDetails[11]/1000000),2)
           $maxProcessingTimePerFrame = [math]::round(($frameProcessingDetails[13]/1000000),2)
 
                  
           #Write the frame processing time details to the log file
-          Write-Output "NumberOfFramesAbove33ms: $numberOfFramesAbove33ms, MinProcessingTimePerFrame:${minProcessingTimePerFrame}ms, AvgProcessingTimePerFrame: ${avgProcessingTimePerFrame}ms, MaxProcessingTimePerFrame: ${maxProcessingTimePerFrame}ms"
+          Write-Log -Message "NumberOfFramesAbove33ms: $numberOfFramesAbove33ms, MinProcessingTimePerFrame: ${minProcessingTimePerFrame}ms, AvgProcessingTimePerFrame: ${avgProcessingTimePerFrame}ms, MaxProcessingTimePerFrame: ${maxProcessingTimePerFrame}ms" -IsOutput
 
           $Results.ScenarioName = $snarioName
           $Results.FramesAbove33ms = $numberOfFramesAbove33ms
-          $Results.AvgProcessingTimePerFrame = "${avgProcessingTimePerFrame}ms"
+		  $Results.TotalNumberOfFrames = $totalnoOfFrames
+		  $Results.AvgProcessingTimePerFrame = "${avgProcessingTimePerFrame}ms"
           $Results.MaxProcessingTimePerFrame = "${maxProcessingTimePerFrame}ms"
           $Results.MinProcessingTimePerFrame = "${minProcessingTimePerFrame}ms"
           
@@ -95,10 +95,10 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
           if ( $numberOfFramesAbove33ms -gt 0 )
           {   
              #Prints to the console if numberOfFramesAbove33ms is greater than 0
-             Write-Host "   NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms] " -ForegroundColor Yellow
-             Write-Host "   AsgTraceLog saved here: $pathAsgTraceLogs"
-             Write-Output "NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms]" >> $pathLogsFolder\ConsoleResults.txt
-             Write-Output "AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
+             Write-Log -Message "   NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms] " -IsHost -ForegroundColor Yellow
+             Write-Log -Message "NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms]" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+             Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+
           }
         
           #As memory usage event are added on recent PC version. $frameProcessingDetails.count>32 validates memory usage events are present in PerceptionSessionUsageStats traces.
@@ -112,26 +112,23 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
       {
          #Prints Test failed for specific scenario as proper scenarioID was not found.  
          TestOutputMessage $snarioName "Fail" $strtTime "[ScenarioID:$snarioId] was not found."
-         Write-Host "[ScenarioID:$snarioId] was not found. Logs saved at $pathAsgTraceLogs"
-         Write-Output "[ScenarioID:$snarioId] was not found. Logs saved at $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
+         Write-Log -Message "[ScenarioID:$snarioId] was not found. Logs saved at $pathAsgTraceLogs" -IsHost -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
       }
    }
    else
    {
       Write-Error "$pathAsgTraceTxt not found " -ErrorAction Stop 
    }
-       
+ 
 }
 
 <#
 DESCRIPTION:
     This function retrieves the start and first frame processing times from PerceptionSessionUsageStats
     logs for a given scenario ID.
-
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario for locating relevant logs.
     - snarioId [string] :- The scenario ID used to filter log entries.
-
 RETURN TYPE:
     - array (Returns an array containing the start time and first frame time if found, otherwise returns $false.)
 #>
@@ -214,8 +211,8 @@ function PCStartandFirstFrameTime($snarioName, $snarioId)
    }
    else
    {
-      Write-host "   No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs " -ForegroundColor Yellow
-      Write-Output "No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs " >> $pathLogsFolder\ConsoleResults.txt
+      Write-Log -Message "   No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs " -IsHost -ForegroundColor Yellow
+      Write-Log -Message "No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs" -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
       return $false
    }
           
@@ -225,11 +222,9 @@ function PCStartandFirstFrameTime($snarioName, $snarioId)
 DESCRIPTION:
     This function calculates and logs the initialization time from the start of the perception core
     to the first processed frame for a given scenario.
-
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario for locating relevant logs.
     - snarioId [string] :- The scenario ID used to filter log entries.
-
 RETURN TYPE:
     - void (Calculates and logs initialization time without returning a value.)
 #>
@@ -238,8 +233,8 @@ function CheckInitTimePCOnly($snarioName, $snarioId)
    $PCStartandFirstFrameTime = PCStartandFirstFrameTime $snarioName $snarioId
    if($PCStartandFirstFrameTime -eq $false)
    {
-      Write-Host "   No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs" -ForegroundColor Yellow
-      Write-Output "   No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs"  >> $pathLogsFolder\ConsoleResults.txt
+      Write-Log -Message "   No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs" -IsHost -ForegroundColor Yellow
+      Write-Log -Message "No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs" -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
    }
    else
    { 
@@ -250,12 +245,12 @@ function CheckInitTimePCOnly($snarioName, $snarioId)
       $InitTimePCOnly = [math]::round((New-TimeSpan -Start $PCStartTime -End $PCFirstFrameTime).TotalSeconds,4)
       if($snarioId -eq "512")
       {  
-         Write-Output "PC Time To First Frame: ${InitTimePCOnly}secs"
+         Write-Log -Message "PC Time To First Frame: ${InitTimePCOnly}secs" -IsOutput
          $Results.PCInItTimeForAudio = "${InitTimePCOnly}sec"
       }
       else
       {
-         Write-Output "PC Time To First Frame: ${InitTimePCOnly}secs"
+         Write-Log -Message "PC Time To First Frame: ${InitTimePCOnly}secs" -IsOutput
          $Results.PCInItTime = "${InitTimePCOnly}sec"
       } 
       
@@ -266,12 +261,10 @@ function CheckInitTimePCOnly($snarioName, $snarioId)
 DESCRIPTION:
     This function calculates and logs the initialization time from when the camera app starts 
     until the first frame is processed.
-
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario for locating relevant logs.
     - snarioId [string] :- The scenario ID used to filter log entries.
     - camAppStatTme [datetime] :- The timestamp when the camera app was started.
-
 RETURN TYPE:
     - void (Calculates and logs initialization time without returning a value.)
 #>
@@ -282,9 +275,10 @@ function CheckInitTimeCameraApp($snarioName, $snarioId, $camAppStatTme)
    { 
       $PCFirstFrameTime = $PCStartandFirstFrameTime[1]  
       
-      #calculate Time from camera app started until PC trace first frame processed
+      # Calculate Time from camera app started until PC trace first frame processed
       $InitTimeCameraApp = [math]::round((New-TimeSpan -Start $camAppStatTme -End $PCFirstFrameTime).TotalSeconds,4)
-      Write-Output "Time from camera app started until PC trace first frame processed: ${InitTimeCameraApp}secs"
+      
+      Write-Log -Message "Time from camera app started until PC trace first frame processed: ${InitTimeCameraApp}secs" -IsOutput
       $Results.CameraAppInItTime = "${InitTimeCameraApp}sec"
    }      
 }
@@ -293,13 +287,11 @@ function CheckInitTimeCameraApp($snarioName, $snarioId, $camAppStatTme)
 DESCRIPTION:
     This function calculates and logs the initialization times for the voice recorder app:
     from when the app starts and from when the recording begins until the first frame is processed.
-
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario for locating relevant logs.
     - snarioId [string] :- The scenario ID used to filter log entries.
     - voiceRecderAppStatTme [datetime] :- The timestamp when the voice recorder app was started.
     - audioRecdingStatTme [datetime] :- The timestamp when the audio recording was started.
-
 RETURN TYPE:
     - void (Calculates and logs initialization times without returning a value.)
 #>
@@ -310,13 +302,13 @@ function CheckInitTimeVoiceRecorderApp($snarioName, $snarioId , $voiceRecderAppS
    { 
       $PCFirstFrameTime = $PCStartandFirstFrameTime[1]  
       
-      #calculate Time from voiceRecorder app started until PC trace first frame processed
+      # Calculate Time from voiceRecorder app started until PC trace first frame processed
       $InitTimeFromVoiceRecorderAppStarts = [math]::round((New-TimeSpan -Start $voiceRecderAppStatTme -End $PCFirstFrameTime).TotalSeconds,4)
-      Write-Output "Time from voiceRecorder app started until PC trace first frame processed: ${InitTimeFromVoiceRecorderAppStarts}secs"
+      Write-Log -Message "Time from voiceRecorder app started until PC trace first frame processed: ${InitTimeFromVoiceRecorderAppStarts}secs" -IsOutput
       
-      #calculate Time from Record button was pressed until PC trace first frame processed
+      # Calculate Time from Record button was pressed until PC trace first frame processed
       $InitTimeFromAudioRecordingStarts = [math]::round((New-TimeSpan -Start $audioRecdingStatTme -End $PCFirstFrameTime).TotalSeconds,4)
-      Write-Output "Time from record button was pressed until PC trace first frame processed: ${InitTimeFromAudioRecordingStarts}secs"
+      Write-Log -Message "Time from record button was pressed until PC trace first frame processed: ${InitTimeFromAudioRecordingStarts}secs" -IsOutput
       $Results.VoiceRecorderInItTime = "${InitTimeFromAudioRecordingStarts}sec"
    }     
 }
@@ -325,11 +317,9 @@ function CheckInitTimeVoiceRecorderApp($snarioName, $snarioId , $voiceRecderAppS
 DESCRIPTION:
     This function verifies PerceptionSessionUsageStats logs specifically for audio blur scenarios.
     It validates frame processing times and logs results if audio blur is enabled.
-
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario for organizing and locating logs.
     - snarioId [string] :- The scenario ID used to identify specific log entries.
-
 RETURN TYPE:
     - void (Performs validation and logging without returning a value.)
 #>
@@ -344,7 +334,7 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
    {  
       $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"
 
-      Write-Output "Validating AsgTrace.txt logs for Audio Blur"
+      Write-Log -Message "Validating AsgTrace.txt logs for Audio Blur" -IsOutput
       if (Test-path -Path $pathAsgTraceTxt)
       {
          $pathAsgTraceLogs = resolve-path $pathAsgTraceTxt
@@ -354,7 +344,7 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
          if ($frameProcessingDetails.Count -gt 20)
          {             
              #Prints for specific scenario as proper scenarioID was found.
-             Write-Output "Audio blur scenarioID - $snarioId found."
+             Write-Log -Message "Audio blur scenarioID - $snarioId found." -IsOutput
 
              CheckInitTimePCOnly $snarioName $snarioId
                           
@@ -363,17 +353,16 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
              $minProcessingTimePerFrameforAudioBlur = [math]::round(($frameProcessingDetails[12]/1000000),2)
              $avgProcessingTimePerFrameforAudioBlur = [math]::round(($frameProcessingDetails[11]/1000000),2)
              $maxProcessingTimePerFrameforAudioBlur = [math]::round(($frameProcessingDetails[13]/1000000),2)
-             Write-Output "NumberOfFramesAbove33msforAudioBlur: $numberOfFramesAbove33msforAudioBlur, MinProcessingTimePerFrameforAudioBlur:${minProcessingTimePerFrameforAudioBlur}ms, AvgProcessingTimePerFrameforAudioBlur: ${avgProcessingTimePerFrameforAudioBlur}ms, MaxProcessingTimePerFrameforAudioBlur: ${maxProcessingTimePerFrameforAudioBlur}ms"
-             
+             Write-Log -Message "NumberOfFramesAbove33msforAudioBlur: $numberOfFramesAbove33msforAudioBlur, MinProcessingTimePerFrameforAudioBlur:${minProcessingTimePerFrameforAudioBlur}ms, AvgProcessingTimePerFrameforAudioBlur: ${avgProcessingTimePerFrameforAudioBlur}ms, MaxProcessingTimePerFrameforAudioBlur: ${maxProcessingTimePerFrameforAudioBlur}ms" -IsOutput
+
              $Results.FramesAbove33msForAudioBlur = $numberOfFramesAbove33msforAudioBlur
 
              if ( $numberOfFramesAbove33msforAudioBlur -gt 0 )
              {   
                 #Prints to the console if numberOfFramesAbove33ms is greater than 0
-                Write-Host "   NumberOfFramesAbove33msForAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms] " -ForegroundColor Yellow
-                Write-Host "   AsgTraceLog saved here: $pathAsgTraceLogs"
-                Write-Output "NumberOfFramesAbove33msforAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms]" >> $pathLogsFolder\ConsoleResults.txt
-                Write-Output "AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
+                Write-Log -Message "   NumberOfFramesAbove33msForAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms] " -IsHost -ForegroundColor Yellow
+                Write-Log -Message "NumberOfFramesAbove33msforAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms]" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+                Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -IsOutput >> $pathLogsFolder\ConsoleResults.txt
              } 
 
          
@@ -381,8 +370,8 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
          else
          {
             #Prints scenarioID was not found for Audio Blur.  
-            Write-Host "   [ScenarioID:$snarioId] was not found.`n   AsgTraceLog saved here: $pathAsgTraceLogs" -ForegroundColor Red
-            Write-Output "[ScenarioID:$snarioId] was not found. Test is marked as Pass as Camera effects ScenarioID was found AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
+            Write-Log -Message "   [ScenarioID:$snarioId] was not found.`n   AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -ForegroundColor Red
+            Write-Log -Message "[ScenarioID:$snarioId] was not found. Test is marked as Pass as Camera effects ScenarioID was found. AsgTraceLog saved here: $pathAsgTraceLogs" -IsOutput >> $pathLogsFolder\ConsoleResults.txt            
             $Results.ReasonForNotPass = "[ScenarioID:$snarioId] was not found.Test is marked as Pass as Camera effects ScenarioID was found "
 
          }  
@@ -397,17 +386,16 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
 <#
 DESCRIPTION:
     This function checks for PrivateUsage, PeakWorkingSetSize, PageFaultCount, AvgWorkingSetSize.
-
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario for locating relevant logs.
-
 RETURN TYPE:
     - void (Logs memory usage statistics and highlights high memory usage without returning a value.)
 #>
 function CheckMemoryUsage($snarioName)
 {  
    $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"
-   Write-Output "Validating AsgTrace.txt logs for memory Usage"
+   Write-Log -Message "Validating AsgTrace.txt logs for memory Usage" -IsOutput
+
    if (Test-path -Path $pathAsgTraceTxt) 
    {   
       $pathAsgTraceLogs = resolve-path $pathAsgTraceTxt
@@ -427,16 +415,14 @@ function CheckMemoryUsage($snarioName)
          $Results.PeakWorkingSetSize = "${peakWorkingSetSize}MBs"
          $Results.AvgWorkingSetSize = "${avgWorkingSetSize}MBs"
                 
-         Write-Output "PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount} , AvgWorkingSetSize:${avgWorkingSetSize}MBs"
+         Write-Log -Message "PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount} , AvgWorkingSetSize:${avgWorkingSetSize}MBs" -IsOutput
           
          #Print error if the average working set size is greater than 250MBs
          if ( $avgWorkingSetSize -ge 250 )
          {   
             #Prints to the console if $avgWorkingSetSize is greater than or equal to 250MBs
-            Write-Host "   AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount} , AvgWorkingSetSize:${avgWorkingSetSize}MBs] " -BackgroundColor Red
-            Write-Host "   AsgTraceLog saved here: $pathAsgTraceLogs"
-            Write-Output "   AvgWorkingSetSize is greater than 250MBs[PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount} , AvgWorkingSetSize:${avgWorkingSetSize}MBs] "  >> $pathLogsFolder\ConsoleResults.txt
-            Write-Output "AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
+            Write-Log -Message "AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount}, AvgWorkingSetSize:${avgWorkingSetSize}MBs]" -IsOutput -IsHost -BackgroundColor Red >> $pathLogsFolder\ConsoleResults.txt
+            Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -IsOutput >> $pathLogsFolder\ConsoleResults.txt
          }
          $i++
       }
