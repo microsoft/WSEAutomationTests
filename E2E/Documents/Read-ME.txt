@@ -25,6 +25,10 @@ We have below sets of Test Runs:
 
 3. StressTest.ps1:
 •  A series of tests designed to put the device under stress (both plugged in and unplugged). Such as toggling AI Effects multiple times, Revisiting Camera setting page multiple times, maximizing/minimizing camera multiple times, Putting the device under hibernation etc.
+Set up for Hibernation
+#Please run Powercfg.exe /hibernate on as Admin on command prompt. Than open control panel> hardware and Sound> Power options > Click on "Choose what the power options do" and enable Hibernation checkbox.
+#Setup wake timers- Open control panel>Power options>"Edit Plan setting" for the power plan u are using. Then Select "Change adavanced power setting". Go to Sleep > "Allow wake timers" and enable them
+#For Auto-login- Open Edit group policy>Click Administrative Templates> System > Power Management> Sleep Settings > Disable "Require a password when a computer wakes(plugged in) and "Require a password when a computer wakes(on battery)
 
 4. MemoryUsage-Set.ps1:
 •   Captures PeakWorkingSetSize for the frame server process every few minutes while video recording with Windows Studio Effects(camera and audio) enabled, for both plugged-in and unplugged scenarios.
@@ -78,6 +82,7 @@ Output sample for CheckinTest.ps1 and ReleaseTest.ps1: Please see Output-Sample-
 •	Test run logs: 2023-12-12-09-26-02-Checkin-Test\Pluggedin-AF (Generated for each individual WSE effect (camera and audio) effect).
 
 PS:  Smart plugs are used to support Pluggedin and Unplugged Scenarios.
+
 
 Abbreviations:
 WSE: Windows Studio Effects
