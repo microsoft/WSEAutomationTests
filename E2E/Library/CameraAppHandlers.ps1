@@ -172,8 +172,10 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
-function StartVideoRecording($scnds)
+function StartVideoRecording($scnds, $devPowStat)
 {  
+     $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
+     $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
      #Open Camera App
      Write-Log -Message "Open camera App" -IsOutput
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
@@ -191,15 +193,19 @@ function StartVideoRecording($scnds)
      
      #Coverting the string back to date format for time calculation in code later in CheckInitTimeCameraApp function.
      $cameraAppStartTime = [System.DateTime]::ParseExact($cameraAppStartTostring,'yyyy/MM/dd HH:mm:ss:fff',$null)
-                                  
+
      #Switch to video mode if not in video mode
-     SwitchModeInCameraApp $ui "Switch to video mode" "Take video" 
-     Start-Sleep -s 2
-     
+	 $ui.SetFocus()
+     SwitchModeInCameraApp $ui "Switch to video mode" "Take video"
+
      #record video inbetween space presses
      Write-Log -Message "Start recording a video for $scnds seconds" -IsOutput
      [System.Windows.Forms.SendKeys]::SendWait(' ');
-     Start-Sleep -s $scnds
+     Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
+
+     # Call python modules for task manager Before starting the test case
+     Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scnds -NoNewWindow -Wait
+     $ui.SetFocus()
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
      Write-Log -Message "video recording stopped after $scnds seconds" -IsOutput
@@ -207,7 +213,6 @@ function StartVideoRecording($scnds)
      #restores photo mode for the next run(This line will be uncommented once camera issue is fixed)
      #SwitchModeInCameraApp $ui "Switch to photo mode" "Take photo"
      Start-Sleep -s 2
-
      #Close camera App
      CloseApp 'WindowsCamera'
      Start-Sleep -s 1  

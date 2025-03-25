@@ -18,13 +18,14 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
     $ErrorActionPreference='Stop'
     $scenarioName = "$devPowStat\Camerae2eTest"
     $logFile = "$devPowStat-Camerae2eTest.txt"
+    $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
         
     try
 	{  
         #Create Scenario folder
         $scenarioLogFolder = $scenarioName
         CreateScenarioLogsFolder $scenarioLogFolder
-     
+        $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
         #Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
@@ -35,7 +36,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         Set-SystemSettingsInCamera
        
         #Set photo resolution
-	     $photoResName = SetHighestPhotoResolutionInCameraApp 
+	    $photoResName = SetHighestPhotoResolutionInCameraApp 
         $phoResNme = RetrieveValue $photoResName[-1]
         
         #Set video resolution
@@ -45,7 +46,6 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         $scenarioLogFolder = "$scenarioName\$phoResNme\$vdoResNme" 
 
         CreateScenarioLogsFolder $scenarioLogFolder
-        
         $powerMode = $devPowStat -replace '^\d+-', ''
         $devState = CheckDevicePowerState $powerMode $token $SPId
         if($devState -eq $false)
@@ -61,15 +61,17 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioLogFolder
 
+
         # Open Task Manager
         Write-Log -Message "Opening Task Manager" -IsOutput
         $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
         Start-Sleep -s 1
         setTMUpdateSpeedLow -uiEle $uitaskmgr
-                             
+        # Call python modules for task manager Before starting the test case
+        Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, 5 -NoNewWindow -Wait                     
         # Start video recording and close the camera app once finished recording 
         Write-Log -Message "Entering StartVideoRecording function" -IsOutput
-        $InitTimeCameraApp = StartVideoRecording "60"
+        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
 
@@ -128,4 +130,3 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
        Error-Exception -snarioName $scenarioLogFolder -strttme $startTime -rslts $Results -logFile $logFile -token $token -SPID $SPID
     }
 }
-
