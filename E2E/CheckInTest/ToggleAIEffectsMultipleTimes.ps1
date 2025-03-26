@@ -57,12 +57,16 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         Write-Log -Message "Creating folder for capturing logs" -IsOutput
         CreateScenarioLogsFolder $scenarioName
 
+        # Open Camera App and set default setting to "Use system settings" 
+        Set-SystemSettingsInCamera
+
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
+        CheckServiceState 'Windows Camera Frame Server'
+                
         # Starting to collect Traces for generic error
         Write-Log -Message "Entering StartTrace" -IsOutput
         StartTrace $scenarioName
-
-       # Open Camera App and set default setting to "Use system settings" 
-       Set-SystemSettingsInCamera
 
         # Open settings app and obtain UI automation from it
         $ui = OpenApp 'ms-settings:' 'Settings'
@@ -72,6 +76,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         Write-Log -Message "Navigate to camera effects setting page" -IsOutput
         FindCameraEffectsPage $ui
         Start-Sleep -m 500 
+
                
         Write-Log -Message "Toggle camera effects in setting Page" -IsOutput
         OnandOffAiEffects $ui ToggleSwitch "Automatic framing" "2"
@@ -107,6 +112,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         OnandOffAiEffects $ui ToggleSwitch "Automatic framing" "2"
         OnandOffAiEffects $ui ToggleSwitch "Eye contact" "2"
         OnandOffAiEffects $ui ToggleSwitch "Background effects" "2"
+        
         $wsev2PolicyState = CheckWSEV2Policy
         if($wsev2PolicyState -eq $true)
         {
@@ -236,3 +242,15 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
        Error-Exception -snarioName $scenarioName -strttme $startTime -rslts $Results -logFile $logFile -token $token -SPID $SPID
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+

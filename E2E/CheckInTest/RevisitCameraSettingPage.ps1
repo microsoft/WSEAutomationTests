@@ -38,6 +38,7 @@ function RevisitCameraSetting($times)
       else
       {
           FindAndClick $ui Button "Connected enabled camera $Global:validatedCameraFriendlyName"
+          start-sleep -Seconds 2
       }  
        $i++
    }
@@ -148,34 +149,8 @@ function RevisitCameraSettingPage($devPowStat, $token, $SPId)
         # Close settings app
         CloseApp 'systemsettings'
 
-        # Checks if frame server is stopped
-        Write-Log -Message "Entering CheckServiceState function" -IsOutput
-        CheckServiceState 'Windows Camera Frame Server'
-
-        # Stop the Trace
-        Write-Log -Message "Entering StopTrace function" -IsOutput
-        StopTrace $scenarioName
-                                              
-        # Verify and validate if proper logs are generated or not.   
-        $wsev2PolicyState = CheckWSEV2Policy
-        if($wsev2PolicyState -eq $false)
-        {  
-           # ScenarioID 81968 is based on v1 effects.
-           Write-Log -Message "Entering Verifylogs function" -IsOutput
-           Verifylogs $scenarioName "81968" $startTime
-        }
-        else
-        { 
-           # ScenarioID 737312 is based on v1+v2 effects.   
-           Write-Log -Message "Entering Verifylogs function" -IsOutput
-           Verifylogs $scenarioName "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
-        }
-
-        #collect data for Reporting
-        Reporting $Results "$pathLogsFolder\Report.txt"
-
-        #For our Sanity, we make sure that we exit the test in netural state,which is pluggedin
-        SetSmartPlugState $token $SPId 1
+        # Verify logs and capture results.
+        Complete-TestRun $scenarioName $startTime $token $SPId
        
     }
     catch
@@ -183,3 +158,5 @@ function RevisitCameraSettingPage($devPowStat, $token, $SPId)
        Error-Exception -snarioName $scenarioName -strttme $startTime -rslts $Results -logFile $logFile -token $token -SPID $SPID
     }
 }
+
+
