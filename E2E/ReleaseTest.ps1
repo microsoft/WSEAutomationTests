@@ -21,14 +21,14 @@ foreach($camsnario in $deviceData["CameraScenario"])
    {  
       $initialSetupDone = "true" 
       $startTime = Get-Date 
-      $scenarioName = "CameraAppTest\$camsnario\$vdoRes" 
       #Retrieve video resolution from hash table
-      $vdoResDetails = RetrieveValue $vdoRes
+	   $vdoResDetails= RetrieveValue($vdoRes)
+      $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails" 
 
-      Write-Log -Message "Setting up video Res to $vdoResDetails" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+      Write-Log -Message "Setting up video Res to $vdoRes" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
       
       #skip the test if video resolution is not available. 
-      $result = SetvideoResolutionInCameraApp $scenarioName $startTime $vdoResDetails
+      $result = SetvideoResolutionInCameraApp $scenarioName $startTime $vdoRes
       if($result[-1]  -eq $false)
       {
          write-Error "Expected video Res is not found: $vdoRes"
@@ -38,14 +38,14 @@ foreach($camsnario in $deviceData["CameraScenario"])
       # Loop through photo resolutions  
       foreach ($ptoRes in  $deviceData["PhotoResolutions"])
       {   
-         $scenarioName = "CameraAppTest\$camsnario\$vdoRes\$ptoRes" 
-         #Retrieve photo resolution from hash table
-         $ptoResDetails = RetrieveValue $ptoRes
+         #Retrieve photo resolution from hash table 
+         $ptoResDetails= RetrieveValue($ptoRes)       
+         $scenarioName = "CameraAppTest\$camsnario\$vdoResPath\$ptoResDetails" 
 
-         Write-Log -Message "Setting up Photo Res to $ptoResDetails" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+         Write-Log -Message "Setting up Photo Res to $ptoRes" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
 
          #skip the test if photo resolution is not available. 
-         $result = SetphotoResolutionInCameraApp $scenarioName $startTime $ptoResDetails
+         $result = SetphotoResolutionInCameraApp $scenarioName $startTime $ptoRes
          if($result[-1]  -eq $false)
          {
             write-Error "Expected Photo Res is not found: $ptoRes"
