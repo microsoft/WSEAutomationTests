@@ -4,10 +4,8 @@
 DESCRIPTION:
     This function navigates back and forth between camera settings pages in the Windows Settings app 
     multiple times to validate UI behavior and responsiveness.
-
 INPUT PARAMETERS:
     - times [int] :- Number of times the function will navigate back and forth in the camera settings.
-
 RETURN TYPE:
     - void 
 #>
@@ -23,7 +21,7 @@ function RevisitCameraSetting($times)
    Start-Sleep -m 500
    
    #open camera effects page and turn all effects off
-   Write-Output "Navigate to camera effects setting page"
+   Write-Log -Message "Navigate to camera effects setting page" -IsOutput
    FindCameraEffectsPage $ui
    Start-Sleep -s 2
 
@@ -41,26 +39,22 @@ function RevisitCameraSetting($times)
       {
           FindAndClick $ui Button "Connected enabled camera $Global:validatedCameraFriendlyName"
       }  
-       Start-Sleep -s 2
        $i++
    }
 
-   Write-Output "Completed back and forth camera setting page $times times"
+   Write-Log -Message "Completed back and forth camera setting page $times times" -IsOutput
    #close settings app
    CloseApp 'systemsettings'
 }
-
 
 <#
 DESCRIPTION:
     This function performs stress testing on the camera settings page by revisiting it multiple times, 
     toggling AI effects on/off, and collecting memory usage data.
-
 INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
-
 RETURN TYPE:
     - void 
 #>
@@ -80,100 +74,100 @@ function RevisitCameraSettingPage($devPowStat, $token, $SPId)
     try
 	{  
         #Create scenario specific folder for collecting logs
-        Write-Output "Creating folder for capturing logs"
+        Write-Log -Message "Creating folder for capturing logs" -IsOutput
         CreateScenarioLogsFolder $scenarioName
 
-        #Strating to collect Traces for generic error
-        Write-Output "Entering StartTrace"
+        # Starting to collect Traces for generic error
+        Write-Log -Message "Entering StartTrace" -IsOutput
         StartTrace $scenarioName
                           
-        #Toggling All effects on
-        Write-Output "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On"
+        # Toggling All effects on
+        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                      -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
 
         Start-Sleep -s 2
 
-        Write-Output "Enter RevisitCameraSetting function"
+        Write-Log -Message "Enter RevisitCameraSetting function" -IsOutput
         RevisitCameraSetting "30"
 
-        #Change AI toggle in setting page
+        # Change AI toggle in setting page
         ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
                                      -ECVal "Off" -ECSVal "False" -ECEVal "False" -VFVal "Off" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
         Start-Sleep -s 2
         
-        Write-Output "Enter RevisitCameraSetting function"
+        Write-Log -Message "Enter RevisitCameraSetting function" -IsOutput
         RevisitCameraSetting "30"
 
-        #Change AI toggle in setting page
+        # Change AI toggle in setting page
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                                 -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
-                                                 -CF "On" -CFI "False" -CFA "False" -CFW "True"
+                                     -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
+                                     -CF "On" -CFI "False" -CFA "False" -CFW "True"
         Start-Sleep -s 2
 
-        Write-Output "Enter RevisitCameraSetting function"
+        Write-Log -Message "Enter RevisitCameraSetting function" -IsOutput
         RevisitCameraSetting "30"
 
-        #close settings app
+        # Close settings app
         CloseApp 'systemsettings'
 
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function"
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
 
-        #Stop the Trace for generic error
-        Write-Output "Entering StopTrace function"
+        # Stop the Trace for generic error
+        Write-Log -Message "Entering StopTrace function" -IsOutput
         StopTrace $scenarioName
 
-        #check for generic error
+        # Check for generic error
         GenericError $scenarioName
 
-        #Check if AvgMemoryUsage is greater than 250MB
+        # Check if AvgMemoryUsage is greater than 250MB
         CheckMemoryUsage $scenarioName
         
-        #Create scenario specific folder for collecting logs
-        Write-Output "Creating folder for capturing logs"
+        # Create scenario specific folder for collecting logs
+        Write-Log -Message "Creating folder for capturing logs" -IsOutput
         $scenarioName = "$devPowStat\RevisitCameraSettingPage-ValidateScenarioID"
         CreateScenarioLogsFolder $scenarioName
                       
-        #Strating to collect Traces
-        Write-Output "Entering StartTrace function"
+        # Starting to collect Traces
+        Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName
 
-        #open settings app and obtain ui automation from it
+        # Open settings app and obtain UI automation from it
         $ui = OpenApp 'ms-settings:' 'Settings'
         Start-Sleep -m 500
         
-        #open camera effects page and turn all effects off
-        Write-Output "Navigate to camera effects setting page"
+        # Open camera effects page and turn all effects off
+        Write-Log -Message "Navigate to camera effects setting page" -IsOutput
         FindCameraEffectsPage $ui
         Start-Sleep -s 10
 
-        #close settings app
+        # Close settings app
         CloseApp 'systemsettings'
 
-        #Checks if frame server is stopped
-        Write-Output "Entering CheckServiceState function"
+        # Checks if frame server is stopped
+        Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
 
-        #Stop the Trace
-        Write-Output "Entering StopTrace function"
+        # Stop the Trace
+        Write-Log -Message "Entering StopTrace function" -IsOutput
         StopTrace $scenarioName
                                               
-        #Verify and validate if proper logs are generated or not.   
+        # Verify and validate if proper logs are generated or not.   
         $wsev2PolicyState = CheckWSEV2Policy
         if($wsev2PolicyState -eq $false)
         {  
-           #ScenarioID 81968 is based on v1 effects.
-           Write-Output "Entering Verifylogs function"
+           # ScenarioID 81968 is based on v1 effects.
+           Write-Log -Message "Entering Verifylogs function" -IsOutput
            Verifylogs $scenarioName "81968" $startTime
         }
         else
         { 
-           #ScenarioID 737312 is based on v1+v2 effects.   
-           Write-Output "Entering Verifylogs function"
+           # ScenarioID 737312 is based on v1+v2 effects.   
+           Write-Log -Message "Entering Verifylogs function" -IsOutput
            Verifylogs $scenarioName "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
         }
 
@@ -189,5 +183,3 @@ function RevisitCameraSettingPage($devPowStat, $token, $SPId)
        Error-Exception -snarioName $scenarioName -strttme $startTime -rslts $Results -logFile $logFile -token $token -SPID $SPID
     }
 }
-
-
