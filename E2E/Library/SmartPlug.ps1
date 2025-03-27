@@ -177,3 +177,23 @@ function Get-BatteryPercentage {
    $battery = Get-WmiObject -Query "Select * from Win32_Battery"
    return $battery.EstimatedChargeRemaining
 }
+
+<#
+DESCRIPTION:
+    This function returns the current charging state.
+INPUT PARAMETERS:
+    - None
+RETURN TYPE:
+    - [string] (Returns battery state: charging or discharging or unknown.)
+#>
+function Get-ChargingState {
+    $batteryStatus = Get-WmiObject -Class Win32_Battery | Select-Object -ExpandProperty BatteryStatus
+ 
+    if ($batteryStatus -eq 2) {
+        return "Charging"
+    } elseif ($batteryStatus -eq 1) {
+        return "Discharging"
+    } else {
+        return "Unknown"
+    }
+}
