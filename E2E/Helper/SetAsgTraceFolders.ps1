@@ -17,3 +17,22 @@ function CreateScenarioLogsFolder ($snario)
         New-Item -ItemType Directory -Force -Path $scenarioLogsFolder  | Out-Null
     }
 }
+<#
+DESCRIPTION:
+    Copies log file content to a test-specific folder. It extracts relevant logs from the main log file
+    starting from the most recent test instance and saves them in a dedicated test-specific log file.
+INPUT PARAMETERS:
+    - scenarioLogFldr [string] :- The name of the scenario-specific folder where logs should be copied.
+RETURN TYPE:
+    - void
+#>
+function GetContentOfLogFileAndCopyToTestSpecificLogFile($scenarioLogFldr)
+{   
+    #copy logs to test specific folder
+    $logCopyFrom = "$pathLogsFolder\$logFile"
+    $logCopyTo =  "$pathLogsFolder\$scenarioLogFldr\log.txt" 
+    $search="Starting Test for "
+    $linenumber = Get-Content $logCopyFrom | select-string $search | Select-Object -Last 1
+    $lne = $linenumber.LineNumber - 1
+    Get-Content -Path $logCopyFrom | Select -Skip $lne > $logCopyTo 
+}
