@@ -19,8 +19,8 @@ function GetDeviceDetails()
    $deviceData = @{}
 
    $deviceData.CameraScenario   = @("Recording" , "Previewing") #We run for Recording only if there are many scenarios to be covered
-   $deviceData.VideoResolutions = GetVideoResList -videoResolutions @('1440p', '1080p', '720p', '480p', '360p', '1440p1', '1080p1', '960p', '640p', '540p')
-   $deviceData.PhotoResolutions = GetPhotoResList -photoResolutions @('12.2MP', '5.0MP', '2.1MP', '0.9MP', '0.3MP', '0.2MP')
+   $deviceData.VideoResolutions = GetVideoResList
+   $deviceData.PhotoResolutions = GetPhotoResList
    $deviceData.PowerStates      = @("Pluggedin", "Unplugged")
    $voiceFocusExists = CheckVoiceFocusPolicy 
    if($voiceFocusExists -eq $false)
@@ -73,13 +73,10 @@ DESCRIPTION:
     This function retrieves the list of supported video resolutions from the Camera app settings.
     It opens the Camera app, switches to video mode, and checks the available video quality options.
 
-INPUT PARAMETERS:
-    - videoResolutions [array]: An array of video resolution names to check for support.
-
 RETURN TYPE:
     - Array: List of supported video resolutions.
 #>
-Function GetVideoResList($videoResolutions)
+Function GetVideoResList()
 {
      #Open Camera App
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
@@ -89,39 +86,14 @@ Function GetVideoResList($videoResolutions)
      $return = CheckIfElementExists $ui ToggleButton "Take video" 
      if ($return -eq $null){
         FindAndClick $ui Button "Switch to video mode" 
-        Start-Sleep -s 2  
-     }
-     else
-     {
-       #It should already be in video mode
-       Start-Sleep -s 1
      }
      #Get video quality 
-     FindAndClick $ui Button "Open Settings Menu"
-     Start-Sleep -s 1
-    
+     FindAndClick $ui Button "Open Settings Menu"    
      #Find video settings and click
-     FindAndClickList -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.Expander -proptyNmeLst @('Videos settings','Video settings')
-     Start-Sleep -s 1
-     
+     FindAndClickList -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.Expander -proptyNmeLst @('Videos settings','Video settings')     
      FindAndClick $ui ComboBox "Video quality"
-     Start-Sleep -s 1
-     $vdoResList = @()
-     foreach($vdoRes in  $videoResolutions)
-     {
-        $vdoResDetails = RetrieveValue $vdoRes
-        
-        #Get the supported video resolution
-        $return = CheckIfElementExists $ui ComboBoxItem $vdoResDetails
-        if ($return -ne $null)
-        {
-           $vdoResList += $vdoRes
-        }
-        else
-        {
-            continue;
-        }
-     }
+     $vdoRes = FindAllElementsNameWithClassName $ui ComboBoxItem
+	 $vdoResList = $vdoRes | Where-Object { $_ -match 'aspect' }
      Stop-Process -Name 'WindowsCamera'
      start-sleep -s 1
      return $vdoResList
@@ -132,44 +104,23 @@ DESCRIPTION:
     This function retrieves the list of supported photo resolutions from the Camera app settings.
     It opens the Camera app and checks the available photo quality options.
 
-INPUT PARAMETERS:
-    - photoResolutions [array]: An array of photo resolution names to check for support.
-
 RETURN TYPE:
     - Array: List of supported photo resolutions.
 #>
-Function GetPhotoResList($photoResolutions)
+Function GetPhotoResList()
 {
    #Open Camera App
    $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
    Start-Sleep -s 1
 
    #Get photo quality
-   FindAndClick $ui Button "Open Settings Menu"
-   Start-Sleep -s 1 
-   
+   FindAndClick $ui Button "Open Settings Menu" 
    #Find Photo settings and click
    FindAndClickList -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.Expander -proptyNmeLst @('Photos settings','Photo settings')
-   Start-Sleep -s 1
-
    FindAndClick $ui ComboBox "Photo quality"
    Start-Sleep -s 1
-   $ptoResList = @()
-   foreach($ptoRes in  $photoResolutions)
-   {
-      $ptoResDetails = RetrieveValue $ptoRes
-      
-      #Get the supported video resolution
-      $return = CheckIfElementExists $ui ComboBoxItem $ptoResDetails
-      if ($return -ne $null)
-      {
-         $ptoResList += $ptoRes
-      }
-      else
-      {
-          continue;
-      }
-   }
+   $ptoRes = FindAllElementsNameWithClassName $ui ComboBoxItem
+   $ptoResList = $ptoRes | Where-Object { $_ -match 'aspect' }
    Stop-Process -Name 'WindowsCamera'
    start-sleep -s 1
    return $ptoResList

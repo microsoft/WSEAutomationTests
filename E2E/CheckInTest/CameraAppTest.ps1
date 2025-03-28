@@ -25,6 +25,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
    {  
        $startTime = Get-Date
        $VFdetails= "VF-$VF"
+	   $vdoRes= RetrieveValue($vdoRes)
+	   $ptoRes= RetrieveValue($ptoRes)       
        $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoRes\$ptoRes\$devPowStat\$VFdetails\$toggleEachAiEffect"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
@@ -37,21 +39,21 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           TestOutputMessage $scenarioLogFolder "Skipped" $startTime "wsev2Policy Not Supported"
           return
        }
+
+       #Set the device Power state
+       #if token and SPid is available than run scenarios for both pluggedin and unplugged 
+       Write-Output "Start Tests for $devPowStat scenario" 
+       $devState = CheckDevicePowerState $devPowStat $token $SPId
+       if($devState -eq $false)
+       {   
+          TestOutputMessage  $scenarioLogFolder "Skipped" $startTime "Token is empty"  
+          return
+       }  
        
        if($initSetUpDone -ne "true")
        {
           # Open Camera App and set default setting to "Use system settings" 
           Set-SystemSettingsInCamera
-         
-          #Set the device Power state
-          #if token and SPid is available than run scenarios for both pluggedin and unplugged 
-          Write-Log -Message "Start Tests for $devPowStat scenario" -IsOutput
-          $devState = CheckDevicePowerState $devPowStat $token $SPId
-          if($devState -eq $false)
-          {   
-             TestOutputMessage  $scenarioLogFolder "Skipped" $startTime "Token is empty"  
-             return
-          }  
           
           #Open system setting page and toggle voice focus 
           if($VF -ne "NA")
@@ -64,7 +66,6 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           
           #Retrieve video resolution from hash table
           Write-Log -Message "Retrieve $vdoRes value from hash table" -IsOutput
-          $vdoRes = RetrieveValue $vdoRes
           
           #skip the test if video resolution is not available. 
           $result = SetvideoResolutionInCameraApp $scenarioLogFolder $startTime $vdoRes
@@ -79,7 +80,6 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           
           #Retrieve photo resolution from hash table
           Write-Log -Message "Retrieve $ptoRes value from hash table" -IsOutput
-          $ptoRes = RetrieveValue $ptoRes
           #skip the test if photo resolution is not available. 
           $result = SetphotoResolutionInCameraApp $scenarioLogFolder $startTime $ptoRes
           if($result[-1]  -eq $false)
@@ -198,9 +198,9 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
         CloseApp 'Taskmgr'
         StopTrace $scenarioLogFolder
         CheckServiceState 'Windows Camera Frame Server'
-        Write-Log -Message $_ -IsOutput
+        Write-Output $_
         TestOutputMessage $scenarioLogFolder "Exception" $startTime $_.Exception.Message
-        Write-Log -Message "$_" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+        Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
         Reporting $Results "$pathLogsFolder\Report.txt"
         GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioLogFolder
         $getLogs = Get-Content -Path "$pathLogsFolder\$scenarioLogFolder\log.txt" -raw
@@ -213,22 +213,4 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
     }                                
 }
 
-<#
-DESCRIPTION:
-    Copies log file content to a test-specific folder. It extracts relevant logs from the main log file
-    starting from the most recent test instance and saves them in a dedicated test-specific log file.
-INPUT PARAMETERS:
-    - scenarioLogFldr [string] :- The name of the scenario-specific folder where logs should be copied.
-RETURN TYPE:
-    - void
-#>
-function GetContentOfLogFileAndCopyToTestSpecificLogFile($scenarioLogFldr)
-{   
-    #copy logs to test specific folder
-    $logCopyFrom = "$pathLogsFolder\$logFile"
-    $logCopyTo =  "$pathLogsFolder\$scenarioLogFldr\log.txt" 
-    $search="Starting Test for "
-    $linenumber = Get-Content $logCopyFrom | select-string $search | Select-Object -Last 1
-    $lne = $linenumber.LineNumber - 1
-    Get-Content -Path $logCopyFrom | Select -Skip $lne > $logCopyTo 
-}
+   

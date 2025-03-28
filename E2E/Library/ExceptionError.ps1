@@ -23,17 +23,14 @@ function Error-Exception($snarioName, $strttme, $rslts, $logFile, $token, $SPID)
    CloseApp 'Taskmgr'
    StopTrace $snarioName
    CheckServiceState 'Windows Camera Frame Server'
-
-   Write-Log -Message $_ -IsOutput
+   Write-Output $_
    TestOutputMessage $snarioName "Exception" $strttme $_.Exception.Message
-
-   Write-Log -Message $_ -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+   Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
    Reporting $rslts "$pathLogsFolder\Report.txt"
    $getLogs = Get-Content -Path "$pathLogsFolder\$logFile" -Raw
    Write-Log -Message $getLogs -IsHost
-
    $logs = resolve-path "$pathLogsFolder\$logFile"
    Write-Log -Message "(Logs saved here:$logs)" -IsHost
-
    SetSmartPlugState $token $SPID 1
 }
+ 
