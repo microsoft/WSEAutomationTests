@@ -157,7 +157,41 @@ function FindFirstElementsNameWithClassName($uiEle, $clsNme, $timeoutSeconds = 2
     }
     return $elemt.GetCurrentPropertyValue([Windows.Automation.AutomationElement]::NameProperty)     
 }
-    
+
+<#
+DESCRIPTION:
+    This function retrieves the name of the all UI element found with the specified class name.
+    Its returning duplicate values, handled by Sort-Object -Unique
+INPUT PARAMETERS:
+    - uiEle [object] :- The root UI element to search within.
+    - clsNme [string] :- The class name of the UI element to search for.
+RETURN TYPE:
+    - [string] :- Returns the name of the all matching UI element.
+#>
+function FindAllElementsNameWithClassName($uiEle, $clsNme, $timeoutSeconds = 2)
+{
+    if ($uiEle -eq $null)
+    {
+      Write-Error " UI Element for $proptyNme is Null" -ErrorAction Stop
+    }
+
+    $classNameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ClassNameProperty, $clsNme)
+
+    $endTime = [DateTime]::Now.AddSeconds($timeoutSeconds)
+    $elemt = $null    
+
+    while ([DateTime]::Now -lt $endTime -and $elemt -eq $null) {
+        $elemt = $uiEle.FindAll([Windows.Automation.TreeScope]::Descendants, $classNameCondition)
+        Start-Sleep -Milliseconds 100  # Check every 100ms
+    }
+
+    if ($elemt -eq $null) {
+        Write-Error "$clsNme not found" -ErrorAction Stop  
+    }
+	$uniqueElemt = $elemt | ForEach-Object { $_.GetCurrentPropertyValue([Windows.Automation.AutomationElement]::NameProperty) } | Sort-Object -Unique
+    return $uniqueElemt    
+}
+
 <#
 DESCRIPTION:
     This function finds and clicks on a UI element based on class name, property name, or Automation ID. It supports multiple interaction patterns like Invoke, Select, Toggle, and Expand.
