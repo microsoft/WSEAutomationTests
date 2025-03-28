@@ -3,7 +3,8 @@
    [string] $SPId = $null,
    [string] $targetMepCameraVer = $null,
    [string] $targetMepAudioVer = $null,
-   [string] $targetPerceptionCoreVer = $null
+   [string] $targetPerceptionCoreVer = $null,
+   [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null
 )
 .".\CheckInTest\Helper-library.ps1"
 InitializeTest 'ReleaseTest' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
@@ -63,45 +64,114 @@ foreach($camsnario in $deviceData["CameraScenario"])
             $unpluggedLast = -1
             $pluggedInLast = -1
 
-            <#
-            Approach we follow to run all the tests:
-               1. Battery Check: At the start, the battery status is checked.
-               2. Unplugged Scenarios: If the battery is above 20%, the Unplugged scenarios will run. If the battery drops below 20% during the 
-                  Unplugged scenarios, the device is immediately plugged in for charging.
-               3. Plugged-in Scenarios: We start executing pluggedIn tests during this state. This is done until either we complete all unplugged 
-                  state tests, or we reach 80% charge.
-               4. Unplugged Scenarios Continuation: Once either of the above-mentioned state is attained, the remaining Unplugged scenarios are executed.
-               5. This loop continues until both the unplugged and pluggedIn tests are completed.
-            #>
             while ($true) {
                $batteryPercentage = Get-BatteryPercentage
+               $chargingState = Get-ChargingState  # Fetch current charging state
 
-               if ($batteryPercentage -lt 20) {
-                  while ($batteryPercentage -lt 80 -and $pluggedInLast -lt $deviceData["ToggleAiEffect"].Count - 1) {
-                     $pluggedInLast++
-                     $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
-                     $devPowStat = "PluggedIn"
+               <#
+               Approach we follow to run all the tests (pluggedin + unplugged) when smart plug details are provided along with run mode = Both or null (null meaning not provided):
+                  1. Battery Check: At the start, the battery status is checked.
+                  2. Unplugged Scenarios: If the battery is above 20%, the Unplugged scenarios will run. If the battery drops below 20% during the 
+                     Unplugged scenarios, the device is immediately plugged in for charging.
+                  3. Plugged-in Scenarios: We start executing pluggedIn tests during this state. This is done until either we complete all unplugged 
+                     state tests, or we reach 80% charge.
+                  4. Unplugged Scenarios Continuation: Once either of the above-mentioned state is attained, the remaining Unplugged scenarios are executed.
+                  5. This loop continues until both the unplugged and pluggedIn tests are completed.
+               #>
+               if ($token -and $SPId -and ($runMode -eq "Both" -or [string]::IsNullOrEmpty($runMode))) {
+                  if ($batteryPercentage -lt 20) {
+                     while ($batteryPercentage -lt 80 -and $pluggedInLast -lt $deviceData["ToggleAiEffect"].Count - 1) {
+                        $pluggedInLast++
+                        $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
+                        $devPowStat = "PluggedIn"
+                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                        $batteryPercentage = Get-BatteryPercentage
+                     }
+                  } else {
+                     if ($unpluggedLast -lt $deviceData["ToggleAiEffect"].Count - 1) {
+                        $unpluggedLast++
+                        $togAiEfft = $deviceData["ToggleAiEffect"][$unpluggedLast]
+                        $devPowStat = "Unplugged"
+                     } else {
+                        $pluggedInLast++
+                        $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
+                        $devPowStat = "PluggedIn"
+                     }
                      CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
-                     $batteryPercentage = Get-BatteryPercentage
                   }
-               } else {
+
+                  if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
+                     Write-Host "breaking from the while loop"
+                     break
+                  }
+               }
+
+               <#
+               Approach we follow to run only unplugged tests:
+                  1. Run unplugged tests only when the run mode is set to "UnpluggedOnly" and smart plug details are provided.
+                  2. When tried to run unplugged tests without smart plug details, the script prints error message that smart plug details are mandatory to run unplugged tests.
+                  3. The script exits if all the unplugged scenarios are completed.
+                  4. The script plugs in the device (until it reaches 50%) when the battery drops below 20% during the unplugged tests.
+               #>
+               elseif ($runMode -eq "UnpluggedOnly") {
+
+                  if ($batteryPercentage -lt 20) {
+                     Write-Host "Battery below 20%. Plugging in to charge to 50%..." -ForegroundColor Cyan
+                     SetSmartPlugState $token $SPId 1  # Plug in
+                     while ($batteryPercentage -lt 50) {
+                         Start-Sleep -Seconds 60
+                         $batteryPercentage = Get-BatteryPercentage
+                         Write-Host "Charging... Current battery: $batteryPercentage%" -ForegroundColor Blue
+                     }
+                     Write-Host "Battery reached 50%. Unplugging and resuming tests." -ForegroundColor Green
+                     SetSmartPlugState $token $SPId 0  # Unplug
+                     Start-Sleep -Seconds 10  # Wait for state to stabilize
+                 }
+
+                  if (-not ($token -and $SPId)) {
+                     Write-Error "Smart plug ID is required to run unplugged tests. Exiting."
+                     return
+                  }
                   if ($unpluggedLast -lt $deviceData["ToggleAiEffect"].Count - 1) {
                      $unpluggedLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$unpluggedLast]
                      $devPowStat = "Unplugged"
                      CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
-                     $pluggedInLast++
-                     $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
-                     $devPowStat = "PluggedIn"
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     Write-Host "All Unplugged scenarios completed. Exiting." -ForegroundColor Yellow
+                     break
                   }
                }
 
-               # Exit loop when all tests are completed
-               if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
-                  Write-Log -Message "breaking from the while loop" -IsHost
-                  break
+               <#
+               Approach we follow to run only pluggedin tests with or without smart plug details are provided:
+                  1. Run pluggedIn tests for following cases:
+                     a. When the run mode is set to "PluggedInOnly".
+                     b. When the device is charging and run mode is not provided.
+                  2. Above tests run until all the pluggedIn scenarios are completed. 
+                  3. Once all are ompleted, the script exits.
+               #>
+               elseif ($runMode -eq "PluggedInOnly" -or ([string]::IsNullOrEmpty($runMode) -and $chargingState -eq "Charging")) {
+                  if ($pluggedInLast -lt $deviceData["ToggleAiEffect"].Count - 1) {
+                     $pluggedInLast++
+                     $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
+                     $devPowStat = "PluggedIn"
+                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                  } else {
+                     Write-Host "All PluggedIn scenarios completed. Exiting." -ForegroundColor Yellow
+                     break
+                  } 
+               }
+               
+               <#
+               Cases where release tests doesn't run are:
+                  1. .\ReleaseTest.ps1 without connecting to any charger.
+                  2. .\ReleaseTest.ps1 -runMode "UnpluggedOnly" when device is not connect to any smart plug.
+                  3. .\ReleaseTest.ps1 -token "123456" -SPId "7891011" when device is not connect to any charger.
+               #>
+               else {
+                  Write-Error "Invalid run mode specified or necessary parameters missing."
+                  return
                }
             }
          } 

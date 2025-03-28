@@ -37,21 +37,21 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           TestOutputMessage $scenarioLogFolder "Skipped" $startTime "wsev2Policy Not Supported"
           return
        }
+
+       #Set the device Power state
+       #if token and SPid is available than run scenarios for both pluggedin and unplugged 
+       Write-Output "Start Tests for $devPowStat scenario" 
+       $devState = CheckDevicePowerState $devPowStat $token $SPId
+       if($devState -eq $false)
+       {   
+          TestOutputMessage  $scenarioLogFolder "Skipped" $startTime "Token is empty"  
+          return
+       }  
        
        if($initSetUpDone -ne "true")
        {
           # Open Camera App and set default setting to "Use system settings" 
           Set-SystemSettingsInCamera
-         
-          #Set the device Power state
-          #if token and SPid is available than run scenarios for both pluggedin and unplugged 
-          Write-Log -Message "Start Tests for $devPowStat scenario" -IsOutput
-          $devState = CheckDevicePowerState $devPowStat $token $SPId
-          if($devState -eq $false)
-          {   
-             TestOutputMessage  $scenarioLogFolder "Skipped" $startTime "Token is empty"  
-             return
-          }  
           
           #Open system setting page and toggle voice focus 
           if($VF -ne "NA")
