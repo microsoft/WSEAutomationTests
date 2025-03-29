@@ -1,4 +1,15 @@
-﻿function Get-InitialSetUp($scenarioName)
+﻿<#
+DESCRIPTION:
+    This function performs an initial setup for a camera scenario test. It configures system settings, 
+    enables AI effects, sets the highest available photo and video resolutions, verifies the frame 
+    server state, starts trace collection, opens the Camera App, and switches to video mode to prepare 
+    for further tests.
+INPUT PARAMETERS:
+    - scenarioName [string] :- The name of the test scenario being executed.
+RETURN TYPE:
+    - void
+#>
+function Get-InitialSetUp($scenarioName)
 {
    Write-Log -Message "Entering Get-InitialSetUp function" -IsOutput
     
@@ -33,7 +44,20 @@
    # Switch to video mode as photo mode doesn't support MEP
    SwitchModeInCameraApp $ui "Switch to video mode" "Take video"  
 }
-
+<#
+DESCRIPTION:
+    This function completes the camera test run by ensuring the system returns to a neutral state, 
+    stopping trace collection, verifying logs for correctness, and generating a report. It also checks 
+    the frame server state, adjusts the scenario ID based on policy, and controls the smart plug state 
+    to ensure the device is plugged in at the end of the test.
+INPUT PARAMETERS:
+    - scenarioName [string] :- The name of the test scenario.
+    - startTime [string] :- The start time of the test run, used for reporting purposes.
+    - token [string] :- Authentication token required to control the smart plug.
+    - SPId [string] :- Smart plug ID used to control device power states.
+RETURN TYPE:
+    - void
+#>
 Function Complete-TestRun($scenarioName, $startTime, $token, $SPId)
 {
     
