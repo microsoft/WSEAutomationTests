@@ -32,28 +32,8 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
         Write-Log -Message "Creating folder for capturing logs" -IsOutput
         CreateScenarioLogsFolder $scenarioName
                 
-        # Starting to collect Traces for generic error
-        Write-Log -Message "Entering StartTrace" -IsOutput
-        StartTrace $scenarioName
-
-        # Open Camera App and set default setting to "Use system settings" 
-        Set-SystemSettingsInCamera
-
-        # Toggling All effects on
-        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
-                                     -CF "On" -CFI "False" -CFA "False" -CFW "True"
-       
-        Start-Sleep -s 2
-
-        # Open Camera App
-        Write-Log -Message "Open camera App" -IsOutput
-        $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
-        Start-Sleep -s 1
-        
-        #Switch to video mode
-        SwitchModeInCameraApp $ui "Switch to video mode" "Take video" 
+        # Set up camera effects/settings and start collecting trace
+        Get-InitialSetUp $scenarioName 
         Start-Sleep -s 2
 
         $shell = New-Object -ComObject "Shell.Application"
@@ -142,3 +122,15 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
        Error-Exception -snarioName $scenarioName -strttme $startTime -rslts $Results -logFile $logFile -token $token -SPID $SPID
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+

@@ -31,28 +31,8 @@ function CameraApp-Hibernation($devPowStat, $token, $SPId)
         Write-Log -Message "Creating folder for capturing logs" -IsOutput
         CreateScenarioLogsFolder $scenarioName
         
-        # Open Camera App and set default setting to "Use system settings" 
-        Set-SystemSettingsInCamera
-        
-        #Toggling All effects on
-        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
-                                     -CF "On" -CFI "False" -CFA "False" -CFW "True"
-                
-        #Checks if frame server is stopped
-        Write-Log -Message "Entering CheckServiceState function" -IsOutput
-        CheckServiceState 'Windows Camera Frame Server'
-                      
-        #Starting to collect Traces
-        Write-Log -Message "Entering StartTrace function" -IsOutput
-        StartTrace $scenarioName
-
-        #Open Camera App
-        $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
-        
-        #Switch to video mode as photo mode doesn't support MEP
-        SwitchModeInCameraApp $ui "Switch to video mode" "Take video"  
+        # Set up camera effects/settings and start collecting trace
+        Get-InitialSetUp $scenarioName 
         start-sleep -s 20
         
         #Entering while loop
@@ -65,46 +45,15 @@ function CameraApp-Hibernation($devPowStat, $token, $SPId)
            $i++
         } 
 
-        CloseApp 'WindowsCamera'
+       CloseApp 'WindowsCamera'
 
-        #Checks if frame server is stopped
-        Write-Log -Message "Entering CheckServiceState function" -IsOutput
-        CheckServiceState 'Windows Camera Frame Server'
-
-        #Stop the Trace
-        Write-Log -Message "Entering StopTrace function" -IsOutput
-        StopTrace $scenarioName
-
-        #Restore the default state for AI effects
-        Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to Restore the default state for AI effects" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
-                                     -ECVal "Off" -ECSVal "False" -ECEVal "False" -VFVal "Off" `
-                                     -CF "Off" -CFI "False" -CFA "False" -CFW "False"
-                                                 
-        #Verify and validate if proper logs are generated or not.   
-        $wsev2PolicyState = CheckWSEV2Policy
-        if($wsev2PolicyState -eq $false)
-        {  
-           #ScenarioID 81968 is based on v1 effects.   
-           Write-Log -Message "Entering Verifylogs function" -IsOutput
-           Verifylogs $scenarioName "81968" $startTime
-        }
-        else
-        { 
-           #ScenarioID 737312 is based on v1+v2 effects.  
-           Write-Log -Message "Entering Verifylogs function" -IsOutput
-           Verifylogs $scenarioName "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
-        }
-
-        #Verify logs for number of hibernation cycles
-        VerifyLogs-Hibernation $scenarioName
+       # Verify logs and capture results.
+       Complete-TestRun $scenarioName $startTime $token $SPId
+               
+       #Verify logs for number of hibernation cycles
+       VerifyLogs-Hibernation $scenarioName
         
-        #Collect data for Reporting
-        Reporting $Results "$pathLogsFolder\Report.txt"
-
-        #For our Sanity, we make sure that we exit the test in neutral state, which is plugged in
-        SetSmartPlugState $token $SPId 1
-       
+             
     }
     catch
     {   

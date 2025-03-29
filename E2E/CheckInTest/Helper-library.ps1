@@ -21,6 +21,7 @@
 .".\Library\ExceptionError.ps1"
 .".\Library\LookUpTable.ps1"
 .".\Library\DeviceDetails.ps1"
+.".\Library\SetupandCompleteTestRun"
 
 .".\CheckInTest\CameraAppTest.ps1"
 .".\CheckInTest\SettingAppTest.ps1"
