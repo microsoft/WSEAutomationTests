@@ -23,7 +23,7 @@ function CheckIfElementExists($uiEle, $clsNme, $proptyNme, $timeoutSeconds = 2) 
         Start-Sleep -Milliseconds 100  # Check every 100ms
     }
     if ($elemt -eq $null){
-        Write-Error " $proptyNme not found " -ErrorAction Stop  
+        Write-Error "$proptyNme not found " -ErrorAction Continue  
     }        
     return $elemt
 }
