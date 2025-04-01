@@ -21,10 +21,7 @@ function CheckIfElementExists($uiEle, $clsNme, $proptyNme, $timeoutSeconds = 2) 
     while ([DateTime]::Now -lt $endTime -and $elemt -eq $null) {
         $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $jointCondition)
         Start-Sleep -Milliseconds 100  # Check every 100ms
-    }
-    if ($elemt -eq $null){
-        Write-Error "$proptyNme not found " -ErrorAction Continue  
-    }        
+    }       
     return $elemt
 }
 
