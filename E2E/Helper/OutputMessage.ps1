@@ -23,15 +23,15 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
     switch ($tstReslt)
     {
         "Pass" {
-                  Write-Log -Message "$currNum ${snario}: " -IsHost -NoNewline; Write-Log -Message "Passed " -IsHost -ForegroundColor Green -NoNewline; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
-                  Write-Output "$currNum ${snario}:Passed (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
+                  Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Passed " -ForegroundColor Green; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                  Write-Log -Message "$currNum ${snario}:Passed (${totalExecutionTimeInSeconds}s)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
                   $Results.Status = "Pass"
                   $Results.ReasonForNotPass = $null
                }
         "Fail" {
-                 Write-Log -Message "$currNum ${snario}: " -IsHost -NoNewline; Write-Log -Message "Failed " -IsHost -ForegroundColor Red -NoNewline; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                 Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Failed " -ForegroundColor Red; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
                  AddToFailedTestsList "$currNum ${snario}"
-                 Write-Output "$currNum ${snario}:Failed (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
+                 Write-Log -Message "$currNum ${snario}:Failed (${totalExecutionTimeInSeconds}s)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
                  
                  # Reseting all field values to empty for failed case scenario exception for Status and ReasonForNotPass
                  ResetFields
@@ -43,22 +43,22 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
 
                
         "Exception" {
-                       Write-Log -Message "$currNum ${snario}: " -IsHost -NoNewline; Write-Log -Message "Failed " -IsHost -ForegroundColor Red -NoNewline; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                       Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Failed " -ForegroundColor Red; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
                        AddToFailedTestsList "$currNum ${snario}"
-                       Write-Output "$currNum ${snario}:Failed(Exception) (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
+                       Write-Log -Message "$currNum ${snario}:Failed(Exception) (${totalExecutionTimeInSeconds}s)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
 
                        # Reseting all field values to empty for Exception case scenario exception for Status and ReasonForNotPass
                        ResetFields
                        
                        $Results.ScenarioName = $snario
                        $Results.Status = "Fail"
-                       $Results.ReasonForNotPass = "Exception: " + $reasonForNotPass # Prefix with "Exception:" to maintain the distinction
+                       $Results.ReasonForNotPass = "Exception: " + $reasonForNotPass
                     }
                  
                     
         "Skipped"{
-                    Write-Log -Message "$currNum ${snario}: " -IsHost -NoNewline; Write-Log -Message "Skipped " -IsHost -ForegroundColor Yellow -NoNewline; Write-Log -Message "(${reasonForNotPass}) (${totalExecutionTimeInSeconds}s)" -IsHost
-                    Write-Output "$currNum ${snario}:Skipped (${reasonForNotPass})(${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
+                    Write-Host -NoNewline "$currNum ${snario}: "; Write-host -NoNewline "Skipped " -ForegroundColor Yellow; Write-Log -Message "(${reasonForNotPass}) (${totalExecutionTimeInSeconds}s)" -IsHost
+                    Write-Log -Message "$currNum ${snario}:Skipped (${reasonForNotPass})(${totalExecutionTimeInSeconds}s)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
 
                     # Reseting all field values to empty for skipped case scenario exception for Status and ReasonForNotPass
                     ResetFields
@@ -66,7 +66,7 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
                     $Results.ScenarioName = $snario
                     $Results.Status = "Skipped"
                     $Results.ReasonForNotPass = $reasonForNotPass
-                    Reporting $Results "$pathLogsFolder\Report.txt"
+					Reporting $Results "$pathLogsFolder\Report.txt"
                  }
                  
     }
@@ -199,13 +199,13 @@ function AddToFailedTestsList($failedTests)
    $togAiEfft = $splitEachTests[6]
    $token = "111222"
    $SPID ="333444"
-   if($functionToCall -eq  "CameraAppTest")
+if($functionToCall -eq  "CameraAppTest")
    {
-    Write-Output "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -VF $VF -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
-    Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
+      Write-Output "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -VF $VF -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
+      Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
    }
    else
    {
-    Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
+      Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
    }
 }
