@@ -41,7 +41,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
       {   
          #Retrieve photo resolution from hash table 
          $ptoResDetails= RetrieveValue($ptoRes)       
-         $scenarioName = "CameraAppTest\$camsnario\$vdoResPath\$ptoResDetails" 
+         $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails" 
 
          Write-Log -Message "Setting up Photo Res to $ptoRes" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
 
