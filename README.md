@@ -33,6 +33,7 @@ How to Run the Script
 =====================
 Test Environment Setup
 ----------------------
+* Install the latest Python version(Minimum version required:3.9.13) on device under test. Make sure "pywinauto" is installed.
 * Set up the test environment with a stable network and dedicated Wi-Fi (for Smart Plug setup).
 * Configure the smart plug to execute automation tests with the device both plugged in and unplugged.
 * Ensure audio and video recording works, and Camera app and Settings page opens maximized.
