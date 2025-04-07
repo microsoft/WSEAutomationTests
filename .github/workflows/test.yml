@@ -15,16 +15,10 @@ jobs:
   test:
     runs-on: [self-hosted, windows]  # Use self-hosted runner with Windows (adjust as needed)
 
-
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
 
-jobs:
-  install_powershell:
-    runs-on: [self-hosted, windows]
-
-    steps:
     - name: Check if PowerShell is installed
       shell: pwsh
       run: |
@@ -42,7 +36,7 @@ jobs:
           # Download PowerShell ZIP package
           Invoke-WebRequest -Uri "https://github.com/PowerShell/PowerShell/releases/download/v$powershell_version/PowerShell-$powershell_version-win-x64.zip" -OutFile "PowerShell.zip"
 
-          # Unzip PowerShell package
+          # Unzip PowerShell package to the correct folder
           Expand-Archive -Path "PowerShell.zip" -DestinationPath "C:\Program Files\PowerShell"
 
           # Add PowerShell to PATH for this session
@@ -67,7 +61,6 @@ jobs:
       if: success()
       run: |
         # You can upload results or logs here (e.g., to GitHub artifacts or external services)
-        # Example: Write the test results to a file
         Write-Output "Test run completed successfully"
       
     - name: Handle failure (Optional)
@@ -75,4 +68,3 @@ jobs:
       run: |
         # Handle test failures here (e.g., send notifications, log errors)
         Write-Output "Test run failed"
-
