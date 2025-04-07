@@ -132,10 +132,12 @@ jobs:
           
           git add version.txt
           git commit -m "Update version.txt to ${{ env.NEW_VERSION }} [skip ci]"
-          git push https://x-access-token:${{ secrets.PAT_Token }}@github.com/${{ github.repository }} HEAD:${{ github.head_ref }}
+          git push https://x-access-token:${{ secrets.PAT_Token }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
         env:
           NEW_VERSION: 1.0.1  # Define your new version
           PAT_TOKEN: ${{ secrets.PAT_Token }}  # Use the PAT token secret for authentication
+
+          
 
       
   
