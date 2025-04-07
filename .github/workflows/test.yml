@@ -1,4 +1,4 @@
-name: Test Self-Hosted Runner
+name: PowerShell Tests
 
 on:
   push:
@@ -6,10 +6,34 @@ on:
       - user/jdugar/TestSelfHostAgent   # Or the branch you are using
 
 jobs:
-  test_connection:
-    runs-on: [self-hosted, windows]  # Adjust based on your runner's OS
+  test:
+    runs-on: [self-hosted, windows]  # Use self-hosted runner with Windows (adjust as needed)
 
     steps:
-    - name: Check Runner Status
+    - name: Check out the repository
+      uses: actions/checkout@v3
+
+    - name: Set up PowerShell
+      uses: pwsh/setup-powershell@v2  # Optional, to set up a specific version of PowerShell
+      with:
+        version: '7.2.x'  # Adjust version if needed
+
+    - name: Run PowerShell Tests from E2e folder
       run: |
-        echo "Runner is connected and running on self-hosted environment."
+        # Run your PowerShell tests located in the E2e folder
+        .\E2e\Checkintest.ps1
+      shell: pwsh
+
+    - name: Upload test results (Optional)
+      if: success()
+      run: |
+        # You can upload results or logs here (e.g., to GitHub artifacts or external services)
+        # Example: Write the test results to a file
+        Write-Output "Test run completed successfully"
+      
+    - name: Handle failure (Optional)
+      if: failure()
+      run: |
+        # Handle test failures here (e.g., send notifications, log errors)
+        Write-Output "Test run failed"
+
