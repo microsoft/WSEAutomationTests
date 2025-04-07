@@ -136,7 +136,7 @@ jobs:
           git commit -m "Update version.txt to ${{ env.NEW_VERSION }}"
 
           # Push changes using GITHUB_TOKEN for authentication
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.head_ref }}
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GITHUB_TOKEN to authenticate
 
