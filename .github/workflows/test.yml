@@ -19,39 +19,6 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v3
 
-    - name: Ensure PowerShell is installed
-      shell: powershell
-      run: |
-        try {
-          # Try to check the installed version of PowerShell
-          $ps_version = & pwsh -v
-          Write-Host "PowerShell is already installed: $ps_version"
-        }
-        catch {
-          Write-Host "PowerShell is not installed. Proceeding with installation."
-          
-          # PowerShell version to install
-          $powershell_version = "7.2.8"
-          
-          # Download PowerShell ZIP package
-          Invoke-WebRequest -Uri "https://github.com/PowerShell/PowerShell/releases/download/v$powershell_version/PowerShell-$powershell_version-win-x64.zip" -OutFile "PowerShell.zip"
-  
-          # Unzip PowerShell package to the correct folder
-          Expand-Archive -Path "PowerShell.zip" -DestinationPath "C:\Program Files\PowerShell"
-  
-          # Add PowerShell to PATH for this session
-          $env:Path += ";C:\Program Files\PowerShell\PowerShell-$powershell_version"
-  
-          # Verify installation
-          & "C:\Program Files\PowerShell\PowerShell-$powershell_version\pwsh.exe" -v
-        }
-
-    - name: Final check of PowerShell
-      shell: powershell
-      run: |
-        # Confirm the PowerShell version installed or already available
-        pwsh -v
-
     - name: Run PowerShell Tests from E2e folder
       shell: pwsh
       run: |
