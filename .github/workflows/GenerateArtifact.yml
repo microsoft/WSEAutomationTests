@@ -19,7 +19,7 @@ jobs:
       - name: Build the Project
         run: |
           Write-Host "Step 4: Building or preparing the E2E tests..."
-          mkdir -p build
+          New-Item -Path "build" -ItemType "Directory" -Force
           echo "Simulated build process..." > build/build_output.txt
           Write-Host "Build process completed. Build output saved to build/build_output.txt."
 
