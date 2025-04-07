@@ -5,18 +5,64 @@ on:
     branches:
       - user/jdugar/TestSelfHostAgent   # Or the branch you are using
 
+permissions:
+  contents: write        # Allow write access to repository contents (e.g., pushing changes)
+  pull-requests: write   # Allow write access to pull requests (e.g., create or merge PRs)
+  issues: write          # Allow write access to issues (optional, if needed)
+  actions: write         # Allow write access to Actions (e.g., update or create workflows)
+
 jobs:
   test:
     runs-on: [self-hosted, windows]  # Use self-hosted runner with Windows (adjust as needed)
+
 
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
 
-    - name: Set up PowerShell
-      uses: pwsh/setup-powershell@v2  # Optional, to set up a specific version of PowerShell
-      with:
-        version: '7.2.x'  # Adjust version if needed
+    name: Install PowerShell on Windows Runner
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  install_powershell:
+    runs-on: [self-hosted, windows]
+
+    steps:
+    - name: Check if PowerShell is installed
+      shell: pwsh
+      run: |
+        try {
+          # Try to check the installed version of PowerShell
+          $ps_version = & pwsh -v
+          Write-Host "PowerShell is already installed: $ps_version"
+        }
+        catch {
+          Write-Host "PowerShell is not installed. Proceeding with installation."
+          
+          # PowerShell version to install
+          $powershell_version = "7.2.8"
+          
+          # Download PowerShell ZIP package
+          Invoke-WebRequest -Uri "https://github.com/PowerShell/PowerShell/releases/download/v$powershell_version/PowerShell-$powershell_version-win-x64.zip" -OutFile "PowerShell.zip"
+
+          # Unzip PowerShell package
+          Expand-Archive -Path "PowerShell.zip" -DestinationPath "C:\Program Files\PowerShell"
+
+          # Add PowerShell to PATH for this session
+          $env:Path += ";C:\Program Files\PowerShell\PowerShell-$powershell_version"
+
+          # Verify installation
+          & "C:\Program Files\PowerShell\PowerShell-$powershell_version\pwsh.exe" -v
+        }
+
+    - name: Final check of PowerShell
+      run: |
+        # Confirm the PowerShell version installed or already available
+        pwsh -v
 
     - name: Run PowerShell Tests from E2e folder
       run: |
