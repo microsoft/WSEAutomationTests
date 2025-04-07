@@ -1,0 +1,137 @@
+name: Add Version Details and Upload E2E Tests Artifact
+
+on: [push]
+ # push:
+  #  branches:
+      - master  # Trigger the action on push to the master branch
+
+jobs:
+  build-and-upload:
+    runs-on: windows-latest  # Use Windows runner to run PowerShell scripts
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v2  # Checkout the code from the PR merge
+
+      # Step 2: Get current version from version.txt
+      - name: Get current version from version.txt
+        id: get_version
+        run: |
+          Write-Host "Step 2: Reading the current version from version.txt"
+          
+          # Check if version.txt exists, if not, initialize it with 1.0.0
+          if (-Not (Test-Path -Path "version.txt")) {
+            Write-Host "Version file not found. Initializing with version 1.0.0."
+            Set-Content -Path "version.txt" -Value "1.0.0"
+          } else {
+            Write-Host "Version file found. Reading version..."
+          }
+          
+          # Read the version from version.txt
+          $version = Get-Content -Path "version.txt" | Out-String
+          $version = $version.Trim()  # Remove any extra spaces or newlines
+          Write-Host "Current version from version.txt: $version"
+          
+          # Set the version as an environment variable
+          echo "VERSION=$version" >> $env:GITHUB_ENV  # Set the version to be used in other steps
+
+      # Step 3: Increment version
+      - name: Increment version
+        id: increment_version
+        run: |
+          Write-Host "Step 3: Incrementing version..."
+          
+          # Get current version from environment variable
+          $version = $env:VERSION
+          Write-Host "Current version in environment: $version"
+          
+          $version_parts = $version.Split('.')
+          $major = [int]$version_parts[0]
+          $minor = [int]$version_parts[1]
+          $patch = [int]$version_parts[2]
+
+          Write-Host "Version breakdown: Major: $major, Minor: $minor, Patch: $patch"
+
+          # Increment logic
+          if ($patch -ge 9) {
+            # If patch version is 9, increment minor and reset patch to 0
+            $minor++
+            $patch = 0
+            Write-Host "Patch reached 9. Incrementing minor version to $minor and resetting patch to $patch."
+          } else {
+            # Otherwise, increment patch version
+            $patch++
+            Write-Host "Incrementing patch version to $patch."
+          }
+
+          if ($minor -ge 10) {
+            # If minor version reaches 10, reset to 0 and increment major version
+            $minor = 0
+            $major++
+            Write-Host "Minor version reached 10. Resetting minor to $minor and incrementing major version to $major."
+          }
+
+          # Construct new version and save it back to version.txt
+          $new_version = "$major.$minor.$patch"
+          Set-Content -Path "version.txt" -Value $new_version
+          Write-Host "New version: $new_version"
+
+          # Save the new version to an environment variable for later use
+          echo "NEW_VERSION=$new_version" >> $env:GITHUB_ENV  # Set the new version to be used in later steps
+
+      # Step 4: Build Project
+      - name: Build the Project
+        run: |
+          Write-Host "Step 4: Building or preparing the E2E tests..."
+          mkdir -p build
+          echo "Simulated build process..." > build/build_output.txt
+          Write-Host "Build process completed. Build output saved to build/build_output.txt."
+
+      # Step 5: Collect PowerShell tests and build output
+      - name: Collect PowerShell tests and build output
+        run: |
+          Write-Host "Step 5: Preparing the artifact..."
+          
+          # Create an artifact directory
+          New-Item -Path "artifact" -ItemType "Directory" -Force
+          Write-Host "Artifact directory created at 'artifact/'."
+          
+          # Copy PowerShell test files from E2E folder to artifact folder
+          Copy-Item -Path 'E2E\*' -Destination 'artifact\' -Recurse
+          Write-Host "Copied PowerShell test files from E2E to artifact directory."
+          
+          # Optionally, copy build output if you have it
+          Copy-Item -Path 'build\*' -Destination 'artifact\' -Recurse
+          Write-Host "Copied build output to artifact directory."
+
+      # Step 6: List artifact directory contents
+      - name: List artifact directory contents
+        run: |
+          Write-Host "Step 6: Listing contents of artifact directory for debugging..."
+          dir artifact
+
+      # Step 7: Upload Artifact
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4.6.2  # Upload artifact action
+        with:
+          name: e2e-tests-${{ env.NEW_VERSION }}  # Artifact name with the new version number
+          path: artifact/*  # Path to the collected files
+          if-no-files-found: warn  # Don't fail if no files are found
+          retention-days: 7  # Artifact retention period (optional)
+          compression-level: 6  # Optional compression level
+          overwrite: true  # Overwrite artifact if one with the same name exists
+          include-hidden-files: false  # Do not include hidden files
+
+      # Step 8: Commit and push the updated version.txt file
+      - name: Commit and push updated version.txt
+        run: |
+          Write-Host "Step 8: Committing and pushing updated version.txt"
+          git config --global user.name "WSEAutomationTests"
+          git config --global user.email "WSEAutomationTests@outlook.com"
+          
+          git add version.txt
+          git commit -m "Update version.txt to ${{ env.NEW_VERSION }}"
+          git push origin master  # Push to the master branch (or replace with the relevant branch name)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
