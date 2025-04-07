@@ -3,7 +3,7 @@ name: Add Version Details and Upload E2E Tests Artifact
 on: [push]
  # push:
   #  branches:
-      - master  # Trigger the action on push to the master branch
+     # - master  # Trigger the action on push to the master branch
 
 jobs:
   build-and-upload:
