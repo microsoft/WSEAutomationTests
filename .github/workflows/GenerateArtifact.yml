@@ -1,0 +1,61 @@
+name: Generate E2E Artifact
+
+on: [push]
+#on:
+  #push:
+    #branches:
+      #- master  # Trigger the action on push to the master branch
+
+jobs:
+  build-and-upload:
+    runs-on: windows-latest  # Use Windows runner to run PowerShell scripts
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v2  # Checkout the code from the PR merge
+
+      # Step 2: Build Project
+      - name: Build the Project
+        run: |
+          Write-Host "Step 4: Building or preparing the E2E tests..."
+          mkdir -p build
+          echo "Simulated build process..." > build/build_output.txt
+          Write-Host "Build process completed. Build output saved to build/build_output.txt."
+
+      # Step 3: Collect PowerShell tests and build output
+      - name: Collect PowerShell tests and build output
+        run: |
+          Write-Host "Step 5: Preparing the artifact..."
+          
+          # Create an artifact directory
+          New-Item -Path "artifact" -ItemType "Directory" -Force
+          Write-Host "Artifact directory created at 'artifact/'."
+          
+          # Copy PowerShell test files from E2E folder to artifact folder
+          Copy-Item -Path 'E2E\*' -Destination 'artifact\' -Recurse
+          Write-Host "Copied PowerShell test files from E2E to artifact directory."
+          
+          # Optionally, copy build output if you have it
+          Copy-Item -Path 'build\*' -Destination 'artifact\' -Recurse
+          Write-Host "Copied build output to artifact directory."
+
+      # Step 4: List artifact directory contents
+      - name: List artifact directory contents
+        run: |
+          Write-Host "Step 6: Listing contents of artifact directory for debugging..."
+          dir artifact
+
+      # Step 5: Upload Artifact
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4.6.2  # Upload artifact action
+        with:
+          name: e2e-tests-${{ env.NEW_VERSION }}  # Artifact name with the new version number
+          path: artifact/*  # Path to the collected files
+          if-no-files-found: warn  # Don't fail if no files are found
+          retention-days: 7  # Artifact retention period (optional)
+          compression-level: 6  # Optional compression level
+          overwrite: true  # Overwrite artifact if one with the same name exists
+          include-hidden-files: false  # Do not include hidden files
+
+   
