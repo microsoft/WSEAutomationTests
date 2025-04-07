@@ -131,7 +131,7 @@ jobs:
           git config --global user.email "WSEAutomationTests@outlook.com"
           
           git add version.txt
-          git commit -m "Update version.txt to ${{ env.NEW_VERSION }}"
+          git commit -m "Update version.txt to ${{ env.NEW_VERSION }} [skip ci]"
           git push origin master  # Push to the master branch (or replace with the relevant branch name)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
