@@ -132,7 +132,7 @@ jobs:
           
           git add version.txt
           git commit -m "Update version.txt to ${{ env.NEW_VERSION }}"
-          git push origin main  # Push to the main branch (or replace with the relevant branch name)
+          git push origin user/jdugar/AddedActiontouploadArtifact  # Push to the branch (or replace with the relevant branch name)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
 
