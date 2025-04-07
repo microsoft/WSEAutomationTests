@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Run PowerShell Tests from E2e folder
-      shell: pwsh
+      shell: powershell
       run: |
         # Run your PowerShell tests located in the E2e folder
         .\E2e\Checkintest.ps1
