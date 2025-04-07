@@ -124,14 +124,29 @@ jobs:
           include-hidden-files: false  # Do not include hidden files
 
       # Step 8: Commit and push the updated version.txt file
-      - name: Commit and push updated version.txt
-        run: |
-          Write-Host "Step 8: Committing and pushing updated version.txt"
-          git config --global user.name "WSEAutomationTests"
-          git config --global user.email "WSEAutomationTests@outlook.com"
+      #- name: Commit and push updated version.txt
+       # run: |
+        #  Write-Host "Step 8: Committing and pushing updated version.txt"
+         # git config --global user.name "WSEAutomationTests"
+          #git config --global user.email "WSEAutomationTests@outlook.com"
           
-          git add version.txt
-          git commit -m "Update version.txt to ${{ env.NEW_VERSION }} [skip ci]"
-          git push origin user/jdugar/AddedActiontouploadArtifact  # Push to the master branch (or replace with the relevant branch name)
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN}}  # Use the GitHub token for authentication
+          #git add version.txt
+          #git commit -m "Update version.txt to ${{ env.NEW_VERSION }} [skip ci]"
+          #git push origin user/jdugar/AddedActiontouploadArtifact  # Push to the master branch (or replace with the relevant branch name)
+        #env:
+         # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
+      # Step 8: Commit and push the updated version.txt file
+      - name: Commit and push updated version.txt
+      run: |
+         Write-Host "Step 8: Committing and pushing updated version.txt"
+        git config --global user.name "WSEAutomationTests"
+        git config --global user.email "WSEAutomationTests@outlook.com"
+    
+       git add version.txt
+       git commit -m "Update version.txt to ${{ env.NEW_VERSION }} [skip ci]"
+
+       # Use PAT_token secret to authenticate and push to the current branch
+       git push https://x-access-token:${{ secrets.PAT_token }}@github.com/${{ github.repository }} HEAD:${{ github.head_ref }}
+       env:
+       GITHUB_TOKEN: ${{ secrets.PAT_token }}  # Use your PAT secret for authentication
+ 
