@@ -3,7 +3,7 @@ name: Add Version Details and Upload E2E Tests Artifact
 on: [push]
  # push:
   #  branches:
-     # - master  # Trigger the action on push to the master branch
+     # - main  # Trigger the action on push to the master branch
 
 jobs:
   build-and-upload:
@@ -132,6 +132,6 @@ jobs:
           
           git add version.txt
           git commit -m "Update version.txt to ${{ env.NEW_VERSION }} [skip ci]"
-          git push origin master  # Push to the master branch (or replace with the relevant branch name)
+          git push origin user/jdugar/AddedActiontouploadArtifact  # Push to the master branch (or replace with the relevant branch name)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
