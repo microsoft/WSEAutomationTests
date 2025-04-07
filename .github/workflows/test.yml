@@ -1,0 +1,15 @@
+name: Test Self-Hosted Runner
+
+on:
+  push:
+    branches:
+      - user/jdugar/TestSelfHostAgent   # Or the branch you are using
+
+jobs:
+  test_connection:
+    runs-on: [self-hosted, windows]  # Adjust based on your runner's OS
+
+    steps:
+    - name: Check Runner Status
+      run: |
+        echo "Runner is connected and running on self-hosted environment."
