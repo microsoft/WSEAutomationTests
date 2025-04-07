@@ -50,7 +50,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4.6.2  # Upload artifact action
         with:
-          name: e2e-tests-${{ env.NEW_VERSION }}  # Artifact name with the new version number
+          name: e2e-tests  # Artifact name 
           path: artifact/*  # Path to the collected files
           if-no-files-found: warn  # Don't fail if no files are found
           retention-days: 7  # Artifact retention period (optional)
