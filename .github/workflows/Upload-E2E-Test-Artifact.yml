@@ -123,18 +123,23 @@ jobs:
           overwrite: true  # Overwrite artifact if one with the same name exists
           include-hidden-files: false  # Do not include hidden files
         
-          # Step 8: Commit and push the updated version.txt file
+         # Step 8: Commit and push updated version.txt file
       - name: Commit and push updated version.txt
         run: |
           Write-Host "Step 8: Committing and pushing updated version.txt"
-          git config --global user.name "WSEAutomationTests"
-          git config --global user.email "WSEAutomationTests@outlook.com"
+          
+          # Set up git user
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           git add version.txt
           git commit -m "Update version.txt to ${{ env.NEW_VERSION }}"
-          git push origin user/jdugar/AddedActiontouploadArtifact  # Push to the branch (or replace with the relevant branch name)
+
+          # Push changes using GITHUB_TOKEN for authentication
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.head_ref }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GITHUB_TOKEN to authenticate
+
 
           
 
