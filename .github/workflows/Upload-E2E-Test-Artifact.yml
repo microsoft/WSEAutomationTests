@@ -132,10 +132,8 @@ jobs:
           
           git add version.txt
           git commit -m "Update version.txt to ${{ env.NEW_VERSION }} [skip ci]"
+          git push origin user/jdugar/AddedActiontouploadArtifact  # Push to the master branch (or replace with the relevant branch name)
           env:
-        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
       
-    - name: Push changes
-      run: git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+  
