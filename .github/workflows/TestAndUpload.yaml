@@ -46,16 +46,19 @@ jobs:
     - name: Verify latest log folder contents
       shell: powershell
       run: |
-        $logFolderPath = ${{ steps.find-latest-log.outputs.latest-log-folder }}
+        # Retrieve the latest log folder path
+        $logFolderPath = "${{ env.LATEST_LOG_FOLDER_PATH }}"
         Write-Output "Checking contents of: $logFolderPath"
-        Get-ChildItem -Path $logFolderPath
+        
+        # Verify the contents of the log folder
+        Get-ChildItem -Path $logFolderPath -Recurse
 
     - name: Upload latest logs as artifact
-      if: steps.find-latest-log.outputs.latest-log-folder != ''
+      if: env.LATEST_LOG_FOLDER_PATH != ''
       uses: actions/upload-artifact@v4.6.2 
       with:
         name: latest-test-logs
-        path: ${{ steps.find-latest-log.outputs.latest-log-folder }}\**
+        path: ${{ env.LATEST_LOG_FOLDER_PATH }}\**
 
     - name: Upload test results (Optional)
       if: success()
