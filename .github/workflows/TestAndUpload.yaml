@@ -46,13 +46,21 @@ jobs:
     - name: Set latest log folder path to environment variable
       run: |
         echo "LATEST_LOG_FOLDER=${{ steps.find-latest-log.outputs.latest-log-folder }}" >> $GITHUB_ENV    
-    
+        
+    - name: Check if log folder is null or empty
+      run: |
+        if [[ -z "${{ env.LATEST_LOG_FOLDER }}" ]]; then
+          echo "ERROR: No log folder found. Exiting..."
+          exit 1
+        else
+          echo "Log folder found: ${{ env.LATEST_LOG_FOLDER }}"
+        fi
 
     - name: Verify latest log folder contents
       shell: powershell
       run: |
         # Retrieve the latest log folder path from the environment variable
-        $logFolderPath = $env:LATEST_LOG_FOLDER
+        $logFolderPath = "${{ env.LATEST_LOG_FOLDER }}"
         Write-Output "Checking contents of: $logFolderPath"
         
         # Verify the contents of the log folder
@@ -60,10 +68,10 @@ jobs:
 
     - name: Print the value of LATEST_LOG_FOLDER
       run: |
-        Write-Output "The latest log folder path is: $env:LATEST_LOG_FOLDER"    
+        Write-Output "The latest log folder path is: ${{ env.LATEST_LOG_FOLDER }}"   
 
     - name: Upload latest logs as artifact
-      if: $env:LATEST_LOG_FOLDER != ''
+      if: ${{ env.LATEST_LOG_FOLDER }} != ''
       uses: actions/upload-artifact@v4.6.2 
       with:
         name: latest-test-logs
