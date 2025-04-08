@@ -41,7 +41,7 @@ jobs:
        Write-Output "Latest log folder: $latestLogFolder"
 
        # Set the output variable for the path to use in the next step
-        echo "::set-output name=latest-log-folder::$($latestLogFolder.FullName)"
+       echo "::set-output name=latest-log-folder::$($latestLogFolder.FullName)"
 
     - name: Set latest log folder path to environment variable
       run: |
@@ -49,7 +49,7 @@ jobs:
 
     - name: Check if log folder is null or empty
       run: |
-        if [[ -z "${{ env.LATEST_LOG_FOLDER }}" ]]; then
+        if [ -z "${{ env.LATEST_LOG_FOLDER }}" ]; then
           echo "ERROR: No log folder found. Exiting..."
           exit 1
         else
@@ -71,11 +71,11 @@ jobs:
         Write-Output "The latest log folder path is: ${{ env.LATEST_LOG_FOLDER }}"   
 
     - name: Upload latest logs as artifact
-      if: ${{ env.LATEST_LOG_FOLDER }} != ''
+      if: ${{ env.LATEST_LOG_FOLDER != '' }}
       uses: actions/upload-artifact@v4.6.2 
       with:
         name: latest-test-logs
-        path: ${{ env:LATEST_LOG_FOLDER }}\**
+        path: ${{ env.LATEST_LOG_FOLDER }}\**  # Correct way to reference environment variable
         if-no-files-found: warn  # Don't fail if no files are found
         retention-days: 7  # Artifact retention period (optional)
         compression-level: 6  # Optional compression level
