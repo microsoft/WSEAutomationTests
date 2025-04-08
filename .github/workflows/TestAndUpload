@@ -34,16 +34,32 @@ jobs:
       id: find-latest-log
       shell: powershell
       run: |
-        # Get the latest modified folder in the logs directory
-        $latestLogFolder = Get-ChildItem -Path './E2E/logs' -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        Write-Output "Latest log folder: $latestLogFolder"
+        # Change directory to the logs folder
+        cd E2E\logs
+        Write-Output "Changed directory to: $PWD"
+
+        # List all directories (log folders) in the logs folder
+        $logFolders = Get-ChildItem -Directory
+        Write-Output "Log folders found: $($logFolders.Name)"
         
+        # Get the latest modified folder in the logs directory
+        $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        Write-Output "Latest log folder: $latestLogFolder"
+
         # Set output for the path to use in the next step
         echo "::set-output name=latest-log-folder::$($latestLogFolder.FullName)"
 
+    - name: Verify latest log folder contents
+      shell: powershell
+      run: |
+        # Output the contents of the latest log folder
+        $logFolderPath = ${{ steps.find-latest-log.outputs.latest-log-folder }}
+        Write-Output "Checking contents of: $logFolderPath"
+        Get-ChildItem -Path $logFolderPath
+
     - name: Upload latest logs as artifact
       if: always()  # Ensures it runs regardless of the success or failure of the tests
-      uses: actions/upload-artifact@v4.6.2  # Upload artifact action
+      uses: actions/upload-artifact@v3
       with:
         name: latest-test-logs  # Name of the artifact
         path: ${{ steps.find-latest-log.outputs.latest-log-folder }}\**  # Path to the latest log folder and its contents
