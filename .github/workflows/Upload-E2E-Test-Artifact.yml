@@ -4,7 +4,7 @@ on: [push]
  # push:
   #  branches:
      # - main  # Trigger the action on push to the master branch
-     
+
 permissions:
   contents: write        # Allow write access to repository contents (e.g., pushing changes)
   pull-requests: write   # Allow write access to pull requests (e.g., create or merge PRs)
@@ -142,7 +142,7 @@ jobs:
           git commit -m "Update version.txt to ${{ env.NEW_VERSION }}"
 
           # Push changes using GITHUB_TOKEN for authentication
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:user/jdugar/TestSelfHostAgent
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GITHUB_TOKEN to authenticate
 
