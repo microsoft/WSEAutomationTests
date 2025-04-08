@@ -1,5 +1,4 @@
 name: Run CheckInTest and Upload logs
-
 on:
   push:
     branches:
@@ -23,25 +22,26 @@ jobs:
 
     - name: Run PowerShell Tests from E2E folder
       shell: powershell  # Using PowerShell 
+      working-directory: E2E  # Set working directory to E2E
       run: |
-        cd E2E
-        .\CheckInTest.ps1
-
+       # Run the PowerShell script in the specified directory
+       .\CheckInTest.ps1 
+     
     - name: Find the latest log folder
       id: find-latest-log
       shell: powershell
+      working-directory: E2E\logs  # Set working directory to E2E\logs
       run: |
-       cd E2E\logs
-       Write-Output "Changed directory to: $PWD"
+       Write-Output "Changed directory to: $PWD"      
         
        $logFolders = Get-ChildItem -Directory
        Write-Output "Log folders found: $($logFolders.Name)"
         
        $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
        Write-Output "Latest log folder: $latestLogFolder"
-
+   
        # Set the output variable for the path to use in the next step
-        echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
+       echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
 
     - name: Verify latest log folder contents
       shell: powershell
@@ -52,10 +52,6 @@ jobs:
         
         # Verify the contents of the log folder
         Get-ChildItem -Path $logFolderPath -Recurse
-
-    - name: Print the value of LATEST_LOG_FOLDER
-      run: |
-        Write-Output "The latest log folder path is: ${{ env.LATEST_LOG_FOLDER }}"   
 
     - name: Upload latest logs as artifact
       if: ${{ env.LATEST_LOG_FOLDER != '' }}
