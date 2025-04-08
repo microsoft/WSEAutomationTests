@@ -22,14 +22,14 @@ jobs:
         fetch-depth: 0  # Ensures the entire history is checked out (not just the latest commit)
 
     - name: Run PowerShell Tests from E2E folder
-      shell: pwsh  # Using PowerShell Core (pwsh)
+      shell: powershell  # Using PowerShell Core (powershell)
       run: |
         cd E2E
         .\CheckInTest.ps1
 
     - name: Find the latest log folder
       id: find-latest-log
-      shell: pwsh
+      shell: powershell
       run: |
         cd E2E\logs
         Write-Output "Changed directory to: $PWD"
@@ -44,7 +44,7 @@ jobs:
         echo "latest-log-folder=$($latestLogFolder.FullName)" >> $GITHUB_ENV
 
     - name: Verify latest log folder contents
-      shell: pwsh
+      shell: powershell
       run: |
         $logFolderPath = ${{ steps.find-latest-log.outputs.latest-log-folder }}
         Write-Output "Checking contents of: $logFolderPath"
