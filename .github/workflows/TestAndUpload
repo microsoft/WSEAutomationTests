@@ -1,0 +1,59 @@
+name: PowerShell Tests
+
+on:
+  push:
+    branches:
+      - user/jdugar/TestSelfHostAgent   # Or the branch you are using
+
+permissions:
+  contents: write        # Allow write access to repository contents (e.g., pushing changes)
+  pull-requests: write   # Allow write access to pull requests (e.g., create or merge PRs)
+  issues: write          # Allow write access to issues (optional, if needed)
+  actions: write         # Allow write access to Actions (e.g., update or create workflows)
+
+jobs:
+  test:
+    runs-on: [self-hosted, windows]  # Use self-hosted runner with Windows (adjust as needed)
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Ensures the entire history is checked out (not just the latest commit)
+
+    - name: Run PowerShell Tests from E2E folder
+      shell: powershell  # Using PowerShell Core (pwsh)
+      run: |
+        # Change directory to the location where the tests are located (E2E folder)
+        cd E2E
+        
+        # Run the PowerShell test script
+        .\CheckInTest.ps1  # Adjust to your actual script name
+
+    - name: Find the latest log folder
+      id: find-latest-log
+      shell: powershell
+      run: |
+        # Get the latest modified folder in the logs directory
+        $latestLogFolder = Get-ChildItem -Path './E2E/logs' -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        Write-Output "Latest log folder: $latestLogFolder"
+        
+        # Set output for the path to use in the next step
+        echo "::set-output name=latest-log-folder::$($latestLogFolder.FullName)"
+
+    - name: Upload latest logs as artifact
+      if: always()  # Ensures it runs regardless of the success or failure of the tests
+      uses: actions/upload-artifact@v4.6.2  # Upload artifact action
+      with:
+        name: latest-test-logs  # Name of the artifact
+        path: ${{ steps.find-latest-log.outputs.latest-log-folder }}\**  # Path to the latest log folder and its contents
+
+    - name: Upload test results (Optional)
+      if: success()
+      run: |
+        Write-Output "Test run completed successfully"
+      
+    - name: Handle failure (Optional)
+      if: failure()
+      run: |
+        Write-Output "Test run failed"
