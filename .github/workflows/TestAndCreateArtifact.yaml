@@ -41,7 +41,7 @@ jobs:
        Write-Output "Latest log folder: $latestLogFolder"
    
        # Set the output variable for the path to use in the next step
-       echo "LOG_FOLDER_NAME=$latestLogFolder"" >> $env:GITHUB_ENV
+       echo "LOG_FOLDER_NAME=$latestLogFolder" >> $env:GITHUB_ENV
        echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
 
     - name: Verify latest log folder contents
