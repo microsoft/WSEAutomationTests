@@ -41,7 +41,8 @@ jobs:
        Write-Output "Latest log folder: $latestLogFolder"
 
        # Set the output variable for the path to use in the next step
-       echo "::set-output name=latest-log-folder::$($latestLogFolder.FullName)"
+        echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $GITHUB_ENV
+
 
     - name: Set latest log folder path to environment variable
       run: |
@@ -49,12 +50,12 @@ jobs:
 
     - name: Check if log folder is null or empty
       run: |
-        if [ -z "${{ env.LATEST_LOG_FOLDER }}" ]; then
-          echo "ERROR: No log folder found. Exiting..."
+        if ($env:LATEST_LOG_FOLDER -eq '') {
+          Write-Output "ERROR: No log folder found. Exiting..."
           exit 1
-        else
-          echo "Log folder found: ${{ env.LATEST_LOG_FOLDER }}"
-        fi
+        } else {
+          Write-Output "Log folder found: $env:LATEST_LOG_FOLDER"
+        }
 
     - name: Verify latest log folder contents
       shell: powershell
