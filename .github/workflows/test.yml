@@ -18,12 +18,17 @@ jobs:
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Ensures the entire history is checked out (not just the latest commit)
 
     - name: Run PowerShell Tests from E2e folder
-      shell: powershell
+      shell: powershell  # Using PowerShell Core (pwsh)
       run: |
-        # Run your PowerShell tests located in the E2e folder
-        .\E2e\Checkintest.ps1
+        # Change directory to the location where the tests are located (E2e folder)
+        cd E2E
+        
+        # Run the PowerShell test script
+        .\CheckInTest.ps1  # Adjust to your actual script name
 
     - name: Upload test results (Optional)
       if: success()
