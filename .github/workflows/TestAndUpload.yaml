@@ -27,38 +27,54 @@ jobs:
         cd E2E
         .\CheckInTest.ps1
 
+    - name: Create artifact folder    
+
     - name: Find the latest log folder
       id: find-latest-log
       shell: powershell
       run: |
-        cd E2E\logs
-        Write-Output "Changed directory to: $PWD"
+       cd E2E\logs
+       Write-Output "Changed directory to: $PWD"
         
-        $logFolders = Get-ChildItem -Directory
-        Write-Output "Log folders found: $($logFolders.Name)"
+       $logFolders = Get-ChildItem -Directory
+       Write-Output "Log folders found: $($logFolders.Name)"
         
-        $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        Write-Output "Latest log folder: $latestLogFolder"
+       $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+       Write-Output "Latest log folder: $latestLogFolder"
 
-        # Set the output variable for the path
-        echo "latest-log-folder=$($latestLogFolder.FullName)" >> $GITHUB_ENV
+       # Set the output variable for the path to use in the next step
+        echo "::set-output name=latest-log-folder::$($latestLogFolder.FullName)"
+
+    - name: Set latest log folder path to environment variable
+      run: |
+        echo "LATEST_LOG_FOLDER=${{ steps.find-latest-log.outputs.latest-log-folder }}" >> $GITHUB_ENV    
+    
 
     - name: Verify latest log folder contents
       shell: powershell
       run: |
-        # Retrieve the latest log folder path
-        $logFolderPath = "${{ env.LATEST_LOG_FOLDER_PATH }}"
+        # Retrieve the latest log folder path from the environment variable
+        $logFolderPath = $env:LATEST_LOG_FOLDER
         Write-Output "Checking contents of: $logFolderPath"
         
         # Verify the contents of the log folder
         Get-ChildItem -Path $logFolderPath -Recurse
 
+    - name: Print the value of LATEST_LOG_FOLDER
+      run: |
+        Write-Output "The latest log folder path is: $env:LATEST_LOG_FOLDER"    
+
     - name: Upload latest logs as artifact
-      if: env.LATEST_LOG_FOLDER_PATH != ''
+      if: $env:LATEST_LOG_FOLDER != ''
       uses: actions/upload-artifact@v4.6.2 
       with:
         name: latest-test-logs
-        path: ${{ env.LATEST_LOG_FOLDER_PATH }}\**
+        path: ${{ $env:LATEST_LOG_FOLDER }}\**
+        if-no-files-found: warn  # Don't fail if no files are found
+        retention-days: 7  # Artifact retention period (optional)
+        compression-level: 6  # Optional compression level
+        overwrite: true  # Overwrite artifact if one with the same name exists
+        include-hidden-files: false  # Do not include hidden files
 
     - name: Upload test results (Optional)
       if: success()
