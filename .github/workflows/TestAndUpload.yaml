@@ -1,4 +1,4 @@
-name: PowerShell Tests
+name: Run CheckInTest and Upload logs
 
 on:
   push:
@@ -52,7 +52,7 @@ jobs:
 
     - name: Upload latest logs as artifact
       if: steps.find-latest-log.outputs.latest-log-folder != ''
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4.6.2 
       with:
         name: latest-test-logs
         path: ${{ steps.find-latest-log.outputs.latest-log-folder }}\**
