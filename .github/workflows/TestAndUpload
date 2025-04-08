@@ -22,53 +22,46 @@ jobs:
         fetch-depth: 0  # Ensures the entire history is checked out (not just the latest commit)
 
     - name: Run PowerShell Tests from E2E folder
-      shell: powershell  # Using PowerShell Core (pwsh)
+      shell: pwsh  # Using PowerShell Core (pwsh)
       run: |
-        # Change directory to the location where the tests are located (E2E folder)
         cd E2E
-        
-        # Run the PowerShell test script
-        .\CheckInTest.ps1  # Adjust to your actual script name
+        .\CheckInTest.ps1
 
     - name: Find the latest log folder
       id: find-latest-log
-      shell: powershell
+      shell: pwsh
       run: |
-        # Change directory to the logs folder
         cd E2E\logs
         Write-Output "Changed directory to: $PWD"
-
-        # List all directories (log folders) in the logs folder
+        
         $logFolders = Get-ChildItem -Directory
         Write-Output "Log folders found: $($logFolders.Name)"
         
-        # Get the latest modified folder in the logs directory
         $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
         Write-Output "Latest log folder: $latestLogFolder"
 
-        # Set output for the path to use in the next step
-        echo "::set-output name=latest-log-folder::$($latestLogFolder.FullName)"
+        # Set the output variable for the path
+        echo "latest-log-folder=$($latestLogFolder.FullName)" >> $GITHUB_ENV
 
     - name: Verify latest log folder contents
-      shell: powershell
+      shell: pwsh
       run: |
-        # Output the contents of the latest log folder
         $logFolderPath = ${{ steps.find-latest-log.outputs.latest-log-folder }}
         Write-Output "Checking contents of: $logFolderPath"
         Get-ChildItem -Path $logFolderPath
 
     - name: Upload latest logs as artifact
-      if: always()  # Ensures it runs regardless of the success or failure of the tests
+      if: steps.find-latest-log.outputs.latest-log-folder != ''
       uses: actions/upload-artifact@v3
       with:
-        name: latest-test-logs  # Name of the artifact
-        path: ${{ steps.find-latest-log.outputs.latest-log-folder }}\**  # Path to the latest log folder and its contents
+        name: latest-test-logs
+        path: ${{ steps.find-latest-log.outputs.latest-log-folder }}\**
 
     - name: Upload test results (Optional)
       if: success()
       run: |
         Write-Output "Test run completed successfully"
-      
+
     - name: Handle failure (Optional)
       if: failure()
       run: |
