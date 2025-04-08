@@ -27,8 +27,6 @@ jobs:
         cd E2E
         .\CheckInTest.ps1
 
-    - name: Create artifact folder    
-
     - name: Find the latest log folder
       id: find-latest-log
       shell: powershell
