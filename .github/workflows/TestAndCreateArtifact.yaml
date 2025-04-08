@@ -1,4 +1,4 @@
-name: Run CheckInTest and Upload logs
+name: Run CheckInTest and Upload logs as artifact
 on:
   push:
     branches:
@@ -41,6 +41,7 @@ jobs:
        Write-Output "Latest log folder: $latestLogFolder"
    
        # Set the output variable for the path to use in the next step
+       echo "LOG_FOLDER_NAME=$latestLogFolder"" >> $env:GITHUB_ENV
        echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
 
     - name: Verify latest log folder contents
@@ -57,7 +58,7 @@ jobs:
       if: ${{ env.LATEST_LOG_FOLDER != '' }}
       uses: actions/upload-artifact@v4.6.2 
       with:
-        name: latest-test-logs
+        name: ${{ env.LOG_FOLDER_NAME}}
         path: ${{ env.LATEST_LOG_FOLDER }}\**  # Correct way to reference environment variable
         if-no-files-found: warn  # Don't fail if no files are found
         retention-days: 7  # Artifact retention period (optional)
