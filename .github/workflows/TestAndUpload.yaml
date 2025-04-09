@@ -11,14 +11,6 @@ permissions:
   issues: write          # Allow write access to issues (optional, if needed)
   actions: write         # Allow write access to Actions (e.g., update or create workflows)
 
-#jobs:
- # test:
-  #  name: Run on ${{ matrix.device }}
-   # runs-on: [self-hosted, windows]
-    #strategy:
-     # fail-fast: false
-      #matrix:
-       # device: [ASUS-PROART, MICROSOFT-SURFA, HP-REGIS-PV]  # Creates 3 parallel jobs
 jobs:
   test:
     name: Run on ${{ matrix.name }}
@@ -53,8 +45,8 @@ jobs:
 
     - name: Run PowerShell Tests from E2E folder (device ${{ matrix.name }})
       shell: powershell  # Using PowerShell 
+      working-directory: E2E  # Set working directory to E2E
       run: |
-        cd E2E
         try {
             .\CheckInTest.ps1
           } catch {
@@ -65,8 +57,8 @@ jobs:
     - name: Find the latest log folder
       id: find-latest-log
       shell: powershell
+      working-directory: E2E\logs  # Set working directory to E2E\logs
       run: |
-       cd E2E\logs
        Write-Output "Changed directory to: $PWD"
         
        $logFolders = Get-ChildItem -Directory
