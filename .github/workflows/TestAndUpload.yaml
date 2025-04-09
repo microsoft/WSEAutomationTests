@@ -11,15 +11,28 @@ permissions:
   issues: write          # Allow write access to issues (optional, if needed)
   actions: write         # Allow write access to Actions (e.g., update or create workflows)
 
+#jobs:
+ # test:
+  #  name: Run on ${{ matrix.device }}
+   # runs-on: [self-hosted, windows]
+    #strategy:
+     # fail-fast: false
+      #matrix:
+       # device: [ASUS-PROART, MICROSOFT-SURFA, HP-REGIS-PV]  # Creates 3 parallel jobs
 jobs:
   test:
-    name: Run on ${{ matrix.device }}
-    runs-on: [self-hosted, windows]
+    name: Run on ${{ matrix.device.name }}
+    runs-on: [self-hosted, windows, ${{ matrix.device.label }}]
     strategy:
       fail-fast: false
       matrix:
-        device: [ASUS-PROART, MICROSOFT-SURFA, HP-REGIS-PV]  # Creates 3 parallel jobs
-
+        device:
+          - name: ASUS-PROART
+            label: Asus-ProArt
+          - name: MICROSOFT-SURFA
+            label: Surface-Pro
+          - name: HP-REGIS-PV
+            label: HP-REGIS-PV
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
@@ -37,7 +50,7 @@ jobs:
         pip install pywinauto
       shell: powershell    
 
-    - name: Run PowerShell Tests from E2E folder (device ${{ matrix.device }})
+    - name: Run PowerShell Tests from E2E folder (device ${{ matrix.device.name }})
       shell: powershell  # Using PowerShell 
       run: |
         cd E2E
@@ -75,10 +88,10 @@ jobs:
       id: set-artifact-name
       shell: powershell
       run: |
-        $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ matrix.device }}"
+        $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ matrix.device.name}}"
         echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
 
-    - name:  Upload logs from device ${{ matrix.device }}
+    - name:  Upload logs from device ${{ matrix.device.name}}
       if: ${{ env.LATEST_LOG_FOLDER != '' }}
       uses: actions/upload-artifact@v4.6.2 
       with:
@@ -90,12 +103,12 @@ jobs:
         overwrite: true  # Overwrite artifact if one with the same name exists
         include-hidden-files: false  # Do not include hidden files
 
-    - name: Test Complete on device ${{ matrix.device }}
+    - name: Test Complete on device ${{ matrix.device.name}}
       if: success()
       run: |
         Write-Output "Test run completed successfully"
 
-    - name: Test Failed on device ${{ matrix.device }}
+    - name: Test Failed on device ${{ matrix.device.name }}
       if: failure()
       run: |
         Write-Output "Test run failed"
