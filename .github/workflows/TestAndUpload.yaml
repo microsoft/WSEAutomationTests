@@ -1,4 +1,4 @@
-name: Run CheckInTest and Upload logs
+name: Run CheckInTest on Multiple Runners and Upload Logs
 
 on:
   push:
@@ -13,7 +13,11 @@ permissions:
 
 jobs:
   test:
-    runs-on: [self-hosted, windows]  # Use self-hosted runner with Windows (adjust as needed)
+    strategy:
+      matrix:
+        instance: [1, 2, 3]  # Creates 3 parallel jobs
+
+    runs-on: [self-hosted, windows]
 
     steps:
     - name: Check out the repository
@@ -32,7 +36,7 @@ jobs:
         pip install pywinauto
       shell: powershell    
 
-    - name: Run PowerShell Tests from E2E folder
+    - name: Run PowerShell Tests from E2E folder (Instance ${{ matrix.instance }})
       shell: powershell  # Using PowerShell 
       run: |
         cd E2E
@@ -56,23 +60,15 @@ jobs:
 
     - name: Verify latest log folder contents
       shell: powershell
-      run: |
-        # Retrieve the latest log folder path from the environment variable
-        $logFolderPath = "${{ env.LATEST_LOG_FOLDER }}"
-        Write-Output "Checking contents of: $logFolderPath"
-        
+      run: |    
         # Verify the contents of the log folder
-        Get-ChildItem -Path $logFolderPath -Recurse
+        Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}"" -Recurse
 
-    - name: Print the value of LATEST_LOG_FOLDER
-      run: |
-        Write-Output "The latest log folder path is: ${{ env.LATEST_LOG_FOLDER }}"   
-
-    - name: Upload latest logs as artifact
+    - name:  Upload logs from instance ${{ matrix.instance }}
       if: ${{ env.LATEST_LOG_FOLDER != '' }}
       uses: actions/upload-artifact@v4.6.2 
       with:
-        name: latest-test-logs
+        name: logs-instance-${{ matrix.instance }}
         path: ${{ env.LATEST_LOG_FOLDER }}\**  # Correct way to reference environment variable
         if-no-files-found: warn  # Don't fail if no files are found
         retention-days: 7  # Artifact retention period (optional)
@@ -80,12 +76,12 @@ jobs:
         overwrite: true  # Overwrite artifact if one with the same name exists
         include-hidden-files: false  # Do not include hidden files
 
-    - name: Upload test results ()
+    - name: Test Complete on Instance ${{ matrix.instance }}
       if: success()
       run: |
         Write-Output "Test run completed successfully"
 
-    - name: Handle failure ()
+    - name: Test Failed on Instance ${{ matrix.instance }}
       if: failure()
       run: |
         Write-Output "Test run failed"
