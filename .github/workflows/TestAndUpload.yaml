@@ -14,7 +14,7 @@ permissions:
 jobs:
   test:
     name: Run on ${{ matrix.device }}
-    runs-on: [self-hosted, windows, ${{ matrix.device }}]
+    runs-on: [self-hosted, windows]
     strategy:
       fail-fast: false
       matrix:
@@ -77,7 +77,7 @@ jobs:
       run: |
         $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ matrix.device }}"
         echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
-        
+
     - name:  Upload logs from device ${{ matrix.device }}
       if: ${{ env.LATEST_LOG_FOLDER != '' }}
       uses: actions/upload-artifact@v4.6.2 
