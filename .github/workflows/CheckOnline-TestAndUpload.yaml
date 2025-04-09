@@ -12,8 +12,51 @@ permissions:
   actions: write         # Allow write access to Actions (e.g., update or create workflows)
 
 jobs:
+  check-runner:
+    name: Check if runner ${{ matrix.name }} is online
+    runs-on: windows-latest  # Use a reliable GitHub-hosted runner
+    strategy:
+      matrix:
+        include:
+          - name: ASUS-PROART
+            label: Asus-ProArt
+          - name: MICROSOFT-SURFA
+            label: Surface-Pro
+          - name: HP-REGIS-PV
+            label: HP-REGIS-PV
+
+    outputs:
+      runner-status-${{ matrix.label }}: ${{ steps.check.outputs.runner_online }}
+
+    steps:
+      - name: Check runner status via GitHub API
+        id: check
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $label = "${{ matrix.label }}"
+          $repo = "${{ github.repository }}"
+          $org = $repo.Split('/')[0]
+          $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+          
+          $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
+          $isOnline = $false
+
+          foreach ($runner in $response.runners) {
+            if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
+              $isOnline = $true
+              break
+            }
+          }
+
+          echo "Runner with label '$label' is online: $isOnline"
+          echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
+
   test:
     name: Run on ${{ matrix.name }}
+    needs: check-runner
+    if: needs.check-runner.outputs.runner-status-${{ matrix.label }} == 'true'
     strategy:
       fail-fast: false
       matrix:
