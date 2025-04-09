@@ -22,7 +22,6 @@ permissions:
 jobs:
   test:
     name: Run on ${{ matrix.name }}
-    runs-on: [self-hosted, windows, ${{ matrix.label }}]
     strategy:
       fail-fast: false
       matrix:
@@ -33,6 +32,7 @@ jobs:
             label: Surface-Pro
           - name: HP-REGIS-PV
             label: HP-REGIS-PV
+    runs-on: [self-hosted, windows, ${{ matrix.label }}]
 
     steps:
     - name: Check out the repository
