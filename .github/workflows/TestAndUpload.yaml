@@ -20,8 +20,6 @@ jobs:
       matrix:
         device: [ASUS-PROART, MICROSOFT-SURFA, HP-REGIS-PV]  # Creates 3 parallel jobs
 
-    #runs-on: [self-hosted, windows]
-
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
@@ -73,11 +71,18 @@ jobs:
         # Verify the contents of the log folder
         Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
 
+    - name: Set artifact name
+      id: set-artifact-name
+      shell: powershell
+      run: |
+        $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ matrix.device }}"
+        echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
+        
     - name:  Upload logs from device ${{ matrix.device }}
       if: ${{ env.LATEST_LOG_FOLDER != '' }}
       uses: actions/upload-artifact@v4.6.2 
       with:
-        name: ${{ env.LOG_FOLDER_NAME}}-${{ matrix.device }}
+        name: ${{ env.ARTIFACT_NAME }}
         path: ${{ env.LATEST_LOG_FOLDER }}\**  # Correct way to reference environment variable
         if-no-files-found: warn  # Don't fail if no files are found
         retention-days: 7  # Artifact retention period (optional)
