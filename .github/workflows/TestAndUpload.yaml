@@ -45,6 +45,7 @@ jobs:
 
     - name: Run PowerShell Tests from E2E folder (device ${{ matrix.name }})
       shell: powershell  # Using PowerShell 
+      continue-on-error: true
       working-directory: E2E  # Set working directory to E2E
       run: |
         try {
@@ -55,6 +56,7 @@ jobs:
           }
    
     - name: Find the latest log folder
+      if: always()
       id: find-latest-log
       shell: powershell
       working-directory: E2E\logs  # Set working directory to E2E\logs
@@ -85,7 +87,7 @@ jobs:
         echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
 
     - name:  Upload logs from device ${{ matrix.name}}
-      if: ${{ env.LATEST_LOG_FOLDER != '' }}
+      if: ${{ always() && env.LATEST_LOG_FOLDER != '' }}
       uses: actions/upload-artifact@v4.6.2 
       with:
         name: ${{ env.ARTIFACT_NAME }}
