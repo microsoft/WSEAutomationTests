@@ -13,11 +13,14 @@ permissions:
 
 jobs:
   test:
+    name: Run on ${{ matrix.device }}
+    runs-on: [self-hosted, windows, ${{ matrix.device }}]
     strategy:
+      fail-fast: false
       matrix:
-        instance: [1, 2, 3]  # Creates 3 parallel jobs
+        device: [ASUS-PROART, MICROSOFT-SURFA, HP-REGIS-PV]  # Creates 3 parallel jobs
 
-    runs-on: [self-hosted, windows]
+    #runs-on: [self-hosted, windows]
 
     steps:
     - name: Check out the repository
@@ -36,12 +39,17 @@ jobs:
         pip install pywinauto
       shell: powershell    
 
-    - name: Run PowerShell Tests from E2E folder (Instance ${{ matrix.instance }})
+    - name: Run PowerShell Tests from E2E folder (device ${{ matrix.device }})
       shell: powershell  # Using PowerShell 
       run: |
         cd E2E
-        .\CheckInTest.ps1
-
+        try {
+            .\CheckInTest.ps1
+          } catch {
+            Write-Error "Test failed: $_"
+            exit 1
+          }
+   
     - name: Find the latest log folder
       id: find-latest-log
       shell: powershell
@@ -56,19 +64,20 @@ jobs:
        Write-Output "Latest log folder: $latestLogFolder"
 
        # Set the output variable for the path to use in the next step
+        echo "LOG_FOLDER_NAME=$latestLogFolder" >> $env:GITHUB_ENV
         echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
 
     - name: Verify latest log folder contents
       shell: powershell
       run: |    
         # Verify the contents of the log folder
-        Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}"" -Recurse
+        Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
 
-    - name:  Upload logs from instance ${{ matrix.instance }}
+    - name:  Upload logs from device ${{ matrix.device }}
       if: ${{ env.LATEST_LOG_FOLDER != '' }}
       uses: actions/upload-artifact@v4.6.2 
       with:
-        name: logs-instance-${{ matrix.instance }}
+        name: ${{ env.LOG_FOLDER_NAME}}-${{ matrix.device }}
         path: ${{ env.LATEST_LOG_FOLDER }}\**  # Correct way to reference environment variable
         if-no-files-found: warn  # Don't fail if no files are found
         retention-days: 7  # Artifact retention period (optional)
@@ -76,12 +85,12 @@ jobs:
         overwrite: true  # Overwrite artifact if one with the same name exists
         include-hidden-files: false  # Do not include hidden files
 
-    - name: Test Complete on Instance ${{ matrix.instance }}
+    - name: Test Complete on device ${{ matrix.device }}
       if: success()
       run: |
         Write-Output "Test run completed successfully"
 
-    - name: Test Failed on Instance ${{ matrix.instance }}
+    - name: Test Failed on device ${{ matrix.device }}
       if: failure()
       run: |
         Write-Output "Test run failed"
