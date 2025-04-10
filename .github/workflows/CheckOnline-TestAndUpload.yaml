@@ -108,7 +108,7 @@ jobs:
             check_job: check-hp
     runs-on: ${{ matrix.label }}
 
-  steps:
+    steps:
     - name: Skip job if runner is offline
       shell: powershell
       run: |
