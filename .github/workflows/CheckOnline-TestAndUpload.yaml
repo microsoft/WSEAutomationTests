@@ -1,4 +1,4 @@
-name: Check Device Online/Run CheckInTest on Multiple Runners/Upload Logs
+name: Check Device Online/Run CheckInTest on Multiple Runners/Upload Log
 
 on:
   push:
