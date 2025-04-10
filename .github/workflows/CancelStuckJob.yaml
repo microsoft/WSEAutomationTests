@@ -12,18 +12,38 @@ permissions:
   actions: write
 
 jobs:
-  controller:
-    name: Monitor and Cancel Stuck Jobs
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+  test:
+    name: Run on ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ASUS-PROART
+            label: Asus-ProArt
+          - name: MICROSOFT-SURFA
+            label: Surface-Pro
+          - name: HP-REGIS-PV
+            label: HP-REGIS-PV
+    runs-on: ${{ matrix.label }}
+
     steps:
-      - name: Wait and monitor job status
+      - name: Check out the repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+    controller:
+    name: Cancel Stuck Jobs After 10min
+    runs-on: ubuntu-latest
+    continue-on-error: true  # In case there's a transient failure
+    steps:
+      - name: Delay before checking status
+        run: sleep 600
+
+      - name: Cancel stuck jobs
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          echo "Waiting 10 minutes before checking job statuses..."
-          sleep 600
-          
           run_id=$(gh run list --limit 1 --json databaseId --jq '.[0].databaseId')
           echo "Run ID: $run_id"
 
@@ -39,28 +59,7 @@ jobs:
               echo "Cancelling stuck job: $name"
               gh api -X POST repos/${{ github.repository }}/actions/jobs/$id/cancel
             fi
-          done
-
-  test:
-    name: Run on ${{ matrix.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: ASUS-PROART
-            label: Asus-ProArt
-          - name: MICROSOFT-SURFA
-            label: Surface-Pro
-          - name: HP-REGIS-PV
-            label: HP-REGIS-PV
-    runs-on: ${{ matrix.label }}
-    needs: controller
-
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+          done      
 
       - name: Set up Python
         uses: actions/setup-python@v5
