@@ -91,25 +91,30 @@ jobs:
           echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
 
   test:
-    name: Run on ${{ matrix.name }}
-    needs: [check-asus, check-hp, check-surface]
-    if: |
-      (matrix.label == 'Asus-ProArt' && needs.check-asus.outputs.online == 'true') ||
-      (matrix.label == 'HP-REGIS-PV' && needs.check-hp.outputs.online == 'true') ||
-      (matrix.label == 'Surface-Pro' && needs.check-surface.outputs.online == 'true')
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: ASUS-PROART
-            label: Asus-ProArt
-          - name: MICROSOFT-SURFA
-            label: Surface-Pro
-          - name: HP-REGIS-PV
-            label: HP-REGIS-PV
-    runs-on: ${{ matrix.label }}
+  name: Run on ${{ matrix.name }}
+  needs: [check-asus, check-hp, check-surface]
+  strategy:
+    fail-fast: false
+    matrix:
+      include:
+        - name: ASUS-PROART
+          label: Asus-ProArt
+          check_job: check-asus
+        - name: MICROSOFT-SURFA
+          label: Surface-Pro
+          check_job: check-surface
+        - name: HP-REGIS-PV
+          label: HP-REGIS-PV
+          check_job: check-hp
+  runs-on: ${{ matrix.label }}
 
-    steps:
+  steps:
+    - name: Stop if runner is offline
+      if: ${{ needs[matrix.check_job].outputs.online != 'true' }}
+      run: |
+        echo "Runner for ${{ matrix.name }} is offline. Cancelling job."
+        exit 0
+
     - name: Check out the repository
       uses: actions/checkout@v3
       with:
