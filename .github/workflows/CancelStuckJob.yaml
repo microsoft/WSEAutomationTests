@@ -121,6 +121,9 @@ jobs:
 
       - name: Cancel stuck jobs
         shell: powershell
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: powershell
         run: |
           # Ensure GH_TOKEN is available
           if (-not $env:GH_TOKEN) {
@@ -129,8 +132,8 @@ jobs:
           }
 
           # Fetch the latest run ID
-          $runId = gh run list --repo microsoft/WSEAutomationTests --limit 1 --json databaseId --jq '.[0].databaseId'
-          if (-not $runId) {
+           $runId = gh run list --repo microsoft/WSEAutomationTests --workflow "Cancel Stuck jobs. Run CheckInTest on Multiple Runners and Upload Logs" --limit 1 --json databaseId --jq '.[0].databaseId'
+           if (-not $runId) {
             Write-Error "Failed to fetch run ID"
             exit 1
           }
