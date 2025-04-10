@@ -109,16 +109,20 @@ jobs:
     continue-on-error: true
     steps:
       - name: Delay before checking status
-        run: sleep 600
+        run: sleep 180
 
       - name: Cancel stuck jobs
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          run_id=$(gh run list --limit 1 --json databaseId --jq '.[0].databaseId')
+          run_id=$(gh run list --repo microsoft/WSEAutomationTests --limit 1 --json databaseId --jq '.[0].databaseId')
           echo "Run ID: $run_id"
 
-          jobs=$(gh api repos/${{ github.repository }}/actions/runs/$run_id/jobs --jq '.jobs[] | {name: .name, status: .status, id: .id}')
+          jobs=$(gh api --method GET \
+            -H "Accept: application/vnd.github+json" \
+            /repos/microsoft/WSEAutomationTests/actions/runs/$run_id/jobs \
+            --jq '.jobs[] | {name: .name, status: .status, id: .id}')
+
           echo "$jobs"
 
           for job in $(echo "$jobs" | jq -c '.'); do
@@ -126,8 +130,9 @@ jobs:
             status=$(echo "$job" | jq -r '.status')
             id=$(echo "$job" | jq -r '.id')
 
-            if [[ "$name" == *"Run on"* && "$status" == "queued" ]]; then
-              echo "Cancelling stuck job: $name"
-              gh api -X POST repos/${{ github.repository }}/actions/jobs/$id/cancel
-            fi
+          if [[ "$name" == *"Run on"* && "$status" == "queued" ]]; then
+           echo "Cancelling stuck job: $name"
+           gh api --method POST /repos/microsoft/WSEAutomationTests/actions/jobs/$id/cancel
+          fi
           done
+
