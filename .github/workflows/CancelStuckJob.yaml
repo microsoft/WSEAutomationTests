@@ -123,7 +123,6 @@ jobs:
         shell: powershell
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: powershell
         run: |
           # Ensure GH_TOKEN is available
           if (-not $env:GH_TOKEN) {
