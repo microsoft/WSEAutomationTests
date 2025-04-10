@@ -1,4 +1,4 @@
-name: Check Device Online/Run CheckInTest on Multiple Runners/Upload Log
+name: Check Device Online/Run CheckInTest on Multiple Runners/Upload Logs.
 
 on:
   push:
@@ -23,7 +23,8 @@ jobs:
         run: |
           gh auth status
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Check ASUS-PROART runner status
         id: check
         shell: powershell
@@ -40,7 +41,7 @@ jobs:
           $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
           $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; "Accept" = "application/vnd.github+json" }
           $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
-          
+
           $isOnline = $false
           foreach ($runner in $response.runners) {
             if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
