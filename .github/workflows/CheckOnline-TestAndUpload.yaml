@@ -91,22 +91,22 @@ jobs:
           echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
 
   test:
-  name: Run on ${{ matrix.name }}
-  needs: [check-asus, check-hp, check-surface]
-  strategy:
-    fail-fast: false
-    matrix:
-      include:
-        - name: ASUS-PROART
-          label: Asus-ProArt
-          check_job: check-asus
-        - name: MICROSOFT-SURFA
-          label: Surface-Pro
-          check_job: check-surface
-        - name: HP-REGIS-PV
-          label: HP-REGIS-PV
-          check_job: check-hp
-  runs-on: ${{ matrix.label }}
+    name: Run on ${{ matrix.name }}
+    needs: [check-asus, check-hp, check-surface]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ASUS-PROART
+            label: Asus-ProArt
+            check_job: check-asus
+          - name: MICROSOFT-SURFA
+            label: Surface-Pro
+            check_job: check-surface
+          - name: HP-REGIS-PV
+            label: HP-REGIS-PV
+            check_job: check-hp
+    runs-on: ${{ matrix.label }}
 
   steps:
     - name: Stop if runner is offline
