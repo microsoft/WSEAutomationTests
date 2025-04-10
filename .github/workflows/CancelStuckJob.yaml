@@ -33,10 +33,10 @@ jobs:
           fetch-depth: 0
 
     controller:
-    name: Cancel Stuck Jobs After 10min
-    runs-on: ubuntu-latest
-    continue-on-error: true  # In case there's a transient failure
-    steps:
+      name: Cancel Stuck Jobs After 10min
+      runs-on: ubuntu-latest
+      continue-on-error: true  # In case there's a transient failure
+      steps:
       - name: Delay before checking status
         run: sleep 600
 
