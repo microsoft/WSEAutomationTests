@@ -23,13 +23,13 @@ jobs:
         run: |
           gh auth status
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RUNNERTOKEN}}
 
       - name: Check ASUS-PROART runner status
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets. GH_PAT }}
+          GH_TOKEN: ${{ secrets. RUNNERTOKEN }}
         run: |
           $label = "Asus-ProArt"
           $repo = "${{ github.repository }}"
@@ -61,7 +61,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets. GH_PAT }}
+          GH_TOKEN: ${{ secrets. RUNNERTOKEN }}
         run: |
           $label = "HP-REGIS-PV"
           $repo = "${{ github.repository }}"
@@ -87,7 +87,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets. GH_PAT }}
+          GH_TOKEN: ${{ secrets. RUNNERTOKEN }}
         run: |
           $label = "Surface-Pro"
           $repo = "${{ github.repository }}"
