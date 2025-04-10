@@ -27,22 +27,47 @@ jobs:
 
       - name: Cancel if job is still queued
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: pwsh
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: powershell
         run: |
-          $workflowName = "Run CheckInTest on Specific Runner"
-          $jobName = "Run on ${{ inputs.runner_name }}"
+         $workflowName = "Run CheckInTest on Specific Runner"
+         $jobName = "Run on ${{ inputs.runner_name }}"
 
-          $run = gh run list --workflow "$workflowName" --limit 5 --json name,databaseId,status,headBranch --jq '.[] | select(.headBranch == "${{ github.ref_name }}")' | ConvertFrom-Json | Where-Object { $_.name -eq "$workflowName" }
-          if (-not $run) { exit 0 }
-          $runId = $run.databaseId
+         Write-Host "Checking recent runs for workflow: $workflowName"
+         $run = gh run list --workflow "$workflowName" --limit 5 --repo "${{ github.repository }}" `
+          --json name,databaseId,status,headBranch `
+          --jq '.[] | select(.headBranch == "${{ github.ref_name }}")' | ConvertFrom-Json | Where-Object { $_.name -eq "$workflowName" }
 
-          $jobData = gh api /repos/${{ github.repository }}/actions/runs/$runId/jobs | ConvertFrom-Json
-          $targetJob = $jobData.jobs | Where-Object { $_.name -eq "$jobName" }
+         if (-not $run) {
+          Write-Host "No recent run found. Exiting controller."
+          exit 0
+         }
 
-          if ($targetJob.status -eq "queued" -and -not $targetJob.conclusion) {
-            gh api --method POST /repos/${{ github.repository }}/actions/jobs/$($targetJob.id)/cancel
-          }
+         $runId = $run.databaseId
+         Write-Host "Found run ID: $runId"
+
+         $jobData = gh api --repo "${{ github.repository }}" /repos/${{ github.repository }}/actions/runs/$runId/jobs | ConvertFrom-Json
+         $targetJob = $jobData.jobs | Where-Object { $_.name -eq "$jobName" }
+
+         if (-not $targetJob) {
+          Write-Host "Job '$jobName' not found in run. Exiting controller."
+          exit 0
+         }
+
+         if ($targetJob.status -eq "queued" -and -not $targetJob.conclusion) {
+          Write-Host "Job is stuck in queued. Attempting to cancel..."
+          $cancelResult = gh api --repo "${{ github.repository }}" --method POST /repos/${{ github.repository }}/actions/jobs/$($targetJob.id)/cancel
+
+         if ($LASTEXITCODE -ne 0) {
+          Write-Error "Failed to cancel stuck job: $jobName"
+          exit 1
+         }
+
+         Write-Host "Cancellation initiated for stuck job: $jobName"
+         } else {
+         Write-Host "Job is not stuck. Status: $($targetJob.status), Conclusion: $($targetJob.conclusion)"
+         }
+
 
   test:
     name: Run on ${{ inputs.runner_name }}
