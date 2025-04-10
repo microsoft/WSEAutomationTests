@@ -107,9 +107,15 @@ jobs:
     name: Cancel Stuck Jobs After 10min
     runs-on: windows-latest
     continue-on-error: true
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
     steps:
+      - name: Test token permissions
+        shell: powershell
+        run: |
+          gh auth status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Delay before checking status
         run: sleep 180
 
@@ -140,7 +146,7 @@ jobs:
             Write-Error "Failed to fetch job details"
             exit 1
           }
-  
+
           # Parse and cancel stuck jobs
           $jobs = $jobsJson | ConvertFrom-Json
           foreach ($job in $jobs.jobs) {
@@ -149,16 +155,15 @@ jobs:
             $id = $job.id
 
             if ($name -like "*Run on*" -and $status -eq "queued") {
-              Write-Output "Cancelling stuck job: $name with ID $id"
+              Write-Output "Cancelling stuck job: ${name} with ID ${id}"
               $cancelResponse = gh api --method POST `
                   -H "Authorization: token $env:GH_TOKEN" `
                   "/repos/microsoft/WSEAutomationTests/actions/jobs/$id/cancel" 2>&1
 
               if ($cancelResponse -like "*Not Found*") {
-                  Write-Warning "Failed to cancel job $name with ID $id: Not Found"
+                Write-Warning "Failed to cancel job ${name} with ID ${id}: Not Found"
               } else {
-                  Write-Output "Successfully cancelled job $name with ID $id"
+                Write-Output "Successfully cancelled job ${name} with ID ${id}"
               }
+            }
           }
-          }
-    
