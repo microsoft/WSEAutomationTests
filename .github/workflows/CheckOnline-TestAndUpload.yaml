@@ -18,6 +18,12 @@ jobs:
     outputs:
       online: ${{ steps.check.outputs.runner_online }}
     steps:
+      - name: Test token permissions
+        shell: powershell
+        run: |
+          gh auth status
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
       - name: Check ASUS-PROART runner status
         id: check
         shell: powershell
