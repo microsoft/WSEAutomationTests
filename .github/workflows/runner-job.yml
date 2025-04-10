@@ -27,7 +27,7 @@ jobs:
 
       - name: Cancel if job is still queued
         env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: powershell
         run: |
          $workflowName = "Run CheckInTest on Specific Runner"
@@ -72,7 +72,7 @@ jobs:
   test:
     name: Run on ${{ inputs.runner_name }}
     runs-on: ${{ inputs.runner_label }}
-    timeout-minutes: 5
+    #timeout-minutes: 5
     needs: controller
 
     steps:
