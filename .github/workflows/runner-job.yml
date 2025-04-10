@@ -1,0 +1,79 @@
+name: Run CheckInTest on Specific Runner
+
+on:
+  workflow_call:
+    inputs:
+      runner_name:
+        required: true
+        type: string
+      runner_label:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+
+jobs:
+  test:
+    name: Run on ${{ inputs.runner_name }}
+    runs-on: ${{ inputs.runner_label }}
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pywinauto
+        shell: powershell
+
+      - name: Run PowerShell Tests from E2E folder (device ${{ inputs.runner_name }})
+        shell: powershell
+        continue-on-error: true
+        working-directory: E2E
+        run: |
+          try {
+              .\CheckInTest.ps1
+          } catch {
+              Write-Error "Test failed: $_"
+              exit 1
+          }
+
+      - name: Find the latest log folder
+        if: always()
+        id: find-latest-log
+        shell: powershell
+        working-directory: E2E\logs
+        run: |
+          $logFolders = Get-ChildItem -Directory
+          $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          echo "LOG_FOLDER_NAME=$latestLogFolder" >> $env:GITHUB_ENV
+          echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
+
+      - name: Upload logs from device ${{ inputs.runner_name }}
+        if: ${{ always() && env.LATEST_LOG_FOLDER != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.LOG_FOLDER_NAME }}-${{ inputs.runner_name }}
+          path: ${{ env.LATEST_LOG_FOLDER }}\**
+          if-no-files-found: warn
+
+      - name: Test Complete on device ${{ inputs.runner_name }}
+        if: success()
+        run: Write-Output "Test run completed successfully"
+
+      - name: Test Failed on device ${{ inputs.runner_name }}
+        if: failure()
+        run: Write-Output "Test run failed"

@@ -1,0 +1,33 @@
+name: Dispatch Parallel Runner Workflows
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - user/jdugar/TestSelfHostAgent
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  dispatch-asus:
+    name: Dispatch ASUS-PROART Workflow
+    uses: ./.github/workflows/runner-job.yml
+    with:
+      runner_name: ASUS-PROART
+      runner_label: Asus-ProArt
+
+  dispatch-surface:
+    name: Dispatch MICROSOFT-SURFA Workflow
+    uses: ./.github/workflows/runner-job.yml
+    with:
+      runner_name: MICROSOFT-SURFA
+      runner_label: Surface-Pro
+
+  dispatch-hp:
+    name: Dispatch HP-REGIS-PV Workflow
+    uses: ./.github/workflows/runner-job.yml
+    with:
+      runner_name: HP-REGIS-PV
+      runner_label: HP-REGIS-PV
