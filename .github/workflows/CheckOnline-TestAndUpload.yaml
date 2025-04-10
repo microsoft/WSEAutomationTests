@@ -109,11 +109,15 @@ jobs:
     runs-on: ${{ matrix.label }}
 
   steps:
-    - name: Stop if runner is offline
-      if: ${{ needs[matrix.check_job].outputs.online != 'true' }}
+    - name: Skip job if runner is offline
+      shell: powershell
       run: |
-        echo "Runner for ${{ matrix.name }} is offline. Cancelling job."
+        $online = "${{ needs[format('{0}', matrix.check_job)].outputs.online }}"
+        Write-Output "Runner online status: $online"
+        if ($online -ne 'true') {
+        Write-Output "Runner is offline. Skipping job for ${{ matrix.name }}"
         exit 0
+        }
 
     - name: Check out the repository
       uses: actions/checkout@v3
