@@ -22,7 +22,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GH_TOKEN: ${{ secrets. GH_PAT }}
         run: |
           $label = "Asus-ProArt"
           $repo = "${{ github.repository }}"
@@ -50,7 +50,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GH_TOKEN: ${{ secrets. GH_PAT }}
         run: |
           $label = "HP-REGIS-PV"
           $repo = "${{ github.repository }}"
@@ -76,7 +76,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GH_TOKEN: ${{ secrets. GH_PAT }}
         run: |
           $label = "Surface-Pro"
           $repo = "${{ github.repository }}"
