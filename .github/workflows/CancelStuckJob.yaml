@@ -105,31 +105,60 @@ jobs:
 
   controller:
     name: Cancel Stuck Jobs After 10min
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     continue-on-error: true
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Delay before checking status
         run: sleep 180
 
       - name: Cancel stuck jobs
-        env:
-         GH_TOKEN: ${{ secrets.GH_PAT }}
+        shell: powershell
         run: |
-         run_id=$(gh run list --repo microsoft/WSEAutomationTests --limit 1 --json databaseId --jq '.[0].databaseId')
-         echo "Run ID: $run_id"
+          # Ensure GH_TOKEN is available
+          if (-not $env:GH_TOKEN) {
+            Write-Error "Error: GH_TOKEN is not set."
+            exit 1
+          }
 
-         jobs_json=$(gh api --method GET \
-           -H "Accept: application/vnd.github+json" \
-           /repos/microsoft/WSEAutomationTests/actions/runs/$run_id/jobs)
+          # Fetch the latest run ID
+          $runId = gh run list --repo microsoft/WSEAutomationTests --limit 1 --json databaseId --jq '.[0].databaseId'
+          if (-not $runId) {
+            Write-Error "Failed to fetch run ID"
+            exit 1
+          }
+          Write-Output "Run ID: $runId"
 
-         echo "$jobs_json" | jq -c '.jobs[] | {name: .name, status: .status, id: .id}' | while read -r job; do
-           name=$(echo "$job" | jq -r '.name')
-           status=$(echo "$job" | jq -r '.status')
-           id=$(echo "$job" | jq -r '.id')
+          # Fetch job details
+          $jobsJson = gh api --method GET `
+            -H "Authorization: token $env:GH_TOKEN" `
+            -H "Accept: application/vnd.github+json" `
+            "/repos/microsoft/WSEAutomationTests/actions/runs/$runId/jobs"
 
-           if [[ "$name" == *"Run on"* && "$status" == "queued" ]]; then
-            echo "Cancelling stuck job: $name"
-            gh api --method POST /repos/microsoft/WSEAutomationTests/actions/jobs/$id/cancel
-            fi
-         done
+          if (-not $jobsJson) {
+            Write-Error "Failed to fetch job details"
+            exit 1
+          }
+  
+          # Parse and cancel stuck jobs
+          $jobs = $jobsJson | ConvertFrom-Json
+          foreach ($job in $jobs.jobs) {
+            $name = $job.name
+            $status = $job.status
+            $id = $job.id
 
+            if ($name -like "*Run on*" -and $status -eq "queued") {
+              Write-Output "Cancelling stuck job: $name with ID $id"
+              $cancelResponse = gh api --method POST `
+                  -H "Authorization: token $env:GH_TOKEN" `
+                  "/repos/microsoft/WSEAutomationTests/actions/jobs/$id/cancel" 2>&1
+
+              if ($cancelResponse -like "*Not Found*") {
+                  Write-Warning "Failed to cancel job $name with ID $id: Not Found"
+              } else {
+                  Write-Output "Successfully cancelled job $name with ID $id"
+              }
+          }
+          }
+    
