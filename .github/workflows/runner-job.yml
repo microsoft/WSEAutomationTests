@@ -17,10 +17,38 @@ permissions:
   actions: write
 
 jobs:
+  controller:
+    name: Cancel if ${{ inputs.runner_name }} is stuck
+    runs-on: windows-latest
+    timeout-minutes: 3
+    steps:
+      - name: Wait briefly
+        run: Start-Sleep -Seconds 90
+
+      - name: Cancel if job is still queued
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $workflowName = "Run CheckInTest on Specific Runner"
+          $jobName = "Run on ${{ inputs.runner_name }}"
+
+          $run = gh run list --workflow "$workflowName" --limit 5 --json name,databaseId,status,headBranch --jq '.[] | select(.headBranch == "${{ github.ref_name }}")' | ConvertFrom-Json | Where-Object { $_.name -eq "$workflowName" }
+          if (-not $run) { exit 0 }
+          $runId = $run.databaseId
+
+          $jobData = gh api /repos/${{ github.repository }}/actions/runs/$runId/jobs | ConvertFrom-Json
+          $targetJob = $jobData.jobs | Where-Object { $_.name -eq "$jobName" }
+
+          if ($targetJob.status -eq "queued" -and -not $targetJob.conclusion) {
+            gh api --method POST /repos/${{ github.repository }}/actions/jobs/$($targetJob.id)/cancel
+          }
+
   test:
     name: Run on ${{ inputs.runner_name }}
     runs-on: ${{ inputs.runner_label }}
     timeout-minutes: 5
+    needs: controller
 
     steps:
       - name: Check out the repository
