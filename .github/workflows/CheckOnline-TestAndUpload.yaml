@@ -35,8 +35,12 @@ jobs:
           write-output "repo details: $repo "
           $org = $repo.Split('/')[0]
           write-output "Org details: $org "
+          # $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+          # $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
           $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
-          $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; "Accept" = "application/vnd.github+json" }
+          $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+          
           $isOnline = $false
           foreach ($runner in $response.runners) {
             if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
