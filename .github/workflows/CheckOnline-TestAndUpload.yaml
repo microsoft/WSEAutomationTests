@@ -10,8 +10,7 @@ permissions:
   pull-requests: write
   issues: write
   actions: write
-  organization: read
-
+  
 jobs:
   check-asus:
     name: Check ASUS-PROART
@@ -23,7 +22,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           $label = "Asus-ProArt"
           $repo = "${{ github.repository }}"
@@ -51,7 +50,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           $label = "HP-REGIS-PV"
           $repo = "${{ github.repository }}"
@@ -77,7 +76,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           $label = "Surface-Pro"
           $repo = "${{ github.repository }}"
