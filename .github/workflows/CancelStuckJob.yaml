@@ -1,4 +1,4 @@
-name: Run CheckInTest on Multiple Runners and Upload Logs
+name: Cancel Stuck jobs. Run CheckInTest on Multiple Runners and Upload Logs
 
 on:
   push:
@@ -31,35 +31,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-    controller:
-      name: Cancel Stuck Jobs After 10min
-      runs-on: ubuntu-latest
-      continue-on-error: true  # In case there's a transient failure
-      steps:
-      - name: Delay before checking status
-        run: sleep 600
-
-      - name: Cancel stuck jobs
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
-        run: |
-          run_id=$(gh run list --limit 1 --json databaseId --jq '.[0].databaseId')
-          echo "Run ID: $run_id"
-
-          jobs=$(gh api repos/${{ github.repository }}/actions/runs/$run_id/jobs --jq '.jobs[] | {name: .name, status: .status, id: .id}')
-          echo "$jobs"
-
-          for job in $(echo "$jobs" | jq -c '.'); do
-            name=$(echo "$job" | jq -r '.name')
-            status=$(echo "$job" | jq -r '.status')
-            id=$(echo "$job" | jq -r '.id')
-
-            if [[ "$name" == *"Run on"* && "$status" == "queued" ]]; then
-              echo "Cancelling stuck job: $name"
-              gh api -X POST repos/${{ github.repository }}/actions/jobs/$id/cancel
-            fi
-          done      
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -131,3 +102,32 @@ jobs:
         if: failure()
         run: |
           Write-Output "Test run failed"
+
+  controller:
+    name: Cancel Stuck Jobs After 10min
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Delay before checking status
+        run: sleep 600
+
+      - name: Cancel stuck jobs
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          run_id=$(gh run list --limit 1 --json databaseId --jq '.[0].databaseId')
+          echo "Run ID: $run_id"
+
+          jobs=$(gh api repos/${{ github.repository }}/actions/runs/$run_id/jobs --jq '.jobs[] | {name: .name, status: .status, id: .id}')
+          echo "$jobs"
+
+          for job in $(echo "$jobs" | jq -c '.'); do
+            name=$(echo "$job" | jq -r '.name')
+            status=$(echo "$job" | jq -r '.status')
+            id=$(echo "$job" | jq -r '.id')
+
+            if [[ "$name" == *"Run on"* && "$status" == "queued" ]]; then
+              echo "Cancelling stuck job: $name"
+              gh api -X POST repos/${{ github.repository }}/actions/jobs/$id/cancel
+            fi
+          done
