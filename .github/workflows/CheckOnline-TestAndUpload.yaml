@@ -23,13 +23,13 @@ jobs:
         run: |
           gh auth status
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT}}
+          GH_TOKEN: ${{ secrets.RUNNERTOKEN}}
 
       - name: Check ASUS-PROART runner status
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets. GH_PAT }}
+          GH_TOKEN: ${{ secrets.RUNNERTOKEN }}
         run: |
           $label = "Asus-ProArt"
           $repo = "${{ github.repository }}"
@@ -38,7 +38,8 @@ jobs:
           write-output "Org details: $org "
           # $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
           # $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
-          $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+          #$apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+          $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
           $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; "Accept" = "application/vnd.github+json" }
           $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
 
@@ -51,57 +52,57 @@ jobs:
           }
           echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
 
-  check-hp:
-    name: Check HP-REGIS-PV
-    runs-on: windows-latest
-    outputs:
-      online: ${{ steps.check.outputs.runner_online }}
-    steps:
-      - name: Check HP-REGIS-PV runner status
-        id: check
-        shell: powershell
-        env:
-          GH_TOKEN: ${{ secrets. GH_PAT }}
-        run: |
-          $label = "HP-REGIS-PV"
-          $repo = "${{ github.repository }}"
-          $org = $repo.Split('/')[0]
-          $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
-          $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
-          $isOnline = $false
-          foreach ($runner in $response.runners) {
-            if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
-              $isOnline = $true
-              break
-            }
-          }
-          echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
+  # check-hp:
+  #   name: Check HP-REGIS-PV
+  #   runs-on: windows-latest
+  #   outputs:
+  #     online: ${{ steps.check.outputs.runner_online }}
+  #   steps:
+  #     - name: Check HP-REGIS-PV runner status
+  #       id: check
+  #       shell: powershell
+  #       env:
+  #         GH_TOKEN: ${{ secrets.RUNNERTOKEN }}
+  #       run: |
+  #         $label = "HP-REGIS-PV"
+  #         $repo = "${{ github.repository }}"
+  #         $org = $repo.Split('/')[0]
+  #         $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+  #         $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
+  #         $isOnline = $false
+  #         foreach ($runner in $response.runners) {
+  #           if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
+  #             $isOnline = $true
+  #             break
+  #           }
+  #         }
+  #         echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
 
-  check-surface:
-    name: Check MICROSOFT-SURFA
-    runs-on: windows-latest
-    outputs:
-      online: ${{ steps.check.outputs.runner_online }}
-    steps:
-      - name: Check MICROSOFT-SURFA runner status
-        id: check
-        shell: powershell
-        env:
-          GH_TOKEN: ${{ secrets. GH_PAT }}
-        run: |
-          $label = "Surface-Pro"
-          $repo = "${{ github.repository }}"
-          $org = $repo.Split('/')[0]
-          $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
-          $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
-          $isOnline = $false
-          foreach ($runner in $response.runners) {
-            if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
-              $isOnline = $true
-              break
-            }
-          }
-          echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
+  # check-surface:
+  #   name: Check MICROSOFT-SURFA
+  #   runs-on: windows-latest
+  #   outputs:
+  #     online: ${{ steps.check.outputs.runner_online }}
+  #   steps:
+  #     - name: Check MICROSOFT-SURFA runner status
+  #       id: check
+  #       shell: powershell
+  #       env:
+  #         GH_TOKEN: ${{ secrets.RUNNERTOKEN }}
+  #       run: |
+  #         $label = "Surface-Pro"
+  #         $repo = "${{ github.repository }}"
+  #         $org = $repo.Split('/')[0]
+  #         $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+  #         $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
+  #         $isOnline = $false
+  #         foreach ($runner in $response.runners) {
+  #           if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
+  #             $isOnline = $true
+  #             break
+  #           }
+  #         }
+  #         echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
 
   test:
     name: Run on ${{ matrix.name }}
