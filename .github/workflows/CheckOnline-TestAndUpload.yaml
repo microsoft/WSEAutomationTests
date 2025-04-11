@@ -5,11 +5,11 @@ on:
     branches:
       - user/jdugar/TestSelfHostAgent
 
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-  actions: write
+permissions: write-all
+  # contents: write
+  # pull-requests: write
+  # issues: write
+  # actions: write
   
 jobs:
   check-asus:
@@ -23,13 +23,15 @@ jobs:
         run: |
           gh auth status
         env:
-          GH_TOKEN: ${{ secrets.RUNNERTOKEN}}
+          GH_TOKEN: ${{ secrets.GH_PAT}}
+
+       
 
       - name: Check ASUS-PROART runner status
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets. RUNNERTOKEN }}
+          GH_TOKEN: ${{ secrets. GH_PAT }}
         run: |
           $label = "Asus-ProArt"
           $repo = "${{ github.repository }}"
@@ -61,7 +63,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets. RUNNERTOKEN }}
+          GH_TOKEN: ${{ secrets. GH_PAT }}
         run: |
           $label = "HP-REGIS-PV"
           $repo = "${{ github.repository }}"
@@ -87,7 +89,7 @@ jobs:
         id: check
         shell: powershell
         env:
-          GH_TOKEN: ${{ secrets. RUNNERTOKEN }}
+          GH_TOKEN: ${{ secrets. GH_PAT }}
         run: |
           $label = "Surface-Pro"
           $repo = "${{ github.repository }}"
