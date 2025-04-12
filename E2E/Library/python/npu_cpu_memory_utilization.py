@@ -3,6 +3,7 @@ import re
 import sys
 import statistics
 import time
+import pandas as pd
 
 from pywinauto import Application  # type: ignore
 
@@ -122,9 +123,11 @@ class ResourceMonitor:
         with timestamp and summarize with Peak, Median and Average Values."""
 
         file_exists = os.path.isfile(self.log_file)
+        xlsx_log_file = self.log_file.replace('.txt', '.xlsx')
 
         # Choose mode: 'w' for new file, 'a' for append
         mode = "a" if file_exists else "w"
+        log_entries = []
 
         with open(self.log_file, mode) as log:
             if not file_exists:
@@ -158,7 +161,13 @@ class ResourceMonitor:
                 # Log current utilization with timestamp
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
                 log.write(f"{timestamp}, {cpu}, {memory}, {npu}\n")
-
+                # Add data to Excel list
+                log_entries.append({
+                    "Timestamp": timestamp,
+                    "CPU Utilization (%)": cpu,
+                    "Memory Utilization (%)": memory,
+                    "NPU Utilization (%)": npu
+                })
                 # Calculate time taken for the iteration
                 elapsed = time.time() - iteration_start
                 sleep_time = max(0, interval - elapsed)
@@ -168,6 +177,51 @@ class ResourceMonitor:
 
             # After collecting data, calculate and write statistics
             self.calculate_statistics(log)
+
+        # Export to Excel
+        self.export_to_excel(log_entries, xlsx_log_file)
+
+    def export_to_excel(self, data, excel_file):
+        """Export utilization log entries to Excel"""
+        df = pd.DataFrame(data)
+
+        # Calculate statistics
+        stats_data = {
+            "Metric": ["CPU", "Memory", "NPU"],
+            "Median (%)": [
+                statistics.median(
+                    self.cpu_usage
+                ) if self.cpu_usage else "N/A",
+                statistics.median(
+                    self.memory_usage
+                ) if self.memory_usage else "N/A",
+                statistics.median(
+                    self.npu_usage
+                ) if self.npu_usage else "N/A",
+            ],
+            "Average (%)": [
+                round(
+                    statistics.mean(self.cpu_usage), 2
+                ) if self.cpu_usage else "N/A",
+                round(
+                    statistics.mean(self.memory_usage), 2
+                ) if self.memory_usage else "N/A",
+                round(
+                    statistics.mean(self.npu_usage), 2
+                ) if self.npu_usage else "N/A",
+            ],
+            "Peak (%)": [
+                max(self.cpu_usage) if self.cpu_usage else "N/A",
+                max(self.memory_usage) if self.memory_usage else "N/A",
+                max(self.npu_usage) if self.npu_usage else "N/A"
+            ]
+        }
+        stats_df = pd.DataFrame(stats_data)
+
+        # Write to Excel file with multiple sheets
+        with pd.ExcelWriter(excel_file, engine='openpyxl', mode='w') as writer:
+            df.to_excel(writer, index=False, sheet_name='Utilization Logs')
+            stats_df.to_excel(writer, index=False, sheet_name='Statistics')
 
     def calculate_statistics(self, log):
         """Calculates median, average, and peak utilization and logs it"""
