@@ -22,7 +22,7 @@ jobs:
        id: check
        shell: powershell
        env:
-        GH_TOKEN: ${{ secrets.RUNNERTOKEN }}
+        GH_TOKEN: ${{ secrets.WSETest-token }}
        run: |
         $label = "Asus-ProArt"
         $repo = "${{ github.repository }}"
