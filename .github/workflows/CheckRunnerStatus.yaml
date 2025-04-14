@@ -1,0 +1,33 @@
+name: Check Self-Hosted Runner Status
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-runners:
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+    steps:
+      - name: Check runner availability
+        shell: powershell
+        run: |
+          $token = $env:GH_TOKEN
+          $repo = "microsoft/WSEAutomationTests"
+          $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
+          Write-Output "Querying: $apiUrl"
+
+          $headers = @{
+              Authorization = "Bearer $token"
+              Accept = "application/vnd.github+json"
+              "X-GitHub-Api-Version" = "2022-11-28"
+          }
+
+          try {
+              $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+              foreach ($runner in $response.runners) {
+                  Write-Output "Runner: $($runner.name), Status: $($runner.status), Labels: $($runner.labels.name -join ', ')"
+              }
+          } catch {
+              Write-Error "Failed to fetch runner info: $_"
+          }
