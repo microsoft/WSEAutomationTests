@@ -79,14 +79,14 @@ check-asus:
   #         # $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; "Accept" = "application/vnd.github+json" }
   #         # $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
 
-  # #         $isOnline = $false
-  # #         foreach ($runner in $response.runners) {
-  # #           if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
-  # #             $isOnline = $true
-  # #             break
-  # #           }
-  # #         }
-  # #         echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
+  #         $isOnline = $false
+  #         foreach ($runner in $response.runners) {
+  #           if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
+  #             $isOnline = $true
+  #             break
+  #           }
+  #         }
+  #         echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
 
   # check-hp:
   #   name: Check HP-REGIS-PV
@@ -153,7 +153,7 @@ check-asus:
           #- name: MICROSOFT-SURFA
           #   label: Surface-Pro
           #   check_job: check-surface
-          # #- name: HP-REGIS-PV
+          # - name: HP-REGIS-PV
            # label: HP-REGIS-PV
            # check_job: check-hp
     runs-on: ${{ matrix.label }}
