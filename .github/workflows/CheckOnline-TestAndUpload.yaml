@@ -52,72 +52,45 @@ jobs:
           "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         }
 
+  check-hp:
+    name: Check HP-REGIS-PV
+    runs-on: windows-latest
+    outputs:
+      online: ${{ steps.check.outputs.runner_online }}
+    steps:
+      - name: Check HP-REGIS-PV runner status
+        id: check
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          $token = $env:GH_TOKEN
+          write-output $token
+          $label = "HP-REGIS-PV"
+          $repo = "${{ github.repository }}"
+          $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
+          write-output $apiUrl
+          $headers = @{
+            Authorization = "Bearer $token"
+            "Accept" = "application/vnd.github+json"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
 
-  # check-asus:
-  #   name: Check ASUS-PROART
-  #   runs-on: windows-latest
-  #   outputs:
-  #     online: ${{ steps.check.outputs.runner_online }}
-  #   steps:
-  #     - name: Test token permissions
-  #       shell: powershell
-  #       run: |
-  #         gh auth status
-  #       env:
-  #         GH_TOKEN: ${{ secrets.RUNNERTOKEN}}
-
-  #     - name: Check ASUS-PROART runner status
-  #       id: check
-  #       shell: powershell
-  #       env:
-  #         GH_TOKEN: ${{ secrets.RUNNERTOKEN }}
-  #       run: |
-  #         $label = "Asus-ProArt"
-  #         $repo = "${{ github.repository }}"
-          # write-output "repo details: $repo "
-          # $org = $repo.Split('/')[0]
-          # write-output "Org details: $org "
-          # # $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
-          # # $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
-          # #$apiUrl = "https://api.github.com/orgs/$org/actions/runners"
-          # $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
-          # $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; "Accept" = "application/vnd.github+json" }
-          # $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
-
-  #         $isOnline = $false
-  #         foreach ($runner in $response.runners) {
-  #           if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
-  #             $isOnline = $true
-  #             break
-  #           }
-  #         }
-  #         echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
-
-  # check-hp:
-  #   name: Check HP-REGIS-PV
-  #   runs-on: windows-latest
-  #   outputs:
-  #     online: ${{ steps.check.outputs.runner_online }}
-  #   steps:
-  #     - name: Check HP-REGIS-PV runner status
-  #       id: check
-  #       shell: powershell
-  #       env:
-  #         GH_TOKEN: ${{ secrets.RUNNERTOKEN }}
-  #       run: |
-  #         $label = "HP-REGIS-PV"
-  #         $repo = "${{ github.repository }}"
-  #         $org = $repo.Split('/')[0]
-  #         $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
-  #         $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
-  #         $isOnline = $false
-  #         foreach ($runner in $response.runners) {
-  #           if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
-  #             $isOnline = $true
-  #             break
-  #           }
-  #         }
-  #         echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
+          try {
+           $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+           $isOnline = $false
+           foreach ($runner in $response.runners) {
+             write-output $runner
+             if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
+              $isOnline = $true
+              break
+             }
+           }
+          "runner_online=$isOnline" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } catch {
+          Write-Error "Failed to fetch runner info: $_"
+          "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
 
   # check-surface:
   #   name: Check MICROSOFT-SURFA
@@ -148,7 +121,7 @@ jobs:
   test:
     name: Run on ${{ matrix.name }}
     #needs: [check-asus, check-hp, check-surface]
-    needs: [check-asus]
+    needs: [check-asus, check-hp]
     strategy:
       fail-fast: false
       matrix:
@@ -159,9 +132,9 @@ jobs:
           #- name: MICROSOFT-SURFA
           #   label: Surface-Pro
           #   check_job: check-surface
-          # - name: HP-REGIS-PV
-           # label: HP-REGIS-PV
-           # check_job: check-hp
+         - name: HP-REGIS-PV
+           label: HP-REGIS-PV
+           check_job: check-hp
     runs-on: ${{ matrix.label }}
 
     steps:
