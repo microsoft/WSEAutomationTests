@@ -1,0 +1,109 @@
+name: Run CheckInTest with every PR and Upload Logs
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write        # Allow write access to repository contents (e.g., pushing changes)
+  pull-requests: write   # Allow write access to pull requests (e.g., create or merge PRs)
+  issues: write          # Allow write access to issues (optional, if needed)
+  actions: write         # Allow write access to Actions (e.g., update or create workflows)
+
+jobs:
+  test:
+    name: Run on ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ASUS-PROART
+            label: Asus-ProArt
+          - name: MICROSOFT-SURFA
+            label: Surface-Pro
+          - name: HP-REGIS-PV
+            label: HP-REGIS-PV
+    runs-on: ${{ matrix.label }}
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Ensures the entire history is checked out (not just the latest commit)
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pywinauto
+      shell: powershell    
+
+    - name: Run PowerShell Tests from E2E folder (deACvice ${{ matrix.name }})
+      shell: powershell  # Using PowerShell 
+      continue-on-error: true
+      working-directory: E2E  # Set working directory to E2E
+      run: |
+        try {
+            .\CheckInTest.ps1
+          } catch {
+            Write-Error "Test failed: $_"
+            exit 1
+          }
+   
+    - name: Find the latest log folder
+      if: always()
+      id: find-latest-log
+      shell: powershell
+      working-directory: E2E\logs  # Set working directory to E2E\logs
+      run: |
+       Write-Output "Changed directory to: $PWD"
+        
+       $logFolders = Get-ChildItem -Directory
+       Write-Output "Log folders found: $($logFolders.Name)"
+        
+       $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+       Write-Output "Latest log folder: $latestLogFolder"
+
+       # Set the output variable for the path to use in the next step
+        echo "LOG_FOLDER_NAME=$latestLogFolder" >> $env:GITHUB_ENV
+        echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
+
+    - name: Verify latest log folder contents
+      shell: powershell
+      run: |    
+        # Verify the contents of the log folder
+        Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
+
+    - name: Set artifact name
+      id: set-artifact-name
+      shell: powershell
+      run: |
+        $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ matrix.name}}"
+        echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
+
+    - name:  Upload logs from device ${{ matrix.name}}
+      if: ${{ always() && env.LATEST_LOG_FOLDER != '' }}
+      uses: actions/upload-artifact@v4.6.2 
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: ${{ env.LATEST_LOG_FOLDER }}\**  # Correct way to reference environment variable
+        if-no-files-found: warn  # Don't fail if no files are found
+        retention-days: 7  # Artifact retention period (optional)
+        compression-level: 6  # Optional compression level
+        overwrite: true  # Overwrite artifact if one with the same name exists
+        include-hidden-files: false  # Do not include hidden files
+
+    - name: Test Complete on device ${{ matrix.name}}
+      if: success()
+      run: |
+        Write-Output "Test run completed successfully"
+
+    - name: Test Failed on device ${{ matrix.name }}
+      if: failure()
+      run: |
+        Write-Output "Test run failed"
