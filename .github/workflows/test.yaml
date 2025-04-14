@@ -43,7 +43,7 @@ jobs:
         pip install pywinauto
       shell: powershell    
 
-    - name: Run PowerShell Tests from E2E folder (deACvice ${{ matrix.name }})
+    - name: Run PowerShell Tests from E2E folder (device ${{ matrix.name }})
       shell: powershell  # Using PowerShell 
       continue-on-error: true
       working-directory: E2E  # Set working directory to E2E
