@@ -13,17 +13,17 @@ permissions: write-all
   
 jobs:
   check-asus:
-  name: Check ASUS-PROART
-  runs-on: windows-latest
-  outputs:
-    online: ${{ steps.check.outputs.runner_online }}
-  steps:
-    - name: Check ASUS-PROART runner status
-      id: check
-      shell: powershell
-      env:
+    name: Check ASUS-PROART
+    runs-on: windows-latest
+    outputs:
+     online: ${{ steps.check.outputs.runner_online }}
+    steps:
+     - name: Check ASUS-PROART runner status
+       id: check
+       shell: powershell
+       env:
         GH_TOKEN: ${{ secrets.RUNNERTOKEN }}
-      run: |
+       run: |
         $label = "Asus-ProArt"
         $repo = "${{ github.repository }}"
         $org = $repo.Split('/')[0]  # Extract organization name
