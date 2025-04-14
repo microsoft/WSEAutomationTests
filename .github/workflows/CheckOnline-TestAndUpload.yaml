@@ -13,11 +13,11 @@ permissions: write-all
   
 jobs:
   check-asus:
-   name: Check ASUS-PROART
-   runs-on: windows-latest
-   outputs:
+  name: Check ASUS-PROART
+  runs-on: windows-latest
+  outputs:
     online: ${{ steps.check.outputs.runner_online }}
-   steps:
+  steps:
     - name: Check ASUS-PROART runner status
       id: check
       shell: powershell
@@ -26,7 +26,9 @@ jobs:
       run: |
         $label = "Asus-ProArt"
         $repo = "${{ github.repository }}"
-        $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
+        $org = $repo.Split('/')[0]  # Extract organization name
+        $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+
         $headers = @{
           Authorization = "Bearer $env:GH_TOKEN"
           "Accept" = "application/vnd.github+json"
@@ -47,6 +49,7 @@ jobs:
           Write-Error "Failed to fetch runner info: $_"
           "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         }
+
 
   # check-asus:
   #   name: Check ASUS-PROART
