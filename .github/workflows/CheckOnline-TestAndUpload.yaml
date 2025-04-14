@@ -12,12 +12,12 @@ permissions: write-all
   # actions: write
   
 jobs:
-check-asus:
-  name: Check ASUS-PROART
-  runs-on: windows-latest
-  outputs:
+  check-asus:
+   name: Check ASUS-PROART
+   runs-on: windows-latest
+   outputs:
     online: ${{ steps.check.outputs.runner_online }}
-  steps:
+   steps:
     - name: Check ASUS-PROART runner status
       id: check
       shell: powershell
@@ -69,15 +69,15 @@ check-asus:
   #       run: |
   #         $label = "Asus-ProArt"
   #         $repo = "${{ github.repository }}"
-  #         # write-output "repo details: $repo "
-  #         # $org = $repo.Split('/')[0]
-  #         # write-output "Org details: $org "
-  #         # # $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
-  #         # # $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
-  #         # #$apiUrl = "https://api.github.com/orgs/$org/actions/runners"
-  #         # $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
-  #         # $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; "Accept" = "application/vnd.github+json" }
-  #         # $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+          # write-output "repo details: $repo "
+          # $org = $repo.Split('/')[0]
+          # write-output "Org details: $org "
+          # # $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+          # # $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
+          # #$apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+          # $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
+          # $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; "Accept" = "application/vnd.github+json" }
+          # $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
 
   #         $isOnline = $false
   #         foreach ($runner in $response.runners) {
