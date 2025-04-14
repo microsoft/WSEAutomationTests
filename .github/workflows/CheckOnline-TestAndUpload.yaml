@@ -24,13 +24,12 @@ jobs:
        env:
         GH_TOKEN: ${{ secrets.WSETest-token }}
        run: |
+        $token = $env:GH_TOKEN
         $label = "Asus-ProArt"
         $repo = "${{ github.repository }}"
-        $org = $repo.Split('/')[0]  # Extract organization name
-        $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
-
+        $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
         $headers = @{
-          Authorization = "Bearer $env:GH_TOKEN"
+          Authorization = "Bearer $token"
           "Accept" = "application/vnd.github+json"
           "X-GitHub-Api-Version" = "2022-11-28"
         }
@@ -39,6 +38,7 @@ jobs:
           $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
           $isOnline = $false
           foreach ($runner in $response.runners) {
+            write-output $runner
             if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
               $isOnline = $true
               break
