@@ -150,7 +150,7 @@ check-asus:
          - name: ASUS-PROART
            label: Asus-ProArt
            check_job: check-asus
-          - name: MICROSOFT-SURFA
+          #- name: MICROSOFT-SURFA
           #   label: Surface-Pro
           #   check_job: check-surface
           # #- name: HP-REGIS-PV
