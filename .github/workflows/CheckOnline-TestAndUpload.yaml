@@ -6,11 +6,7 @@ on:
       - user/jdugar/TestSelfHostAgent
 
 permissions: write-all
-  # contents: write
-  # pull-requests: write
-  # issues: write
-  # actions: write
-  
+   
 jobs:
   check-asus:
     name: Check ASUS-PROART
@@ -40,14 +36,16 @@ jobs:
           $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
           $isOnline = $false
           foreach ($runner in $response.runners) {
-            write-output $runner
-            if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
+            $labelNames = $runner.labels | ForEach-Object { $_.name }
+            Write-Output "Checking runner $($runner.name) with labels: $($labelNames -join ', ') and status: $($runner.status)"
+            if ($labelNames -contains $label -and $runner.status -eq "online") {
               $isOnline = $true
               break
             }
           }
           "runner_online=$isOnline" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-        } catch {
+        }
+        catch {
           Write-Error "Failed to fetch runner info: $_"
           "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         }
@@ -80,14 +78,16 @@ jobs:
            $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
            $isOnline = $false
            foreach ($runner in $response.runners) {
-             write-output $runner
-             if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
+             $labelNames = $runner.labels | ForEach-Object { $_.name }
+             Write-Output "Checking runner $($runner.name) with labels: $($labelNames -join ', ') and status: $($runner.status)"
+             if ($labelNames -contains $label -and $runner.status -eq "online") {
               $isOnline = $true
               break
              }
            }
-          "runner_online=$isOnline" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          } catch {
+           "runner_online=$isOnline" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+          catch {
           Write-Error "Failed to fetch runner info: $_"
           "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           }
