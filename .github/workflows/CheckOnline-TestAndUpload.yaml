@@ -43,7 +43,7 @@ jobs:
               break
             }
           }
-          "runner_online=$isOnline" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         }
         catch {
           Write-Error "Failed to fetch runner info: $_"
@@ -85,7 +85,7 @@ jobs:
               break
              }
            }
-           "runner_online=$isOnline" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+           "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           }
           catch {
           Write-Error "Failed to fetch runner info: $_"
