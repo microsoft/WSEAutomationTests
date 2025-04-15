@@ -169,6 +169,7 @@ jobs:
           Write-Output "Runner is offline or status not available  $result. Skipping job for ${{ matrix.name }}"
           exit 0
           }
+          write-Output $result
           Write-Output "Runner is online. Proceeding with the job for ${{ matrix.name }}"
       
       #  $online = "${{ needs[format('{0}', matrix.check_job)].outputs.online }}"
