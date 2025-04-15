@@ -123,7 +123,7 @@ jobs:
   test:
     name: Run on ${{ matrix.name }}
     #needs: [check-asus, check-hp, check-surface]
-    needs: [check-asus, check-hp]
+    needs: [check-asus]
     strategy:
       fail-fast: false
       matrix:
