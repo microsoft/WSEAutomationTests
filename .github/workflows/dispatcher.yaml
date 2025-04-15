@@ -30,6 +30,12 @@ jobs:
           $isOnline = $false
           foreach ($runner in $runners.runners) {
             $labelNames = $runner.labels | ForEach-Object { $_.name.ToLower() }
+            $status = $runner.status
+            $name = $runner.name
+            $label = $label.ToLower()
+
+            Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
+            Write-Output "$label"
             if ($labelNames -contains $label.ToLower() -and $runner.status -eq "online") {
               $isOnline = $true
               break
@@ -40,7 +46,7 @@ jobs:
   run-asus-tests:
     needs: check-runner
     if: needs.check-runner.outputs.asus-online == 'true'
-    uses: ./.github/workflows/reusable-asus.yml
+    uses: ./.github/workflows/reusable-asus.yaml
     with:
       runner_label: "Asus-ProArt"
     secrets: inherit
