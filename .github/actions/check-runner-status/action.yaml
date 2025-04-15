@@ -36,7 +36,6 @@ runs:
           $label = $label.ToLower()
 
           Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
-          Write-Output "$label"
 
           if ($labelNames -contains $label -and $runner.status -eq "online") {
             $isOnline = $true
