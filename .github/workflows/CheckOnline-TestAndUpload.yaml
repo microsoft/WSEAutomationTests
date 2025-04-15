@@ -132,7 +132,7 @@ jobs:
     name: Run on ${{ matrix.name }}
     #needs: [check-asus, check-hp, check-surface]
     needs: [check-asus]
-    if: ${{ matrix.online == 'true' }}
+    #if: ${{ matrix.online == 'true' }}
     runs-on: ${{ matrix.label }}
     strategy:
       fail-fast: false
