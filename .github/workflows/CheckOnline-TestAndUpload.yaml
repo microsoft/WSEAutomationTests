@@ -45,11 +45,11 @@ jobs:
                 }
             }
           }  
-          echo "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         }
         catch {
            Write-Error "Failed to fetch runner info: $_"
-           echo "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+           "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           }
 
   # check-hp:
@@ -124,6 +124,7 @@ jobs:
     name: Run on ${{ matrix.name }}
     #needs: [check-asus, check-hp, check-surface]
     needs: [check-asus]
+    if: needs[format('{0}', matrix.check_job)].outputs.online == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -139,17 +140,17 @@ jobs:
           # check_job: check-hp
     runs-on: ${{ matrix.label }}
 
-    steps:
-    - name: Skip job if runner is offline
-      shell: powershell
-      run: |
-        $online = "${{ needs[format('{0}', matrix.check_job)].outputs.online }}"
-        Write-Output "Runner online status: $online"
-        if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
-         Write-Output "Runner is offline or status not available. Skipping job for ${{ matrix.name }}"
-         exit 0
-        }
-        Write-Output "Runner is online. Proceeding with the job for ${{ matrix.name }}"
+    # steps:
+    # - name: Skip job if runner is offline
+    #   shell: powershell
+    #   run: |
+    #     $online = "${{ needs[format('{0}', matrix.check_job)].outputs.online }}"
+    #     Write-Output "Runner online status: $online"
+    #     if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
+    #      Write-Output "Runner is offline or status not available. Skipping job for ${{ matrix.name }}"
+    #      exit 0
+    #     }
+    #     Write-Output "Runner is online. Proceeding with the job for ${{ matrix.name }}"
 
     - name: Check out the repository
       uses: actions/checkout@v3
