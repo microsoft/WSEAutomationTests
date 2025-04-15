@@ -35,21 +35,25 @@ jobs:
           $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
           $isOnline = $false
           foreach ($runner in $response.runners) {
-            $labelNames = $runner.labels | ForEach-Object { $_.name }
-            if ($labelNames -contains $label) {
-               Write-Output $label
-               Write-Output "Checking runner $($runner.name) with labels: $($labelNames -join ', ') and status: $($runner.status)"
-               if ($runner.status -eq "online") {
-                 $isOnline = $true
-                 break
-                }
+            $labelNames = $runner.labels | ForEach-Object { $_.name.ToLower() }
+            $status = $runner.status
+            $name = $runner.name
+
+            Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
+
+            if ($labelNames -contains $label.ToLower() -and $status -eq "online") {
+              Write-Output "" Match found: $name is online with label $label"
+              $isOnline = $true
+              break
             }
+          }
           }  
+          Write-Output "Final result: runner_online=$isOnline"
           "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         }
         catch {
-           Write-Error "Failed to fetch runner info: $_"
-           "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Error "❌ Failed to fetch runner info: $_"
+          "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         }
 
   # check-hp:
@@ -143,6 +147,12 @@ jobs:
      - name: Skip job if runner is offline
        shell: powershell
        run: |
+         Write-Output "=== DEBUG: Job Context ==="
+         Write-Output "Runner name: ${{ matrix.name }}"
+         Write-Output "Runner label: ${{ matrix.label }}"
+         Write-Output "Check job: ${{ matrix.check_job }}"
+         Write-Output "Evaluating output from: needs[${{ matrix.check_job }}].outputs.online"
+        
          $online = "${{ needs[format('{0}', matrix.check_job)].outputs.online }}"
          Write-Output "Runner online status: $online"
          if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
