@@ -42,7 +42,7 @@ jobs:
             Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
 
             if ($labelNames -contains $label.ToLower() -and $status -eq "online") {
-              Write-Output "" Match found: $name is online with label $label"
+              Write-Output "Match found: $name is online with label $label"
               $isOnline = $true
               break
             }
