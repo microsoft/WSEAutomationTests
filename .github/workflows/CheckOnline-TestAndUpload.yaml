@@ -46,11 +46,11 @@ jobs:
                 }
             }
           }  
-          "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "runner_online=$($isOnline.ToString().ToLower())" >> $env:GITHUB_OUTPUT
         }
         catch {
           Write-Error "Failed to fetch runner info: $_"
-          "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "runner_online=false" >> $env:GITHUB_OUTPUT
         }
 
   # check-hp:
