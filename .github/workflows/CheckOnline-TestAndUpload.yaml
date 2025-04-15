@@ -48,11 +48,11 @@ jobs:
             }
           }
           Write-Output "Final result: runner_online=$isOnline"
-          "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Output "runner_online=$($isOnline.ToString().ToLower())" >> $env:GITHUB_OUTPUT
         }
         catch {
           Write-Error "❌ Failed to fetch runner info: $_"
-          "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Output "runner_online=false" >> $env:GITHUB_OUTPUT
         }
 
   # check-hp:
@@ -134,6 +134,7 @@ jobs:
          - name: ASUS-PROART
            label: Asus-ProArt
            check_job: check-asus
+           online: ${{ needs.check-asus.outputs.online }}
            #- name: MICROSOFT-SURFA
           #   label: Surface-Pro
           #   check_job: check-surface
@@ -152,13 +153,20 @@ jobs:
          Write-Output "Check job: ${{ matrix.check_job }}"
          Write-Output "Evaluating output from: needs[${{ matrix.check_job }}].outputs.online"
         
-         $online = "${{ needs[format('{0}', matrix.check_job)].outputs.online }}"
-         Write-Output "Runner online status: $online"
+         $online = "${{ matrix.online }}"
          if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
           Write-Output "Runner is offline or status not available. Skipping job for ${{ matrix.name }}"
           exit 0
          }
          Write-Output "Runner is online. Proceeding with the job for ${{ matrix.name }}"
+         
+        #  $online = "${{ needs[format('{0}', matrix.check_job)].outputs.online }}"
+        #  Write-Output "Runner online status: $online"
+        #  if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
+        #   Write-Output "Runner is offline or status not available. Skipping job for ${{ matrix.name }}"
+        #   exit 0
+        #  }
+         
     
      - name: Check out the repository
        uses: actions/checkout@v3
