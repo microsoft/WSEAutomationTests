@@ -21,7 +21,6 @@ jobs:
         GH_TOKEN: ${{ secrets.PAT_TOKEN }}
        run: |
         $token = $env:GH_TOKEN
-        write-output $token
         $label = "Asus-ProArt"
         $repo = "${{ github.repository }}"
         $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
@@ -46,12 +45,12 @@ jobs:
                 }
             }
           }  
-          "runner_online=$($isOnline.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          echo "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         }
         catch {
-          Write-Error "Failed to fetch runner info: $_"
-          "runner_online=false" >> $env:GITHUB_OUTPUT
-        }
+           Write-Error "Failed to fetch runner info: $_"
+           echo "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
 
   # check-hp:
   #   name: Check HP-REGIS-PV
@@ -146,10 +145,11 @@ jobs:
       run: |
         $online = "${{ needs[format('{0}', matrix.check_job)].outputs.online }}"
         Write-Output "Runner online status: $online"
-        if ($online -ne 'true') {
-        Write-Output "Runner is offline. Skipping job for ${{ matrix.name }}"
-        exit 0
+        if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
+         Write-Output "Runner is offline or status not available. Skipping job for ${{ matrix.name }}"
+         exit 0
         }
+        Write-Output "Runner is online. Proceeding with the job for ${{ matrix.name }}"
 
     - name: Check out the repository
       uses: actions/checkout@v3
