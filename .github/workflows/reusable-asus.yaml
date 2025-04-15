@@ -1,0 +1,27 @@
+name: ASUS-PROART Test Workflow
+
+on:
+  workflow_call:
+    inputs:
+      runner_label:
+        required: true
+        type: string
+
+jobs:
+  run-tests:
+    name: Run tests on ${{ inputs.runner_label }}
+    runs-on: ${{ inputs.runner_label }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Run your tests
+        run: |
+          echo "Running tests on ASUS..."
+          # Insert test commands here
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ inputs.runner_label }}
+          path: ./logs
