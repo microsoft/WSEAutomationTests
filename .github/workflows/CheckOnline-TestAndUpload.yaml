@@ -163,8 +163,9 @@ jobs:
          Write-Output "Evaluating output from: needs[${{ matrix.check_job }}].outputs.online"
         
          $online = "${{ matrix.online }}"
-         if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
-          Write-Output "Runner is offline or status not available. Skipping job for ${{ matrix.name }}"
+         Write-Output "Output: ${{ matrix.online }}"
+         $result = if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
+          Write-Output "Runner is offline or status not available  $result. Skipping job for ${{ matrix.name }}"
           exit 0
          }
          Write-Output "Runner is online. Proceeding with the job for ${{ matrix.name }}"
