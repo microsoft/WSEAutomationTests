@@ -149,11 +149,10 @@ jobs:
           # check_job: check-hp
     runs-on: ${{ matrix.label }}
 
-    report-skipped:
-     name: Report Skipped for ${{ matrix.name }}
-     needs: [check-asus]
-     if: ${{ matrix.online != 'true' }}
-     strategy:
+      report-skipped:
+    name: Report Skipped for ${{ matrix.name }}
+    needs: [check-asus]
+    strategy:
       matrix:
         include:
           - name: ASUS-PROART
@@ -168,20 +167,19 @@ jobs:
           #   label: Surface-Pro
           #   check_job: check-surface
           #   online: ${{ needs.check-surface.outputs.online }}
+    if: ${{ matrix.online != 'true' }}
     runs-on: windows-latest
     steps:
       - name: Print skipped runner info
         run: |
           Write-Output "⚠️ Skipped test: '${{ matrix.name }}' is offline or not available."
-
-    steps:
-     - name: Debug output
-       run: |
+      - name: Debug output
+        run: |
          Write-Output "Output: ${{ matrix.online }}"
 
-     - name: Skip job if runner is offline
-       shell: powershell
-       run: |
+      - name: Skip job if runner is offline
+        shell: powershell
+        run: |
          Write-Output "=== DEBUG: Job Context ==="
          Write-Output "Runner name: ${{ matrix.name }}"
          Write-Output "Runner label: ${{ matrix.label }}"
@@ -204,76 +202,76 @@ jobs:
         #  }
          
     
-     - name: Check out the repository
-       uses: actions/checkout@v3
-       with:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+        with:
         fetch-depth: 0
 
-     - name: Set up Python
-       uses: actions/setup-python@v5
-       with:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
         python-version: '3.11'
 
-     - name: Install dependencies
-       run: |
-        python -m pip install --upgrade pip
-        pip install pywinauto
-       shell: powershell    
+      - name: Install dependencies
+        run: |
+         python -m pip install --upgrade pip
+         pip install pywinauto
+        shell: powershell    
 
-     - name: Run PowerShell Tests from E2E folder (device ${{ matrix.name }})
-       shell: powershell
-       continue-on-error: true
-       working-directory: E2E
-       run: |
-        try {
+      - name: Run PowerShell Tests from E2E folder (device ${{ matrix.name }})
+        shell: powershell
+        continue-on-error: true
+        working-directory: E2E
+        run: |
+         try {
             .\CheckInTest.ps1
           } catch {
             Write-Error "Test failed: $_"
             exit 1
           }
 
-     - name: Find the latest log folder
-       if: always()
-       id: find-latest-log
-       shell: powershell
-       working-directory: E2E\logs
-       run: |
-        Write-Output "Changed directory to: $PWD"
-        $logFolders = Get-ChildItem -Directory
-        Write-Output "Log folders found: $($logFolders.Name)"
-        $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        Write-Output "Latest log folder: $latestLogFolder"
-        echo "LOG_FOLDER_NAME=$latestLogFolder" >> $env:GITHUB_ENV
-        echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
+      - name: Find the latest log folder
+        if: always()
+        id: find-latest-log
+        shell: powershell
+        working-directory: E2E\logs
+        run: |
+         Write-Output "Changed directory to: $PWD"
+         $logFolders = Get-ChildItem -Directory
+         Write-Output "Log folders found: $($logFolders.Name)"
+         $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+         Write-Output "Latest log folder: $latestLogFolder"
+         echo "LOG_FOLDER_NAME=$latestLogFolder" >> $env:GITHUB_ENV
+         echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
 
-     - name: Verify latest log folder contents
-       shell: powershell
-       run: |
-        Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
+      - name: Verify latest log folder contents
+        shell: powershell
+        run: |
+         Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
 
-     - name: Set artifact name
-       id: set-artifact-name
-       shell: powershell
-       run: |
-        $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ matrix.name }}"
-        echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
+      - name: Set artifact name
+        id: set-artifact-name
+        shell: powershell
+        run: |
+         $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ matrix.name }}"
+         echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
 
-     - name: Upload logs from device ${{ matrix.name }}
-       if: ${{ always() && env.LATEST_LOG_FOLDER != '' }}
-       uses: actions/upload-artifact@v4.6.2
-       with:
-        name: ${{ env.ARTIFACT_NAME }}
-        path: ${{ env.LATEST_LOG_FOLDER }}\**
-        if-no-files-found: warn
-        retention-days: 7
-        compression-level: 6
-        overwrite: true
-        include-hidden-files: false
+      - name: Upload logs from device ${{ matrix.name }}
+        if: ${{ always() && env.LATEST_LOG_FOLDER != '' }}
+        uses: actions/upload-artifact@v4.6.2
+        with:
+         name: ${{ env.ARTIFACT_NAME }}
+         path: ${{ env.LATEST_LOG_FOLDER }}\**
+         if-no-files-found: warn
+         retention-days: 7
+         compression-level: 6
+         overwrite: true
+         include-hidden-files: false
 
-     - name: Test Complete on device ${{ matrix.name }}
-       if: success()
-       run: Write-Output "Test run completed successfully"
+      - name: Test Complete on device ${{ matrix.name }}
+        if: success()
+        run: Write-Output "Test run completed successfully"
 
-     - name: Test Failed on device ${{ matrix.name }}
-       if: failure()
-       run: Write-Output "Test run failed"
+      - name: Test Failed on device ${{ matrix.name }}
+        if: failure()
+        run: Write-Output "Test run failed"
