@@ -23,6 +23,9 @@ jobs:
       hp-online: ${{ steps.set-output-hp.outputs.value }}
       surface-online: ${{ steps.set-output-surface.outputs.value }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+    
       - name: Check if ${{ matrix.runner.label }} is online
         id: check
         uses: ./.github/actions/check-runner-status
