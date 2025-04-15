@@ -215,9 +215,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-        python -m pip install --upgrade pip
-        pip install pywinauto
-        shell: powershell    
+         python -m pip install --upgrade pip
+         pip install pywinauto
+         shell: powershell    
 
       - name: Run PowerShell Tests from E2E folder (device ${{ matrix.name }})
         shell: powershell
@@ -248,7 +248,7 @@ jobs:
       - name: Verify latest log folder contents
         shell: powershell
         run: |
-        Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
+         Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
 
       - name: Set artifact name
         id: set-artifact-name
