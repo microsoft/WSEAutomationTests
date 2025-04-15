@@ -50,7 +50,7 @@ jobs:
         catch {
            Write-Error "Failed to fetch runner info: $_"
            "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          }
+        }
 
   # check-hp:
   #   name: Check HP-REGIS-PV
@@ -129,10 +129,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-         - name: ASUS-PROART
-           label: Asus-ProArt
-           check_job: check-asus
-          #- name: MICROSOFT-SURFA
+          - name: ASUS-PROART
+            label: Asus-ProArt
+            check_job: check-asus
+           #- name: MICROSOFT-SURFA
           #   label: Surface-Pro
           #   check_job: check-surface
         # - name: HP-REGIS-PV
