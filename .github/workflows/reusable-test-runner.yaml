@@ -66,10 +66,10 @@ jobs:
         id: set-artifact-name
         shell: powershell
         run: |
-          $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ matrix.name }}"
+          $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ inputs.device_name  }}"
           echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
 
-      - name: Upload logs from device ${{ matrix.name }}
+      - name: Upload logs from device ${{ inputs.device_name  }}
         if: ${{ always() && env.LATEST_LOG_FOLDER != '' }}
         uses: actions/upload-artifact@v4.6.2
         with:
@@ -81,10 +81,10 @@ jobs:
           overwrite: true
           include-hidden-files: false
 
-      - name: Test Complete on device ${{ matrix.name }}
+      - name: Test Complete on device ${{ inputs.device_name  }}
         if: success()
         run: Write-Output "Test run completed successfully"
 
-      - name: Test Failed on device ${{ matrix.name }}
+      - name: Test Failed on device ${{ inputs.device_name  }}
         if: failure()
         run: Write-Output "Test run failed"

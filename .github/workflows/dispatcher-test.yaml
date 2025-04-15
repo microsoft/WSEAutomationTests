@@ -1,11 +1,12 @@
 name: Dispatcher Workflow
 
+permissions: write-all
+
 on:
   push:
     branches:
       - user/jdugar/TestSelfHostAgent
-  workflow_dispatch:
-
+ 
 jobs:
   check-runners:
     runs-on: windows-latest
