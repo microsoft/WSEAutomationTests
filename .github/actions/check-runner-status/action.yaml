@@ -5,6 +5,9 @@ inputs:
   label:
     description: 'Runner label to check'
     required: true
+  token:
+    description: 'GitHub token'
+    required: true  
 
 outputs:
   online:
@@ -17,7 +20,7 @@ runs:
     - id: check
       shell: powershell
       env:
-        GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        GH_TOKEN: ${{ inputs.token }}
       run: |
         $label = "${{ inputs.label }}"
         $repo = "${{ github.repository }}"

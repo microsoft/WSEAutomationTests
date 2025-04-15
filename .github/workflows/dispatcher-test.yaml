@@ -31,6 +31,7 @@ jobs:
         uses: ./.github/actions/check-runner-status
         with:
           label: ${{ matrix.runner.label }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Set output for ASUS
         if: matrix.runner.id == 'asus'
