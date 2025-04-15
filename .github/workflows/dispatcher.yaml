@@ -1,6 +1,9 @@
 name: Dispatcher Workflow
 
 on:
+  push:
+    branches:
+      - user/jdugar/TestSelfHostAgent
   workflow_dispatch:
 
 jobs:
