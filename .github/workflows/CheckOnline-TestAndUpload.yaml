@@ -38,21 +38,26 @@ jobs:
             $labelNames = $runner.labels | ForEach-Object { $_.name.ToLower() }
             $status = $runner.status
             $name = $runner.name
+            $label = $label.ToLower()
 
             Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
+            Write-Output "$label."
 
-            if ($labelNames -contains $label.ToLower() -and $status -eq "online") {
+            if ($labelNames -contains $label -and $status -eq "online") {
               Write-Output "Match found: $name is online with label $label"
               $isOnline = $true
+              Write-Output "Final result: runner_online=$isOnline"
               break
             }
           }
           Write-Output "Final result: runner_online=$isOnline"
-          Write-Output "runner_online=$($isOnline.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Output "GITHUB_OUTPUT path: $env:GITHUB_OUTPUT"
+
         }
         catch {
           Write-Error "❌ Failed to fetch runner info: $_"
-          Write-Output "runner_online=false" >> $env:GITHUB_OUTPUT
+          "runner_online=false" >> Out-File -FilePath $env:GITHUB_OUTPUT -Append
         }
 
   # check-hp:
@@ -144,6 +149,10 @@ jobs:
     runs-on: ${{ matrix.label }}
 
     steps:
+     - name: Debug output
+       run: |
+         Write-Output "Output: ${{ steps.check.outputs.runner_online }}"
+
      - name: Skip job if runner is offline
        shell: powershell
        run: |
