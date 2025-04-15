@@ -124,7 +124,7 @@ jobs:
     name: Run on ${{ matrix.name }}
     #needs: [check-asus, check-hp, check-surface]
     needs: [check-asus]
-    if: needs[format('{0}', matrix.check_job)].outputs.online == 'true'
+    if: needs[matrix.check_job].outputs.online == 'true'
     strategy:
       fail-fast: false
       matrix:
