@@ -149,31 +149,7 @@ jobs:
          #  label: HP-REGIS-PV
           # check_job: check-hp
 
-  report-skipped:
-    name: Report Skipped for ${{ matrix.name }}
-    needs: [check-asus]
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        include:
-          - name: ASUS-PROART
-            label: Asus-ProArt
-            check_job: check-asus
-            online: ${{ needs.check-asus.outputs.online }}
-          # - name: HP-REGIS-PV
-          #   label: HP-REGIS-PV
-          #   check_job: check-hp
-          #   online: ${{ needs.check-hp.outputs.online }}
-          # - name: MICROSOFT-SURFA
-          #   label: Surface-Pro
-          #   check_job: check-surface
-          #   online: ${{ needs.check-surface.outputs.online }}
     steps:
-      - name: Print skipped runner info
-        if: ${{ matrix.online != 'true' }}
-        run: |
-         Write-Output "⚠️ Skipped test: '${{ matrix.name }}' is offline or not available."
-      
       - name: Debug output
         run: |
           Write-Output "Output: ${{ matrix.online }}"
@@ -276,3 +252,28 @@ jobs:
       - name: Test Failed on device ${{ matrix.name }}
         if: failure()
         run: Write-Output "Test run failed"
+
+    # report-skipped:
+    # name: Report Skipped for ${{ matrix.name }}
+    # needs: [check-asus]
+    # runs-on: windows-latest
+    # strategy:
+    #   matrix:
+    #     include:
+    #       - name: ASUS-PROART
+    #         label: Asus-ProArt
+    #         check_job: check-asus
+    #         online: ${{ needs.check-asus.outputs.online }}
+    #       # - name: HP-REGIS-PV
+    #       #   label: HP-REGIS-PV
+    #       #   check_job: check-hp
+    #       #   online: ${{ needs.check-hp.outputs.online }}
+    #       # - name: MICROSOFT-SURFA
+    #       #   label: Surface-Pro
+    #       #   check_job: check-surface
+    #       #   online: ${{ needs.check-surface.outputs.online }}
+    # steps:
+    #   - name: Print skipped runner info
+    #     if: ${{ matrix.online != 'true' }}
+    #     run: |
+    #      Write-Output "⚠️ Skipped test: '${{ matrix.name }}' is offline or not available."      
