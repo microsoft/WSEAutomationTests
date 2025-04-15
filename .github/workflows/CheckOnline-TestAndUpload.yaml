@@ -57,7 +57,7 @@ jobs:
         }
         catch {
           Write-Error "❌ Failed to fetch runner info: $_"
-          "runner_online=false" >> Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         }
 
   # check-hp:
