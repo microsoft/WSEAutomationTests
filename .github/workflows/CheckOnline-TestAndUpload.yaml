@@ -41,7 +41,7 @@ jobs:
             $label = $label.ToLower()
 
             Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
-            Write-Output "$label."
+            Write-Output "$label"
 
             if ($labelNames -contains $label -and $status -eq "online") {
               Write-Output "Match found: $name is online with label $label"
@@ -151,7 +151,7 @@ jobs:
     steps:
      - name: Debug output
        run: |
-         Write-Output "Output: ${{ steps.check.outputs.runner_online }}"
+         Write-Output "Output: ${{ matrix.online }}"
 
      - name: Skip job if runner is offline
        shell: powershell
