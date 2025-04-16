@@ -9,8 +9,9 @@ from pywinauto import Application  # type: ignore
 
 
 class ResourceMonitor:
-    def __init__(self, log_file, duration=10):
+    def __init__(self, log_file, scenario, duration=10):
         self.log_file = log_file
+        self.scenario = scenario
         self.duration = int(duration)  # Monitor duration in seconds
         self.cpu_usage = []
         self.npu_usage = []
@@ -132,6 +133,9 @@ class ResourceMonitor:
         with open(self.log_file, mode) as log:
             if not file_exists:
                 # If creating a new file, add headers
+                log.write("================================================\n")
+                log.write(f"Test Scenario : {self.scenario}\n")
+                log.write("================================================\n")
                 log.write("Before Test Execution\n")
                 log.write(
                     "Timestamp, "
@@ -236,7 +240,7 @@ class ResourceMonitor:
         memory_stats = stats(self.memory_usage)
         npu_stats = stats(self.npu_usage)
 
-        log.write("\n--- Utilization Statistics ---\n")
+        log.write("\n--- Resource Utilization Statistics ---\n")
         log.write(
             f"CPU - Median: {cpu_stats['Median']}%, "
             f"Average: {cpu_stats['Average']}%, "
@@ -281,15 +285,16 @@ class ResourceMonitor:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print(
             "Usage: python npu_cpu_utilization.py <method_name> [method_args]")
         sys.exit(1)
 
     method_name = sys.argv[1]
     log_path = sys.argv[2]
-    duration = int(sys.argv[3]) if len(sys.argv) > 3 else 10
-    resource_monitor = ResourceMonitor(log_path, duration)
+    scenario = sys.argv[3]
+    duration = int(sys.argv[4]) if len(sys.argv) > 4 else 10
+    resource_monitor = ResourceMonitor(log_path, scenario, duration)
     # Dynamically call the method by name, and pass arguments
     if hasattr(resource_monitor, method_name):
         func = getattr(resource_monitor, method_name)

@@ -139,12 +139,16 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
                              
        #Strating to collect Traces
        StartTrace $scenarioLogFolder
-
+       # Open Task Manager
+       Write-Log -Message "Opening Task Manager" -IsOutput
+       $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
+       Start-Sleep -s 1
+       setTMUpdateSpeedLow -uiEle $uitaskmgr
        Write-Log -Message "Start test for $camsnario" -IsOutput
        if($camsnario -eq "Recording")
        {
            #Start video recording and close the camera app once finished recording 
-           $InitTimeCameraApp = StartVideoRecording "20" $devPowStat #video recording duration can be adjusted depending on the number os scenarios
+           $InitTimeCameraApp = StartVideoRecording "20" $devPowStat $scenarioLogFolder #video recording duration can be adjusted depending on the number os scenarios
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
@@ -155,6 +159,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
+       # Stop Task Manager
+       stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
        #Checks if frame server is stopped
        Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server' 
