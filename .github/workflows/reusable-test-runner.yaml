@@ -1,4 +1,4 @@
-name: Self-Hosted Test Runner
+name: Run Tests on Self-Hosted Runner
 
 on:
   workflow_call:
@@ -33,7 +33,6 @@ jobs:
 
       - name: Run PowerShell Tests
         shell: powershell
-        continue-on-error: true
         working-directory: E2E
         run: |
          try {

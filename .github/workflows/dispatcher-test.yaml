@@ -1,4 +1,4 @@
-name: Dispatcher Workflow
+name: Check Runner Status and Schedule Tests 
 
 permissions: write-all
 
