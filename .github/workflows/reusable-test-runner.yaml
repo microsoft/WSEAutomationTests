@@ -35,12 +35,23 @@ jobs:
         shell: powershell
         working-directory: E2E
         run: |
-         try {
-             .\CheckInTest.ps1
-         } catch {
-           Write-Error "Test failed: $_"
-           exit 1
-         }
+          try {
+              # Run the script and capture all output
+              $testOutput = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable out
+
+              # Check for any test failure in output
+              if ($out -match ":\s*Failed") {
+                  Write-Error "One or more tests failed."
+                  exit 1
+              }
+
+              # Optional: output full logs to console
+              $out | ForEach-Object { Write-Host $_ }
+
+          } catch {
+              Write-Error "Test script threw an exception: $_"
+              exit 1
+          }
 
       - name: Find the latest log folder
         if: always()
