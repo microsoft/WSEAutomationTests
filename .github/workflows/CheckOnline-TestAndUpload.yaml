@@ -1,0 +1,280 @@
+name: Check Device Online/Run CheckInTest on Multiple Runners/Upload Logs.
+
+on:
+  push:
+    branches:
+      - user/jdugar/TestSelfHostAgent
+
+permissions: write-all
+   
+jobs:
+  check-asus:
+    name: Check ASUS-PROART
+    runs-on: windows-latest
+    outputs:
+     online: ${{ steps.check.outputs.runner_online }}
+    steps:
+     - name: Check ASUS-PROART runner status
+       id: check
+       shell: powershell
+       env:
+        GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+       run: |
+        $token = $env:GH_TOKEN
+        $label = "Asus-ProArt"
+        $repo = "${{ github.repository }}"
+        $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
+        write-output $apiUrl
+        $headers = @{
+          Authorization = "Bearer $token"
+          "Accept" = "application/vnd.github+json"
+          "X-GitHub-Api-Version" = "2022-11-28"
+        }
+
+        try {
+          $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+          $isOnline = $false
+          foreach ($runner in $response.runners) {
+            $labelNames = $runner.labels | ForEach-Object { $_.name.ToLower() }
+            $status = $runner.status
+            $name = $runner.name
+            $label = $label.ToLower()
+
+            Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
+            Write-Output "$label"
+
+            if ($labelNames -contains $label -and $status -eq "online") {
+              Write-Output "Match found: $name is online with label $label"
+              $isOnline = $true
+              Write-Output "Final result: runner_online=$isOnline"
+              break
+            }
+          }
+          Write-Output "Final result: runner_online=$isOnline"
+          "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Output "GITHUB_OUTPUT path: $env:GITHUB_OUTPUT"
+
+        }
+        catch {
+          Write-Error "❌ Failed to fetch runner info: $_"
+          "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        }
+
+  # check-hp:
+  #   name: Check HP-REGIS-PV
+  #   runs-on: windows-latest
+  #   outputs:
+  #    online: ${{ steps.check.outputs.runner_online }}
+  #   steps:
+  #    - name: Check HP-REGIS-PV runner status
+  #      id: check
+  #      shell: powershell
+  #      env:
+  #       GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+  #      run: |
+  #       $token = $env:GH_TOKEN
+  #       write-output $token
+  #       $label = "HP-REGIS-PV"
+  #       $repo = "${{ github.repository }}"
+  #       $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
+  #       write-output $apiUrl
+  #       $headers = @{
+  #         Authorization = "Bearer $token"
+  #         "Accept" = "application/vnd.github+json"
+  #         "X-GitHub-Api-Version" = "2022-11-28"
+  #       }
+
+  #       try {
+  #         $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+  #         $isOnline = $false
+  #         foreach ($runner in $response.runners) {
+  #           $labelNames = $runner.labels | ForEach-Object { $_.name }
+  #           Write-Output "Checking runner $($runner.name) with labels: $($labelNames -join ', ') and status: $($runner.status)"
+  #           if ($labelNames -contains $label -and $runner.status -eq "online") {
+  #             $isOnline = $true
+  #             break
+  #           }
+  #         }
+  #         "runner_online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+  #       }
+  #       catch {
+  #         Write-Error "Failed to fetch runner info: $_"
+  #         "runner_online=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+  #       }  
+
+  # check-surface:
+  #   name: Check MICROSOFT-SURFA
+  #   runs-on: windows-latest
+  #   outputs:
+  #     online: ${{ steps.check.outputs.runner_online }}
+  #   steps:
+  #     - name: Check MICROSOFT-SURFA runner status
+  #       id: check
+  #       shell: powershell
+  #       env:
+  #         GH_TOKEN: ${{ secrets.RUNNERTOKEN }}
+  #       run: |
+  #         $label = "Surface-Pro"
+  #         $repo = "${{ github.repository }}"
+  #         $org = $repo.Split('/')[0]
+  #         $apiUrl = "https://api.github.com/orgs/$org/actions/runners"
+  #         $response = gh api "$apiUrl" --paginate | ConvertFrom-Json
+  #         $isOnline = $false
+  #         foreach ($runner in $response.runners) {
+  #           if ($runner.labels.name -contains $label -and $runner.status -eq "online") {
+  #             $isOnline = $true
+  #             break
+  #           }
+  #         }
+  #         echo "runner_online=$isOnline" >> $env:GITHUB_OUTPUT
+
+  test:
+    name: Run on ${{ matrix.name }}
+    #needs: [check-asus, check-hp, check-surface]
+    needs: [check-asus]
+    #if: ${{ matrix.online == 'true' }}
+    runs-on: ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+         - name: ASUS-PROART
+           label: Asus-ProArt
+           check_job: check-asus
+           online: ${{ needs.check-asus.outputs.online }}
+           #- name: MICROSOFT-SURFA
+          #   label: Surface-Pro
+          #   check_job: check-surface
+        # - name: HP-REGIS-PV
+         #  label: HP-REGIS-PV
+          # check_job: check-hp
+
+    steps:
+      - name: Debug output
+        run: |
+          Write-Output "Output: ${{ matrix.online }}"
+
+      - name: Skip job if runner is offline
+        shell: powershell
+        run: |
+          Write-Output "=== DEBUG: Job Context ==="
+          Write-Output "Runner name: ${{ matrix.name }}"
+          Write-Output "Runner label: ${{ matrix.label }}"
+          Write-Output "Check job: ${{ matrix.check_job }}"
+          Write-Output "Evaluating output from: needs[${{ matrix.check_job }}].outputs.online"
+      
+          $online = "${{ matrix.online }}"
+          Write-Output "Output: ${{ matrix.online }}"
+          $result = if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
+          Write-Output "Runner is offline or status not available  $result. Skipping job for ${{ matrix.name }}"
+          exit 0
+          }
+          write-Output $result
+          Write-Output "Runner is online. Proceeding with the job for ${{ matrix.name }}"
+      
+      #  $online = "${{ needs[format('{0}', matrix.check_job)].outputs.online }}"
+      #  Write-Output "Runner online status: $online"
+      #  if ([string]::IsNullOrWhiteSpace($online) -or $online.ToLower() -ne 'true') {
+      #   Write-Output "Runner is offline or status not available. Skipping job for ${{ matrix.name }}"
+      #   exit 0
+      #  }
+      
+  
+      - name: Check out the repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pywinauto
+        shell: powershell    
+
+      - name: Run PowerShell Tests from E2E folder (device ${{ matrix.name }})
+        shell: powershell
+        continue-on-error: true
+        working-directory: E2E
+        run: |
+         try {
+             .\CheckInTest.ps1
+         } catch {
+           Write-Error "Test failed: $_"
+           exit 1
+         }
+
+      - name: Find the latest log folder
+        if: always()
+        id: find-latest-log
+        shell: powershell
+        working-directory: E2E\logs
+        run: |
+          Write-Output "Changed directory to: $PWD"
+          $logFolders = Get-ChildItem -Directory
+          Write-Output "Log folders found: $($logFolders.Name)"
+          $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          Write-Output "Latest log folder: $latestLogFolder"
+          echo "LOG_FOLDER_NAME=$latestLogFolder" >> $env:GITHUB_ENV
+          echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
+
+      - name: Verify latest log folder contents
+        shell: powershell
+        run: |
+          Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
+
+      - name: Set artifact name
+        id: set-artifact-name
+        shell: powershell
+        run: |
+          $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ matrix.name }}"
+          echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
+
+      - name: Upload logs from device ${{ matrix.name }}
+        if: ${{ always() && env.LATEST_LOG_FOLDER != '' }}
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.LATEST_LOG_FOLDER }}\**
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 6
+          overwrite: true
+          include-hidden-files: false
+
+      - name: Test Complete on device ${{ matrix.name }}
+        if: success()
+        run: Write-Output "Test run completed successfully"
+
+      - name: Test Failed on device ${{ matrix.name }}
+        if: failure()
+        run: Write-Output "Test run failed"
+
+    # report-skipped:
+    # name: Report Skipped for ${{ matrix.name }}
+    # needs: [check-asus]
+    # runs-on: windows-latest
+    # strategy:
+    #   matrix:
+    #     include:
+    #       - name: ASUS-PROART
+    #         label: Asus-ProArt
+    #         check_job: check-asus
+    #         online: ${{ needs.check-asus.outputs.online }}
+    #       # - name: HP-REGIS-PV
+    #       #   label: HP-REGIS-PV
+    #       #   check_job: check-hp
+    #       #   online: ${{ needs.check-hp.outputs.online }}
+    #       # - name: MICROSOFT-SURFA
+    #       #   label: Surface-Pro
+    #       #   check_job: check-surface
+    #       #   online: ${{ needs.check-surface.outputs.online }}
+    # steps:
+    #   - name: Print skipped runner info
+    #     if: ${{ matrix.online != 'true' }}
+    #     run: |
+    #      Write-Output "⚠️ Skipped test: '${{ matrix.name }}' is offline or not available."      
