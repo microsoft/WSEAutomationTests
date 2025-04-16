@@ -68,12 +68,14 @@ jobs:
           echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
 
       - name: Verify latest log folder contents
+        if: always()
         shell: powershell
         run: |
           Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
 
       - name: Set artifact name
         id: set-artifact-name
+        if: always()
         shell: powershell
         run: |
           $artifactName = "${{ env.LOG_FOLDER_NAME }}-${{ inputs.device_name  }}"
