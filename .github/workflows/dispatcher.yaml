@@ -2,8 +2,8 @@ name: Check Runner Status and Schedule Tests  if Online
 
 permissions: write-all
 
-on:
-  pull_request:
+on:[push]
+  #pull_request:
  
 jobs:
   check-runners:
