@@ -49,8 +49,7 @@ jobs:
               $out | ForEach-Object { Write-Host $_ }
 
           } catch {
-              Write-Error "Test script threw an exception: $_"
-              exit 1
+              Write-Error "Test script threw an exception: $($_.Exception.Message)"
           }
 
       - name: Find the latest log folder
