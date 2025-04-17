@@ -1,4 +1,4 @@
-name: Check Runner Status and Schedule Tests 
+name: Check Runner Status and Schedule Tests  if Online
 
 permissions: write-all
 
