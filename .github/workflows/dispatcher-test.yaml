@@ -5,7 +5,7 @@ permissions: write-all
 on:
   pull_request:
     branches:
-       -main
+       - main
   #push:
   #  branches:
   #    - user/jdugar/CheckRunnerStatusAndScheduleTests
