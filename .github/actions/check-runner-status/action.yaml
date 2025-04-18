@@ -1,0 +1,48 @@
+name: Check Runner Status
+description: Checks if a self-hosted runner with a specific label is online
+
+inputs:
+  label:
+    description: 'Runner label to check'
+    required: true
+  token:
+    description: 'GitHub token'
+    required: true  
+
+outputs:
+  online:
+    description: 'Whether the runner is online'
+    value: ${{ steps.check.outputs.online }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: check
+      shell: powershell
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        $label = "${{ inputs.label }}"
+        $repo = "${{ github.repository }}"
+        $apiUrl = "https://api.github.com/repos/$repo/actions/runners"
+        $headers = @{
+          Authorization = "Bearer $env:GH_TOKEN"
+          Accept        = "application/vnd.github+json"
+          "X-GitHub-Api-Version" = "2022-11-28"
+        }
+        $runners = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+        $isOnline = $false
+        foreach ($runner in $runners.runners) {
+          $labelNames = $runner.labels | ForEach-Object { $_.name.ToLower() }
+          $status = $runner.status
+          $name = $runner.name
+          $label = $label.ToLower()
+
+          Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
+
+          if ($labelNames -contains $label -and $runner.status -eq "online") {
+            $isOnline = $true
+            break
+          }
+        }
+        "online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
