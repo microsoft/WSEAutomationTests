@@ -3,7 +3,7 @@ name: Check Runner Status and Schedule Tests if Online
 permissions: write-all
 
 on:
-  pull request:
+  pull_request:
     branches:
       -main
   #push:
