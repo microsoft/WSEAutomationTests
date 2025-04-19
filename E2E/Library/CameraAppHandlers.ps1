@@ -223,6 +223,31 @@ function StartVideoRecording($scnds, $devPowStat)
 
 <#
 DESCRIPTION:
+    This function starts the Camera app, switches to photo mode, and takes a photo.
+RETURN TYPE:
+    - void (Taking a photo in Camera app without returning a value.)
+#>
+function StartPhotoCapturing
+{
+    # Open Camera App
+    $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
+    Start-Sleep -Seconds 1
+
+    # Switch to photo mode if not in photo mode
+    SwitchModeInCameraApp $ui "Switch to photo mode" "Take photo"
+    Start-Sleep -Seconds 2
+
+    # Take a photo
+    [System.Windows.Forms.SendKeys]::SendWait(' ')
+    Start-Sleep -Seconds 2
+
+    # Close Camera App
+    CloseApp 'WindowsCamera'
+    Start-Sleep -Seconds 1
+}
+
+<#
+DESCRIPTION:
     This function opens the Camera app, switches to video mode, and starts previewing for a specified duration.
     It captures the app's start time in UTC format, which can be used later for log and performance analysis.
     After the previewing is complete, the Camera app is closed, and the start time is returned.

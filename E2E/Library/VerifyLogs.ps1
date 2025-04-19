@@ -8,7 +8,7 @@ INPUT PARAMETERS:
     - snarioId [string] :- The scenario ID used to identify specific log entries.
     - strtTime [datetime] :- The start time of the scenario, used for calculating durations.
 RETURN TYPE:
-    - void (Performs validation and logging without returning a value.)
+    - [bool] (Returns `$false` if asg trace is missing in the specified folder or if the target scenario ID was not found; otherwise, returns `$true`)
 #>
 function VerifyLogs($snarioName, $snarioId, $strtTime)
 {  
@@ -21,45 +21,36 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
       #Find Usage line with desired scenario ID
       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.$snarioId\,.*"
       $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-      if(($frameProcessingDetails.count -eq 0) -and ($snarioId -eq "96"  -or "16416" -or "65632" -or "81952" -or "112" -or "16432" -or "65648" -or "81968"))
+      if(($frameProcessingDetails.count -eq 0) -and ($snarioId -in @("96", "16416", "65632", "81952", "112", "16432", "65648", "81968")))
       {
-
          switch ($snarioId)
          {
-            "96"  {
+            "96"   {
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.64\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                  }
+                   }
             "16416"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.16384\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
-            
             "65632"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.65600\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "81952"{
                        $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81920\,.*"
-                       $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "112"  {
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.80\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "16432"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.16400\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "65648"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.65616\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "81968"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81936\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
          }
+         $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
       }
       else 
       {    
@@ -113,13 +104,16 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
          #Prints Test failed for specific scenario as proper scenarioID was not found.  
          TestOutputMessage $snarioName "Fail" $strtTime "[ScenarioID:$snarioId] was not found."
          Write-Log -Message "[ScenarioID:$snarioId] was not found. Logs saved at $pathAsgTraceLogs" -IsHost -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
+         return $false
       }
    }
    else
    {
-      Write-Error "$pathAsgTraceTxt not found " -ErrorAction Stop 
+      TestOutputMessage $snarioName "Fail" $strtTime "$pathAsgTraceTxt not found "
+      Write-Log -Message "$pathAsgTraceTxt not found " -IsHost -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
+      return $false
    }
- 
+   return $true
 }
 
 <#
