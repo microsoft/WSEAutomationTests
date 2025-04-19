@@ -172,10 +172,11 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
-function StartVideoRecording($scnds, $devPowStat)
+function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder)
 {  
      $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
      $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
+     $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
      #Open Camera App
      Write-Log -Message "Open camera App" -IsOutput
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
@@ -204,10 +205,16 @@ function StartVideoRecording($scnds, $devPowStat)
      Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
 
      # Call python modules for task manager Before starting the test case
-     Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scnds -NoNewWindow -Wait
+     Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scenarioLogFolder, $scnds, -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
      $ui.SetFocus()
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
+     $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+
+     if ($null -eq $utilizationStats) {
+         Write-Error "Failed to get utilization stats."
+         return
+     }
      Write-Log -Message "video recording stopped after $scnds seconds" -IsOutput
      
      #restores photo mode for the next run(This line will be uncommented once camera issue is fixed)

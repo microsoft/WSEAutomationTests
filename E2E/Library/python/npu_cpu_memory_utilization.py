@@ -3,13 +3,15 @@ import re
 import sys
 import statistics
 import time
+import pandas as pd
 
 from pywinauto import Application  # type: ignore
 
 
 class ResourceMonitor:
-    def __init__(self, log_file, duration=10):
+    def __init__(self, log_file, scenario, duration=10):
         self.log_file = log_file
+        self.scenario = scenario
         self.duration = int(duration)  # Monitor duration in seconds
         self.cpu_usage = []
         self.npu_usage = []
@@ -122,13 +124,18 @@ class ResourceMonitor:
         with timestamp and summarize with Peak, Median and Average Values."""
 
         file_exists = os.path.isfile(self.log_file)
+        xlsx_log_file = self.log_file.replace('.txt', '.xlsx')
 
         # Choose mode: 'w' for new file, 'a' for append
         mode = "a" if file_exists else "w"
+        log_entries = []
 
         with open(self.log_file, mode) as log:
             if not file_exists:
                 # If creating a new file, add headers
+                log.write("================================================\n")
+                log.write(f"Test Scenario : {self.scenario}\n")
+                log.write("================================================\n")
                 log.write("Before Test Execution\n")
                 log.write(
                     "Timestamp, "
@@ -158,7 +165,13 @@ class ResourceMonitor:
                 # Log current utilization with timestamp
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
                 log.write(f"{timestamp}, {cpu}, {memory}, {npu}\n")
-
+                # Add data to Excel list
+                log_entries.append({
+                    "Timestamp": timestamp,
+                    "CPU Utilization (%)": cpu,
+                    "Memory Utilization (%)": memory,
+                    "NPU Utilization (%)": npu
+                })
                 # Calculate time taken for the iteration
                 elapsed = time.time() - iteration_start
                 sleep_time = max(0, interval - elapsed)
@@ -168,6 +181,51 @@ class ResourceMonitor:
 
             # After collecting data, calculate and write statistics
             self.calculate_statistics(log)
+
+        # Export to Excel
+        self.export_to_excel(log_entries, xlsx_log_file)
+
+    def export_to_excel(self, data, excel_file):
+        """Export utilization log entries to Excel"""
+        df = pd.DataFrame(data)
+
+        # Calculate statistics
+        stats_data = {
+            "Metric": ["CPU", "Memory", "NPU"],
+            "Median (%)": [
+                statistics.median(
+                    self.cpu_usage
+                ) if self.cpu_usage else "N/A",
+                statistics.median(
+                    self.memory_usage
+                ) if self.memory_usage else "N/A",
+                statistics.median(
+                    self.npu_usage
+                ) if self.npu_usage else "N/A",
+            ],
+            "Average (%)": [
+                round(
+                    statistics.mean(self.cpu_usage), 2
+                ) if self.cpu_usage else "N/A",
+                round(
+                    statistics.mean(self.memory_usage), 2
+                ) if self.memory_usage else "N/A",
+                round(
+                    statistics.mean(self.npu_usage), 2
+                ) if self.npu_usage else "N/A",
+            ],
+            "Peak (%)": [
+                max(self.cpu_usage) if self.cpu_usage else "N/A",
+                max(self.memory_usage) if self.memory_usage else "N/A",
+                max(self.npu_usage) if self.npu_usage else "N/A"
+            ]
+        }
+        stats_df = pd.DataFrame(stats_data)
+
+        # Write to Excel file with multiple sheets
+        with pd.ExcelWriter(excel_file, engine='openpyxl', mode='w') as writer:
+            df.to_excel(writer, index=False, sheet_name='Utilization Logs')
+            stats_df.to_excel(writer, index=False, sheet_name='Statistics')
 
     def calculate_statistics(self, log):
         """Calculates median, average, and peak utilization and logs it"""
@@ -182,7 +240,7 @@ class ResourceMonitor:
         memory_stats = stats(self.memory_usage)
         npu_stats = stats(self.npu_usage)
 
-        log.write("\n--- Utilization Statistics ---\n")
+        log.write("\n--- Resource Utilization Statistics ---\n")
         log.write(
             f"CPU - Median: {cpu_stats['Median']}%, "
             f"Average: {cpu_stats['Average']}%, "
@@ -227,15 +285,16 @@ class ResourceMonitor:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print(
             "Usage: python npu_cpu_utilization.py <method_name> [method_args]")
         sys.exit(1)
 
     method_name = sys.argv[1]
     log_path = sys.argv[2]
-    duration = int(sys.argv[3]) if len(sys.argv) > 3 else 10
-    resource_monitor = ResourceMonitor(log_path, duration)
+    scenario = sys.argv[3]
+    duration = int(sys.argv[4]) if len(sys.argv) > 4 else 10
+    resource_monitor = ResourceMonitor(log_path, scenario, duration)
     # Dynamically call the method by name, and pass arguments
     if hasattr(resource_monitor, method_name):
         func = getattr(resource_monitor, method_name)
