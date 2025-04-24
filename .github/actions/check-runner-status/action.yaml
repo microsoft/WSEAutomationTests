@@ -30,19 +30,25 @@ runs:
           Accept        = "application/vnd.github+json"
           "X-GitHub-Api-Version" = "2022-11-28"
         }
-        $runners = Invoke-RestMethod -Uri $apiUrl -Headers $headers
         $isOnline = $false
-        foreach ($runner in $runners.runners) {
-          $labelNames = $runner.labels | ForEach-Object { $_.name.ToLower() }
-          $status = $runner.status
-          $name = $runner.name
-          $label = $label.ToLower()
+        try{
+         $runners = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+         foreach ($runner in $runners.runners) {
+           $labelNames = $runner.labels | ForEach-Object { $_.name.ToLower() }
+           $status = $runner.status
+           $name = $runner.name
+           $label = $label.ToLower()
 
-          Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
+           Write-Output "Runner found: $name | Status: $status | Labels: $($labelNames -join ', ')"
 
-          if ($labelNames -contains $label -and $runner.status -eq "online") {
-            $isOnline = $true
-            break
+           if ($labelNames -contains $label -and $runner.status -eq "online") {
+             $isOnline = $true
+             break
+            }
           }
+        } 
+        catch {
+          Write-Error "Failed to retrieve runners from GitHub API: $_"
         }
+        
         "online=$($isOnline.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
