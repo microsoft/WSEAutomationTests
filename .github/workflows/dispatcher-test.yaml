@@ -3,9 +3,11 @@ name: Check Runner Status and Schedule Tests if Online
 permissions: write-all
 
 on:
-  pull_request:
+  #pull_request:
+  push:
     branches:
-       - main
+       #- main
+       - user/jdugar/CheckRunnerStatusAndScheduleTests
  
 jobs:
   check-runners:
