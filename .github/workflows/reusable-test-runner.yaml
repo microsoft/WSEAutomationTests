@@ -1,4 +1,4 @@
-name: Run Tests on Self-Hosted Runner
+name: Run Tests on Self-Hosted Runner.
 
 on:
   workflow_call:
