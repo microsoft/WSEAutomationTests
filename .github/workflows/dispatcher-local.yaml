@@ -1,0 +1,77 @@
+name: On branch user/jdugar/TestSelfHostAgent, check runner online and schedule task.
+
+permissions: write-all
+
+on:
+  push:
+    branches:
+      - user/jdugar/TestSelfHostAgent
+ 
+jobs:
+  check-runners:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        runner:
+          - id: asus
+            label: "Asus-ProArt"
+          - id: hp
+            label: "HP-REGIS-PV"
+          - id: surface
+            label: "Surface-Pro"
+    outputs:
+      asus-online: ${{ steps.set-output-asus.outputs.value }}
+      hp-online: ${{ steps.set-output-hp.outputs.value }}
+      surface-online: ${{ steps.set-output-surface.outputs.value }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+    
+      - name: Check if ${{ matrix.runner.label }} is online
+        id: check
+        uses: ./.github/actions/check-runner-status
+        with:
+          label: ${{ matrix.runner.label }}
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Set output for ASUS
+        if: matrix.runner.id == 'asus'
+        id: set-output-asus
+        run: echo "value=${{ steps.check.outputs.online }}" >> $env:GITHUB_OUTPUT
+
+      - name: Set output for HP
+        if: matrix.runner.id == 'hp'
+        id: set-output-hp
+        run: echo "value=${{ steps.check.outputs.online }}" >> $env:GITHUB_OUTPUT
+
+      - name: Set output for Surface
+        if: matrix.runner.id == 'surface'
+        id: set-output-surface
+        run: echo "value=${{ steps.check.outputs.online }}" >> $env:GITHUB_OUTPUT
+
+  run-asus-tests:
+    needs: check-runners
+    if: needs.check-runners.outputs.asus-online == 'true'
+    uses: ./.github/workflows/reusable-test-runner.yaml
+    with:
+      runner_label: "Asus-ProArt"
+      device_name: "ASUS-PROART"
+    secrets: inherit
+
+  run-hp-tests:
+    needs: check-runners
+    if: needs.check-runners.outputs.hp-online == 'true'
+    uses: ./.github/workflows/reusable-test-runner.yaml
+    with:
+      runner_label: "HP-REGIS-PV"
+      device_name: "HP-REGIS-PV"
+    secrets: inherit
+
+  run-surface-tests:
+    needs: check-runners
+    if: needs.check-runners.outputs.surface-online == 'true'
+    uses: ./.github/workflows/reusable-test-runner.yaml
+    with:
+      runner_label: "Surface-Pro"
+      device_name: "MICROSOFT-SURFA"
+    secrets: inherit
