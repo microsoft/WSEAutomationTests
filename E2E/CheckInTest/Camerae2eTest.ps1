@@ -26,6 +26,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         $scenarioLogFolder = $scenarioName
         CreateScenarioLogsFolder $scenarioLogFolder
         $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
+		$resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
         #Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
@@ -68,10 +69,16 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         Start-Sleep -s 1
         setTMUpdateSpeedLow -uiEle $uitaskmgr
         # Call python modules for task manager Before starting the test case
-        Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, 5 -NoNewWindow -Wait                     
+        Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scenarioLogFolder, 5 -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait                     
+        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+
+        if ($null -eq $utilizationStats) {
+            Write-Error "Failed to get resource utilization stats."
+            return
+        }
         # Start video recording and close the camera app once finished recording 
         Write-Log -Message "Entering StartVideoRecording function" -IsOutput
-        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat
+        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat $scenarioLogFolder
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
 
@@ -79,6 +86,13 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         Write-Log -Message "Entering CPUandNPU-Usage function to capture CPU and NPU usage Screenshot" -IsOutput
         stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
         
+        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+
+        if ($null -eq $utilizationStats) {
+            Write-Error "Failed to get resource utilization stats."
+            return
+        }
+
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server' 

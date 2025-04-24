@@ -172,10 +172,11 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
-function StartVideoRecording($scnds, $devPowStat)
+function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder)
 {  
      $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
      $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
+     $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
      #Open Camera App
      Write-Log -Message "Open camera App" -IsOutput
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
@@ -204,10 +205,16 @@ function StartVideoRecording($scnds, $devPowStat)
      Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
 
      # Call python modules for task manager Before starting the test case
-     Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scnds -NoNewWindow -Wait
+     Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scenarioLogFolder, $scnds, -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
      $ui.SetFocus()
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
+     $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+
+     if ($null -eq $utilizationStats) {
+         Write-Error "Failed to get utilization stats."
+         return
+     }
      Write-Log -Message "video recording stopped after $scnds seconds" -IsOutput
      
      #restores photo mode for the next run(This line will be uncommented once camera issue is fixed)
@@ -219,6 +226,31 @@ function StartVideoRecording($scnds, $devPowStat)
 
      #Return the value to pass as parameter to CheckInitTimeCameraApp function in camerae2eTest.ps1 and CameraAppTest.ps1
      return , $cameraAppStartTime 
+}
+
+<#
+DESCRIPTION:
+    This function starts the Camera app, switches to photo mode, and takes a photo.
+RETURN TYPE:
+    - void (Taking a photo in Camera app without returning a value.)
+#>
+function StartPhotoCapturing
+{
+    # Open Camera App
+    $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
+    Start-Sleep -Seconds 1
+
+    # Switch to photo mode if not in photo mode
+    SwitchModeInCameraApp $ui "Switch to photo mode" "Take photo"
+    Start-Sleep -Seconds 2
+
+    # Take a photo
+    [System.Windows.Forms.SendKeys]::SendWait(' ')
+    Start-Sleep -Seconds 2
+
+    # Close Camera App
+    CloseApp 'WindowsCamera'
+    Start-Sleep -Seconds 1
 }
 
 <#

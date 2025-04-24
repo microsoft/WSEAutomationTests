@@ -98,6 +98,15 @@ function ResetFields {
    $Results.'AvgWorkingSetSize(In MB)' = $null
    $Results.Status = $null
    $Results.ReasonForNotPass = $null
+   $Results.MedianCPUUsage = $null
+   $Results.MedianNPUUsage = $null
+   $Results.MedianMemoryUsage = $null
+   $Results.PeakCPUUsage = $null
+   $Results.PeakNPUUsage = $null
+   $Results.PeakMemoryUsage = $null
+   $Results.AverageCPUUsage = $null
+   $Results.AverageNPUUsage = $null
+   $Results.AverageMemoryUsage = $null
 }
 
 <#
@@ -208,4 +217,49 @@ if($functionToCall -eq  "CameraAppTest")
    {
       Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
    }
+}
+
+function GetResourceUtilizationStats($rawTextFile)
+{
+    if (-Not (Test-Path $rawTextFile)) {
+        Write-Error "File not found: $rawTextFile"
+        return $null
+    }
+    $content = Get-Content $rawTextFile
+    $startIndex = ($content | Select-String "--- Resource Utilization Stats ---").LineNumber
+
+    if (-not $startIndex) {
+        Write-Error "'--- Resource Utilization Statis ---' section not found."
+        return $null
+    }
+
+    # Prepare a result hashtable
+    $utilizationStats = @{}
+
+    # Process only the lines after the heading, up to next blank line or non-stats line
+    for ($i = $startIndex; $i -lt $content.Count; $i++) {
+        $line = $content[$i].Trim()
+        
+        if ($line -match "^---") { continue }
+        if ($line -eq "") { break }
+
+        if ($line -match "^(\w+)\s*-\s*Median:\s*([\d.]+)%,\s*Average:\s*([\d.]+)%,\s*Peak:\s*([\d.]+)%") {
+            $component = $matches[1].ToLower()
+            $utilizationStats["median_$component"] = [double]$matches[2]
+            $utilizationStats["avg_$component"] = [double]$matches[3]
+            $utilizationStats["peak_$component"] = [double]$matches[4]
+        }
+    }
+	$Results.MedianCPUUsage = "$($utilizationStats['median_cpu'])%"
+	$Results.PeakCPUUsage = "$($utilizationStats['peak_cpu'])%"
+	$Results.AverageCPUUsage = "$($utilizationStats['avg_cpu'])%"
+
+	$Results.MedianNPUUsage = "$($utilizationStats['median_npu'])%"
+	$Results.PeakNPUUsage = "$($utilizationStats['peak_npu'])%"
+	$Results.AverageNPUUsage = "$($utilizationStats['avg_npu'])%"
+
+	$Results.MedianMemoryUsage = "$($utilizationStats['median_memory'])%"
+	$Results.PeakMemoryUsage = "$($utilizationStats['peak_memory'])%"
+	$Results.AverageMemoryUsage = "$($utilizationStats['avg_memory'])%"
+    return $utilizationStats
 }
