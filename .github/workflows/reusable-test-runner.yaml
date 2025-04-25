@@ -66,10 +66,11 @@ jobs:
               # Combine test output lines
               $buffer = @()
               foreach ($line in $raw) {
+                  $lineStr = "$line"
                   if ($line -match "^\d+\.\s") {
                       if ($buffer.Count -gt 0) { Write-Host ($buffer -join " "); $buffer.Clear() }
                   }
-                  $buffer += $line.Trim()
+                  $buffer += $lineStr.Trim()
               }
               if ($buffer.Count -gt 0) { Write-Host ($buffer -join " ") }
 
@@ -84,8 +85,6 @@ jobs:
           }
 
           if ($failed) { exit 1 }
-
-
 
       - name: Find the latest log folder
         if: always()
