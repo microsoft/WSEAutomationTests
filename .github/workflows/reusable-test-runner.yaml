@@ -30,61 +30,61 @@ jobs:
           python -m pip install --upgrade pip
           pip install pywinauto
         shell: powershell    
+      
+      - name: Run PowerShell Tests
+        shell: powershell
+        working-directory: E2E
+        run: |
+          try {
+              # Run the script and capture all output
+              $testOutput = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable out
+
+              # Check for any test failure in output
+              if ($out -match ":\s*Failed") {
+                  Write-Error "One or more tests failed."
+                  exit 1
+              }
+
+              # Optional: output full logs to console
+              $out | ForEach-Object { Write-Host $_ }
+
+          } catch {
+              Write-Error "Test script threw an exception: $_"
+              exit 1
+          }
 
       # - name: Run PowerShell Tests
       #   shell: powershell
       #   working-directory: E2E
+      #   #continue-on-error: true
       #   run: |
-      #     try {
-      #         # Run the script and capture all output
-      #         $testOutput = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable out
+      #     $failed = $false
 
-      #         # Check for any test failure in output
-      #         if ($out -match ":\s*Failed") {
+      #     try {
+      #         $output = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable raw
+
+      #         # Combine test output lines
+      #         $buffer = @()
+      #         foreach ($line in $raw) {
+      #             $lineStr = "$line".Trim()
+      #             if ($lineStr -match "^\d+\.\s") {
+      #                 if ($buffer.Count -gt 0) { Write-Host ($buffer -join " "); $buffer.Clear() }
+      #             }
+      #             $buffer += $lineStr
+      #         }
+      #         if ($buffer.Count -gt 0) { Write-Host ($buffer -join " ") }
+
+      #         if ($raw -match ":\s*Failed\b") {
       #             Write-Error "One or more tests failed."
-      #             exit 1
+      #             $failed = $true
       #         }
 
-      #         # Optional: output full logs to console
-      #         $out | ForEach-Object { Write-Host $_ }
-
       #     } catch {
-      #         Write-Error "Test script threw an exception: $_"
-      #         exit 1
+      #         Write-Error "Error: $($_.Exception.Message)"
+      #         $failed = $true
       #     }
 
-      - name: Run PowerShell Tests
-        shell: powershell
-        working-directory: E2E
-        #continue-on-error: true
-        run: |
-          $failed = $false
-
-          try {
-              $output = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable raw
-
-              # Combine test output lines
-              $buffer = @()
-              foreach ($line in $raw) {
-                  $lineStr = "$line".Trim()
-                  if ($lineStr -match "^\d+\.\s") {
-                      if ($buffer.Count -gt 0) { Write-Host ($buffer -join " "); $buffer.Clear() }
-                  }
-                  $buffer += $lineStr
-              }
-              if ($buffer.Count -gt 0) { Write-Host ($buffer -join " ") }
-
-              if ($raw -match ":\s*Failed\b") {
-                  Write-Error "One or more tests failed."
-                  $failed = $true
-              }
-
-          } catch {
-              Write-Error "Error: $($_.Exception.Message)"
-              $failed = $true
-          }
-
-          if ($failed) { exit 1 }
+      #     if ($failed) { exit 1 }
 
       - name: Find the latest log folder
         if: always()
