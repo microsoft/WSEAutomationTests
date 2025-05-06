@@ -40,17 +40,33 @@ jobs:
           $summaryLines = @()
 
           try {
+              # Run the script and show what comes out
+              Write-Host "=== Running CheckInTest.ps1 ==="
               $raw = .\CheckInTest.ps1 *>&1
-              $lines = $raw -split "`r?`n"
 
+              Write-Host "`n--- RAW OUTPUT TYPE ---"
+              Write-Host ($raw.GetType().FullName)
+
+              Write-Host "`n--- RAW OUTPUT CONTENT ---"
+              Write-Host $raw
+
+              # Now try splitting it, if it's a string or object array
+              if ($raw -is [string]) {
+                  $lines = $raw -split "`r?`n"
+              } elseif ($raw -is [System.Object[]]) {
+                  $lines = $raw
+              } else {
+                  Write-Warning "Output is of unexpected type: $($raw.GetType().FullName)"
+                  $lines = @()
+              }
+
+              Write-Host "`n--- Processing Lines ---"
               foreach ($line in $lines) {
                   $lineStr = "$line".Trim()
+                  Write-Host "LINE: $lineStr"
 
-                  # Match test result lines
                   if ($lineStr -match '^\d+\.\s+(Pluggedin|Unplugged)\\[^\:]+:\s+(Passed|Failed|Skipped)\s+\([^)]+\)') {
-                      Write-Host ""
-                      Write-Host $lineStr
-                      Write-Output $lineStr
+                      Write-Host "✅ MATCH: $lineStr"
                       $summaryLines += $lineStr
 
                       if ($lineStr -match ":\s*Failed\b") {
@@ -60,7 +76,6 @@ jobs:
                   }
               }
 
-              # Print summary
               Write-Host "`n=== Summary ==="
               $summaryLines | ForEach-Object { Write-Host $_ }
 
@@ -70,7 +85,7 @@ jobs:
           }
 
           if ($failed) { exit 1 }
-        
+
       
       # - name: Run PowerShell Tests
       #   shell: powershell
