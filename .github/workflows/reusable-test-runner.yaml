@@ -40,13 +40,14 @@ jobs:
 
           try {
               $raw = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable output
-              Write-Host $raw
-
+             
               foreach ($line in $output) {
                   $lineStr = "$line".Trim()
 
                   # Match lines like: "1. Pluggedin\AF: Passed (111.2s)" or "13. Unplugged\AF: Skipped (0s)"
                   if ($lineStr -match '^\d+\.\s+(Pluggedin|Unplugged)\\[^\:]+:\s+(Passed|Failed|Skipped)\s+\([^)]+\)') {
+                      Write-Host ""
+                      Write-Host $lineStr
                       $summaryLines += $lineStr
 
                       # Mark failure
