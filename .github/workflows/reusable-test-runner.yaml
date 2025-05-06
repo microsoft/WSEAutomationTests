@@ -36,37 +36,29 @@ jobs:
         working-directory: E2E
         run: |
           $failed = $false
+          $summaryLines = @()
 
           try {
-              $output = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable raw
+              $raw = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable output
+              Write-Host $raw
 
-              # Group and summarize multiline test output
-              $buffer = @()
-              foreach ($line in $raw) {
+              foreach ($line in $output) {
                   $lineStr = "$line".Trim()
-                  
-                  # Start of a new test block like "1. Pluggedin\AF:"
-                  if ($lineStr -match "^\d+\.\s") {
-                      if ($buffer.Count -gt 0) {
-                          $summary = ($buffer -join " ") -replace '\s+', ' '
-                          $buffer.Clear()
+
+                  # Match lines like: "1. Pluggedin\AF: Passed (111.2s)" or "13. Unplugged\AF: Skipped (0s)"
+                  if ($lineStr -match '^\d+\.\s+(Pluggedin|Unplugged)\\[^\:]+:\s+(Passed|Failed|Skipped)\s+\([^)]+\)') {
+                      $summaryLines += $lineStr
+
+                      # Mark failure
+                      if ($lineStr -match ":\s*Failed\b") {
+                          Write-Error "❌ Test failed: $lineStr"
+                          $failed = $true
                       }
                   }
-
-                  $buffer += $lineStr
               }
 
-              # Print the final buffered test result
-              if ($buffer.Count -gt 0) {
-                  $summary = ($buffer -join " ") -replace '\s+', ' '
-                  Write-Host $summary.Trim()
-              }
-              write-host $raw 
-              # Check if any test failed
-              if ($raw | Where-Object { $_ -match ":\s*Failed\b" }) {
-                  Write-Error "One or more tests failed."
-                  $failed = $true
-              }
+              # Print just the clean summary list
+              $summaryLines | ForEach-Object { Write-Host $_ }
 
           } catch {
               Write-Error "Test script threw an exception: $_"
@@ -74,7 +66,6 @@ jobs:
           }
 
           if ($failed) { exit 1 }
-
 
       # - name: Run PowerShell Tests
       #   shell: powershell
