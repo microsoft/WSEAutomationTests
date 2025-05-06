@@ -44,13 +44,11 @@ jobs:
               $buffer = @()
               foreach ($line in $raw) {
                   $lineStr = "$line".Trim()
-                  Write-Host $lineStr
-
+                  
                   # Start of a new test block like "1. Pluggedin\AF:"
                   if ($lineStr -match "^\d+\.\s") {
                       if ($buffer.Count -gt 0) {
                           $summary = ($buffer -join " ") -replace '\s+', ' '
-                          Write-Host $summary.Trim()
                           $buffer.Clear()
                       }
                   }
@@ -63,7 +61,7 @@ jobs:
                   $summary = ($buffer -join " ") -replace '\s+', ' '
                   Write-Host $summary.Trim()
               }
-
+              write-host $raw 
               # Check if any test failed
               if ($raw | Where-Object { $_ -match ":\s*Failed\b" }) {
                   Write-Error "One or more tests failed."
