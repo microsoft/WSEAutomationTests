@@ -30,7 +30,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install pywinauto
         shell: powershell    
-      
+
+
       - name: Run PowerShell Tests
         shell: powershell
         working-directory: E2E
@@ -39,18 +40,19 @@ jobs:
           $summaryLines = @()
 
           try {
-              $raw = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable output
-             
-              foreach ($line in $output) {
+              $raw = .\CheckInTest.ps1 *>&1
+              $lines = $raw -split "`r?`n"
+
+              foreach ($line in $lines) {
                   $lineStr = "$line".Trim()
 
-                  # Match lines like: "1. Pluggedin\AF: Passed (111.2s)" or "13. Unplugged\AF: Skipped (0s)"
+                  # Match test result lines
                   if ($lineStr -match '^\d+\.\s+(Pluggedin|Unplugged)\\[^\:]+:\s+(Passed|Failed|Skipped)\s+\([^)]+\)') {
                       Write-Host ""
                       Write-Host $lineStr
+                      Write-Output $lineStr
                       $summaryLines += $lineStr
 
-                      # Mark failure
                       if ($lineStr -match ":\s*Failed\b") {
                           Write-Error "❌ Test failed: $lineStr"
                           $failed = $true
@@ -58,7 +60,8 @@ jobs:
                   }
               }
 
-              # Print just the clean summary list
+              # Print summary
+              Write-Host "`n=== Summary ==="
               $summaryLines | ForEach-Object { Write-Host $_ }
 
           } catch {
@@ -67,8 +70,46 @@ jobs:
           }
 
           if ($failed) { exit 1 }
-
+        
+      
       # - name: Run PowerShell Tests
+      #   shell: powershell
+      #   working-directory: E2E
+      #   run: |
+      #     $failed = $false
+      #     $summaryLines = @()
+
+      #     try {
+      #         $raw = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable output
+             
+      #         foreach ($line in $output) {
+      #             $lineStr = "$line".Trim()
+
+      #             # Match lines like: "1. Pluggedin\AF: Passed (111.2s)" or "13. Unplugged\AF: Skipped (0s)"
+      #             if ($lineStr -match '^\d+\.\s+(Pluggedin|Unplugged)\\[^\:]+:\s+(Passed|Failed|Skipped)\s+\([^)]+\)') {
+      #                 Write-Host ""
+      #                 Write-Host $lineStr
+      #                 $summaryLines += $lineStr
+
+      #                 # Mark failure
+      #                 if ($lineStr -match ":\s*Failed\b") {
+      #                     Write-Error "❌ Test failed: $lineStr"
+      #                     $failed = $true
+      #                 }
+      #             }
+      #         }
+
+      #         # Print just the clean summary list
+      #         $summaryLines | ForEach-Object { Write-Host $_ }
+
+      #     } catch {
+      #         Write-Error "Test script threw an exception: $_"
+      #         $failed = $true
+      #     }
+
+      #     if ($failed) { exit 1 }
+
+      # # - name: Run PowerShell Tests
       #   shell: powershell
       #   working-directory: E2E
       #   #continue-on-error: true
