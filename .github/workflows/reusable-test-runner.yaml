@@ -35,23 +35,48 @@ jobs:
         shell: powershell
         working-directory: E2E
         run: |
-          try {
-              # Run the script and capture all output
-              $testOutput = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable out
+          $failed = $false
 
-              # Check for any test failure in output
-              if ($out -match ":\s*Failed") {
-                  Write-Error "One or more tests failed."
-                  exit 1
+          try {
+              $output = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable raw
+
+              # Group and summarize multiline test output
+              $buffer = @()
+              foreach ($line in $raw) {
+                  $lineStr = "$line".Trim()
+                  Write-Host $lineStr
+
+                  # Start of a new test block like "1. Pluggedin\AF:"
+                  if ($lineStr -match "^\d+\.\s") {
+                      if ($buffer.Count -gt 0) {
+                          $summary = ($buffer -join " ") -replace '\s+', ' '
+                          Write-Host $summary.Trim()
+                          $buffer.Clear()
+                      }
+                  }
+
+                  $buffer += $lineStr
               }
 
-              # Optional: output full logs to console
-              $out | ForEach-Object { Write-Host $_ }
+              # Print the final buffered test result
+              if ($buffer.Count -gt 0) {
+                  $summary = ($buffer -join " ") -replace '\s+', ' '
+                  Write-Host $summary.Trim()
+              }
+
+              # Check if any test failed
+              if ($raw | Where-Object { $_ -match ":\s*Failed\b" }) {
+                  Write-Error "One or more tests failed."
+                  $failed = $true
+              }
 
           } catch {
               Write-Error "Test script threw an exception: $_"
-              exit 1
+              $failed = $true
           }
+
+          if ($failed) { exit 1 }
+
 
       # - name: Run PowerShell Tests
       #   shell: powershell
