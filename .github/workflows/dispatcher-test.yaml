@@ -1,4 +1,4 @@
-name: Check Runner Status and Schedule Tests if Online.
+name: Check self-host runners are Online and than Schedule the tests.
 
 permissions: write-all
 
