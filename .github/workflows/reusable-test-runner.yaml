@@ -129,10 +129,10 @@ jobs:
         working-directory: E2E
         #continue-on-error: true
         run: |
-        run: |
           try {
               .\CheckInTest.ps1
-            } catch {
+            }
+          catch {
               Write-Error "Test failed: $_"
               exit 1
             }
