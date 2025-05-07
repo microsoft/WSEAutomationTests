@@ -51,8 +51,8 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
                        ResetFields
                        
                        $Results.ScenarioName = $snario
-                       $Results.Status = "Exception"
-                       $Results.ReasonForNotPass = $reasonForNotPass
+                       $Results.Status = "Fail"
+                       $Results.ReasonForNotPass = "Exception: " + $reasonForNotPass
                     }
                  
                     
@@ -66,6 +66,7 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
                     $Results.ScenarioName = $snario
                     $Results.Status = "Skipped"
                     $Results.ReasonForNotPass = $reasonForNotPass
+					Reporting $Results "$pathLogsFolder\Report.txt"
                  }
                  
     }
@@ -84,15 +85,17 @@ function ResetFields {
    $Results.ScenarioName = $null
    $Results.FramesAbove33ms = $null
    $Results.TotalNumberOfFrames = $null 								   
-   $Results.AvgProcessingTimePerFrame =$null
-   $Results.MaxProcessingTimePerFrame =$null
-   $Results.MinProcessingTimePerFrame =$null
-   $Results.PCInItTime = $null
-   $Results.CameraAppInItTime = $null
-   $Results.VoiceRecorderInItTime = $null
+   $Results.'AvgProcessingTimePerFrame(In ms)' =$null
+   $Results.'MaxProcessingTimePerFrame(In ms)' =$null
+   $Results.'MinProcessingTimePerFrame(In ms)' =$null
+   $Results.'timetofirstframe(In secs)' = $null
+   $Results.'CameraAppInItTime(In secs)' = $null
+   $Results.'VoiceRecorderInItTime(In secs)' = $null
    $Results.fps = $null
-   $Results.PCInItTimeForAudio = $null
+   $Results.'timrtofirstframeForAudio(In secs)' = $null
    $Results.FramesAbove33msForAudioBlur = $null
+   $Results.'PeakWorkingSetSize(In MB)'= $null
+   $Results.'AvgWorkingSetSize(In MB)' = $null
    $Results.Status = $null
    $Results.ReasonForNotPass = $null
    $Results.MedianCPUUsage = $null
@@ -117,7 +120,7 @@ RETURN TYPE:
 #>
 function Reporting($rslt, $outputfile)
 {
-   Write-output $rslt >> $outputfile
+   Write-Output $rslt >> $outputfile
    ResetFields
 }
 
@@ -207,12 +210,12 @@ function AddToFailedTestsList($failedTests)
    $SPID ="333444"
 if($functionToCall -eq  "CameraAppTest")
    {
-      Write-Log -Message "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" -IsOutput >> $pathLogsFolder\ReRunFailedTests.ps1
-      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
+      Write-Output "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -VF $VF -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
+      Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
    }
    else
    {
-      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
+      Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
    }
 }
 
