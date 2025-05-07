@@ -54,6 +54,51 @@ jobs:
           echo "LOG_FOLDER_NAME=$latestLogFolder" >> $env:GITHUB_ENV
           echo "LATEST_LOG_FOLDER=$($latestLogFolder.FullName)" >> $env:GITHUB_ENV
 
+      - name: Test Results Summary
+        if: always()
+        shell: powershell
+        working-directory: E2E\logs
+        run: |
+          $logFolders = Get-ChildItem -Directory
+          $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          Write-Output "Latest log folder: $latestLogFolder"
+          $reportFile = Get-ChildItem -Path $latestLogFolder -Filter "Report.txt" -Recurse |
+                    Sort-Object LastWriteTime -Descending | Select-Object -First 1   
+           if ($reportFile) {
+              Write-Host "Found report file at: $($reportFile.FullName)"
+              $testResults = Get-Content $reportFile.FullName
+
+              $passed = ($testResults | Select-String -Pattern "Status\s+:\s+Pass" | Measure-Object).Count
+              $failed = ($testResults | Select-String -Pattern "Status\s+:\s+Fail" | Measure-Object).Count
+              $skipped = ($testResults | Select-String -Pattern "Status\s+:\s+Skipped" | Measure-Object).Count
+              $total = $passed + $failed + $skipped
+              $maxLength = ($total, $passed, $failed, $skipped | ForEach-Object { $_.ToString().Length } | Measure-Object -Maximum).Maximum
+              $x = $total.ToString().PadLeft($maxLength)
+              $y = $passed.ToString().PadLeft($maxLength)
+              $z = $failed.ToString().PadLeft($maxLength)
+              $w = $skipped.ToString().PadLeft($maxLength)
+              $padding = 22 - $maxLength
+
+              # Print summary table
+              Write-Host "┌───────────────────────────────────────┐"
+              Write-Host "│           TEST EXECUTION SUMMARY      │"
+              Write-Host "├───────────────┬───────────────────────┤"
+              Write-Host "│ Total Tests   │ $x$($(' ' * $padding))│"
+              Write-Host "│ Passed        │ $y$($(' ' * $padding))│"
+              Write-Host "│ Failed        │ $z$($(' ' * $padding))│"
+              Write-Host "│ Skipped       │ $w$($(' ' * $padding))│"
+              Write-Host "└───────────────┴───────────────────────┘"
+
+              if ($failed -gt 0) {
+                Write-Warning "$failed tests failed! Check the detailed logs for more information."
+                exit 1
+              }
+            } else {
+              Write-Host "No Report.txt file found in $logsFolder or its subfolders."
+              exit 1
+            }
+          
+
       - name: Verify latest log folder contents
         shell: powershell
         run: |
