@@ -92,7 +92,7 @@ function ResetFields {
    $Results.'CameraAppInItTime(In secs)' = $null
    $Results.'VoiceRecorderInItTime(In secs)' = $null
    $Results.fps = $null
-   $Results.'timrtofirstframeForAudio(In secs)' = $null
+   $Results.'timetofirstframeForAudio(In secs)' = $null
    $Results.FramesAbove33msForAudioBlur = $null
    $Results.'PeakWorkingSetSize(In MB)'= $null
    $Results.'AvgWorkingSetSize(In MB)' = $null
