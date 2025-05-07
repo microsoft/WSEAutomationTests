@@ -8,7 +8,7 @@ INPUT PARAMETERS:
     - snarioId [string] :- The scenario ID used to identify specific log entries.
     - strtTime [datetime] :- The start time of the scenario, used for calculating durations.
 RETURN TYPE:
-    - void (Performs validation and logging without returning a value.)
+    - [bool] (Returns `$false` if asg trace is missing in the specified folder or if the target scenario ID was not found; otherwise, returns `$true`)
 #>
 function VerifyLogs($snarioName, $snarioId, $strtTime)
 {  
@@ -21,45 +21,36 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
       #Find Usage line with desired scenario ID
       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.$snarioId\,.*"
       $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-      if(($frameProcessingDetails.count -eq 0) -and ($snarioId -eq "96"  -or "16416" -or "65632" -or "81952" -or "112" -or "16432" -or "65648" -or "81968"))
+      if(($frameProcessingDetails.count -eq 0) -and ($snarioId -in @("96", "16416", "65632", "81952", "112", "16432", "65648", "81968")))
       {
-
          switch ($snarioId)
          {
-            "96"  {
+            "96"   {
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.64\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                  }
+                   }
             "16416"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.16384\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
-            
             "65632"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.65600\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "81952"{
                        $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81920\,.*"
-                       $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "112"  {
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.80\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "16432"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.16400\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "65648"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.65616\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
             "81968"{
                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81936\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
                    }
          }
+         $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
       }
       else 
       {    
@@ -85,9 +76,9 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
           $Results.ScenarioName = $snarioName
           $Results.FramesAbove33ms = $numberOfFramesAbove33ms
 		  $Results.TotalNumberOfFrames = $totalnoOfFrames
-		  $Results.AvgProcessingTimePerFrame = "${avgProcessingTimePerFrame}ms"
-          $Results.MaxProcessingTimePerFrame = "${maxProcessingTimePerFrame}ms"
-          $Results.MinProcessingTimePerFrame = "${minProcessingTimePerFrame}ms"
+		  $Results.'AvgProcessingTimePerFrame(In ms)' = $avgProcessingTimePerFrame
+          $Results.'MaxProcessingTimePerFrame(In ms)' = $maxProcessingTimePerFrame
+          $Results.'MinProcessingTimePerFrame(In ms)' = $minProcessingTimePerFrame
           
           CheckInitTimePCOnly $snarioName $snarioId
 
@@ -96,8 +87,9 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
           {   
              #Prints to the console if numberOfFramesAbove33ms is greater than 0
              Write-Log -Message "   NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms] " -IsHost -ForegroundColor Yellow
-             Write-Log -Message "NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms]" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
-             Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+             Write-Output "NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms]" >> $pathLogsFolder\ConsoleResults.txt
+             Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost
+             Write-Output "AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
 
           }
         
@@ -113,13 +105,16 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
          #Prints Test failed for specific scenario as proper scenarioID was not found.  
          TestOutputMessage $snarioName "Fail" $strtTime "[ScenarioID:$snarioId] was not found."
          Write-Log -Message "[ScenarioID:$snarioId] was not found. Logs saved at $pathAsgTraceLogs" -IsHost -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
+         return $false
       }
    }
    else
    {
-      Write-Error "$pathAsgTraceTxt not found " -ErrorAction Stop 
+      TestOutputMessage $snarioName "Fail" $strtTime "$pathAsgTraceTxt not found "
+      Write-Log -Message "$pathAsgTraceTxt not found " -IsHost -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
+      return $false
    }
- 
+   return $true
 }
 
 <#
@@ -212,7 +207,7 @@ function PCStartandFirstFrameTime($snarioName, $snarioId)
    else
    {
       Write-Log -Message "   No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs " -IsHost -ForegroundColor Yellow
-      Write-Log -Message "No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs" -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
+      Write-Output "No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs" >> "$pathLogsFolder\ConsoleResults.txt"
       return $false
    }
           
@@ -234,7 +229,7 @@ function CheckInitTimePCOnly($snarioName, $snarioId)
    if($PCStartandFirstFrameTime -eq $false)
    {
       Write-Log -Message "   No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs" -IsHost -ForegroundColor Yellow
-      Write-Log -Message "No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs" -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
+      Write-Output "No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs" >> "$pathLogsFolder\ConsoleResults.txt"
    }
    else
    { 
@@ -246,12 +241,12 @@ function CheckInitTimePCOnly($snarioName, $snarioId)
       if($snarioId -eq "512")
       {  
          Write-Log -Message "PC Time To First Frame: ${InitTimePCOnly}secs" -IsOutput
-         $Results.PCInItTimeForAudio = "${InitTimePCOnly}sec"
+         $Results.'timrtofirstframeForAudio(In secs)' = $InitTimePCOnly
       }
       else
       {
          Write-Log -Message "PC Time To First Frame: ${InitTimePCOnly}secs" -IsOutput
-         $Results.PCInItTime = "${InitTimePCOnly}sec"
+         $Results.'timetofirstframe(In secs)' = $InitTimePCOnly
       } 
       
    }
@@ -279,7 +274,7 @@ function CheckInitTimeCameraApp($snarioName, $snarioId, $camAppStatTme)
       $InitTimeCameraApp = [math]::round((New-TimeSpan -Start $camAppStatTme -End $PCFirstFrameTime).TotalSeconds,4)
       
       Write-Log -Message "Time from camera app started until PC trace first frame processed: ${InitTimeCameraApp}secs" -IsOutput
-      $Results.CameraAppInItTime = "${InitTimeCameraApp}sec"
+      $Results.'CameraAppInItTime(In secs)' = $InitTimeCameraApp
    }      
 }
 
@@ -309,7 +304,7 @@ function CheckInitTimeVoiceRecorderApp($snarioName, $snarioId , $voiceRecderAppS
       # Calculate Time from Record button was pressed until PC trace first frame processed
       $InitTimeFromAudioRecordingStarts = [math]::round((New-TimeSpan -Start $audioRecdingStatTme -End $PCFirstFrameTime).TotalSeconds,4)
       Write-Log -Message "Time from record button was pressed until PC trace first frame processed: ${InitTimeFromAudioRecordingStarts}secs" -IsOutput
-      $Results.VoiceRecorderInItTime = "${InitTimeFromAudioRecordingStarts}sec"
+      $Results.'VoiceRecorderInItTime(In secs)' = $InitTimeFromAudioRecordingStarts
    }     
 }
 
@@ -361,8 +356,9 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
              {   
                 #Prints to the console if numberOfFramesAbove33ms is greater than 0
                 Write-Log -Message "   NumberOfFramesAbove33msForAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms] " -IsHost -ForegroundColor Yellow
-                Write-Log -Message "NumberOfFramesAbove33msforAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms]" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
-                Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+                Write-Output "NumberOfFramesAbove33msforAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms]" >> $pathLogsFolder\ConsoleResults.txt
+                Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost
+                Write-Output "AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
              } 
 
          
@@ -371,7 +367,7 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
          {
             #Prints scenarioID was not found for Audio Blur.  
             Write-Log -Message "   [ScenarioID:$snarioId] was not found.`n   AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -ForegroundColor Red
-            Write-Log -Message "[ScenarioID:$snarioId] was not found. Test is marked as Pass as Camera effects ScenarioID was found. AsgTraceLog saved here: $pathAsgTraceLogs" -IsOutput >> $pathLogsFolder\ConsoleResults.txt            
+            Write-Output "[ScenarioID:$snarioId] was not found. Test is marked as Pass as Camera effects ScenarioID was found. AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt            
             $Results.ReasonForNotPass = "[ScenarioID:$snarioId] was not found.Test is marked as Pass as Camera effects ScenarioID was found "
 
          }  
@@ -412,8 +408,8 @@ function CheckMemoryUsage($snarioName)
          $peakWorkingSetSize = ($frameProcessingDetails[30].Trim())/1000000
          $pageFaultCount = $frameProcessingDetails[31].Trim()
          $avgWorkingSetSize = ($frameProcessingDetails[32].TrimEnd("}"))/1000000
-         $Results.PeakWorkingSetSize = "${peakWorkingSetSize}MBs"
-         $Results.AvgWorkingSetSize = "${avgWorkingSetSize}MBs"
+         $Results.'PeakWorkingSetSize(In MB)' = $peakWorkingSetSize
+         $Results.'AvgWorkingSetSize(In MB)'  = $avgWorkingSetSize
                 
          Write-Log -Message "PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount} , AvgWorkingSetSize:${avgWorkingSetSize}MBs" -IsOutput
           
@@ -421,8 +417,10 @@ function CheckMemoryUsage($snarioName)
          if ( $avgWorkingSetSize -ge 250 )
          {   
             #Prints to the console if $avgWorkingSetSize is greater than or equal to 250MBs
-            Write-Log -Message "AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount}, AvgWorkingSetSize:${avgWorkingSetSize}MBs]" -IsOutput -IsHost -BackgroundColor Red >> $pathLogsFolder\ConsoleResults.txt
-            Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+            Write-Log -Message "AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount}, AvgWorkingSetSize:${avgWorkingSetSize}MBs]" -IsHost -BackgroundColor Red
+            Write-Output "AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount}, AvgWorkingSetSize:${avgWorkingSetSize}MBs]" >> $pathLogsFolder\ConsoleResults.txt
+            Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost
+            Write-Output "AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
          }
          $i++
       }

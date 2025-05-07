@@ -51,8 +51,8 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
                        ResetFields
                        
                        $Results.ScenarioName = $snario
-                       $Results.Status = "Exception"
-                       $Results.ReasonForNotPass = $reasonForNotPass
+                       $Results.Status = "Fail"
+                       $Results.ReasonForNotPass = "Exception: " + $reasonForNotPass
                     }
                  
                     
@@ -66,6 +66,7 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
                     $Results.ScenarioName = $snario
                     $Results.Status = "Skipped"
                     $Results.ReasonForNotPass = $reasonForNotPass
+					Reporting $Results "$pathLogsFolder\Report.txt"
                  }
                  
     }
@@ -84,17 +85,28 @@ function ResetFields {
    $Results.ScenarioName = $null
    $Results.FramesAbove33ms = $null
    $Results.TotalNumberOfFrames = $null 								   
-   $Results.AvgProcessingTimePerFrame =$null
-   $Results.MaxProcessingTimePerFrame =$null
-   $Results.MinProcessingTimePerFrame =$null
-   $Results.PCInItTime = $null
-   $Results.CameraAppInItTime = $null
-   $Results.VoiceRecorderInItTime = $null
+   $Results.'AvgProcessingTimePerFrame(In ms)' =$null
+   $Results.'MaxProcessingTimePerFrame(In ms)' =$null
+   $Results.'MinProcessingTimePerFrame(In ms)' =$null
+   $Results.'timetofirstframe(In secs)' = $null
+   $Results.'CameraAppInItTime(In secs)' = $null
+   $Results.'VoiceRecorderInItTime(In secs)' = $null
    $Results.fps = $null
-   $Results.PCInItTimeForAudio = $null
+   $Results.'timrtofirstframeForAudio(In secs)' = $null
    $Results.FramesAbove33msForAudioBlur = $null
+   $Results.'PeakWorkingSetSize(In MB)'= $null
+   $Results.'AvgWorkingSetSize(In MB)' = $null
    $Results.Status = $null
    $Results.ReasonForNotPass = $null
+   $Results.MedianCPUUsage = $null
+   $Results.MedianNPUUsage = $null
+   $Results.MedianMemoryUsage = $null
+   $Results.PeakCPUUsage = $null
+   $Results.PeakNPUUsage = $null
+   $Results.PeakMemoryUsage = $null
+   $Results.AverageCPUUsage = $null
+   $Results.AverageNPUUsage = $null
+   $Results.AverageMemoryUsage = $null
 }
 
 <#
@@ -108,7 +120,7 @@ RETURN TYPE:
 #>
 function Reporting($rslt, $outputfile)
 {
-   Write-output $rslt >> $outputfile
+   Write-Output $rslt >> $outputfile
    ResetFields
 }
 
@@ -198,11 +210,56 @@ function AddToFailedTestsList($failedTests)
    $SPID ="333444"
 if($functionToCall -eq  "CameraAppTest")
    {
-      Write-Log -Message "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" -IsOutput >> $pathLogsFolder\ReRunFailedTests.ps1
-      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
+      Write-Output "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -VF $VF -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
+      Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
    }
    else
    {
-      Write-Log -Message $failedTests -IsOutput >> $pathLogsFolder\failedTests.txt
+      Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
    }
+}
+
+function GetResourceUtilizationStats($rawTextFile)
+{
+    if (-Not (Test-Path $rawTextFile)) {
+        Write-Error "File not found: $rawTextFile"
+        return $null
+    }
+    $content = Get-Content $rawTextFile
+    $startIndex = ($content | Select-String "--- Resource Utilization Stats ---").LineNumber
+
+    if (-not $startIndex) {
+        Write-Error "'--- Resource Utilization Statis ---' section not found."
+        return $null
+    }
+
+    # Prepare a result hashtable
+    $utilizationStats = @{}
+
+    # Process only the lines after the heading, up to next blank line or non-stats line
+    for ($i = $startIndex; $i -lt $content.Count; $i++) {
+        $line = $content[$i].Trim()
+        
+        if ($line -match "^---") { continue }
+        if ($line -eq "") { break }
+
+        if ($line -match "^(\w+)\s*-\s*Median:\s*([\d.]+)%,\s*Average:\s*([\d.]+)%,\s*Peak:\s*([\d.]+)%") {
+            $component = $matches[1].ToLower()
+            $utilizationStats["median_$component"] = [double]$matches[2]
+            $utilizationStats["avg_$component"] = [double]$matches[3]
+            $utilizationStats["peak_$component"] = [double]$matches[4]
+        }
+    }
+	$Results.MedianCPUUsage = "$($utilizationStats['median_cpu'])%"
+	$Results.PeakCPUUsage = "$($utilizationStats['peak_cpu'])%"
+	$Results.AverageCPUUsage = "$($utilizationStats['avg_cpu'])%"
+
+	$Results.MedianNPUUsage = "$($utilizationStats['median_npu'])%"
+	$Results.PeakNPUUsage = "$($utilizationStats['peak_npu'])%"
+	$Results.AverageNPUUsage = "$($utilizationStats['avg_npu'])%"
+
+	$Results.MedianMemoryUsage = "$($utilizationStats['median_memory'])%"
+	$Results.PeakMemoryUsage = "$($utilizationStats['peak_memory'])%"
+	$Results.AverageMemoryUsage = "$($utilizationStats['avg_memory'])%"
+    return $utilizationStats
 }
