@@ -157,6 +157,52 @@ jobs:
         run: |
           Get-ChildItem -Path "${{ env.LATEST_LOG_FOLDER }}" -Recurse
 
+
+      - name: Test Results Summary
+        if: always()
+        shell: powershell
+        working-directory: E2E\logs
+        run: |
+          $logFolders = Get-ChildItem -Directory
+          $latestLogFolder = $logFolders | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          Write-Output "Latest log folder: $latestLogFolder"
+          $reportFile = Get-ChildItem -Path $latestLogFolder -Filter "Report.txt" -Recurse |
+                        Sort-Object LastWriteTime -Descending | Select-Object -First 1   
+
+          if ($reportFile) {
+            Write-Host "Found report file at: $($reportFile.FullName)"
+            $testResults = Get-Content $reportFile.FullName
+
+            $passed = ($testResults | Select-String -Pattern "Status\s+:\s+Pass" | Measure-Object).Count
+            $failed = ($testResults | Select-String -Pattern "Status\s+:\s+Fail" | Measure-Object).Count
+            $skipped = ($testResults | Select-String -Pattern "Status\s+:\s+Skipped" | Measure-Object).Count
+            $total = $passed + $failed + $skipped
+            $maxLength = ($total, $passed, $failed, $skipped | ForEach-Object { $_.ToString().Length } | Measure-Object -Maximum).Maximum
+            $x = $total.ToString().PadLeft($maxLength)
+            $y = $passed.ToString().PadLeft($maxLength)
+            $z = $failed.ToString().PadLeft($maxLength)
+            $w = $skipped.ToString().PadLeft($maxLength)
+            $padding = 22 - $maxLength
+
+            # Print ASCII fallback summary table
+            Write-Host "+-------------------+---------------------+"
+            Write-Host "| TEST SUMMARY      | COUNT               |"
+            Write-Host "+-------------------+---------------------+"
+            Write-Host "| Total Tests       | $x$($(' ' * $padding))|"
+            Write-Host "| Passed            | $y$($(' ' * $padding))|"
+            Write-Host "| Failed            | $z$($(' ' * $padding))|"
+            Write-Host "| Skipped           | $w$($(' ' * $padding))|"
+            Write-Host "+-------------------+---------------------+"
+
+            if ($failed -gt 0) {
+              Write-Warning "$failed tests failed! Check the detailed logs for more information."
+              exit 1
+            }
+          } else {
+            Write-Host "No Report.txt file found in $($latestLogFolder.FullName) or its subfolders."
+            exit 1
+          }    
+
       - name: Set artifact name
         id: set-artifact-name
         if: always()
