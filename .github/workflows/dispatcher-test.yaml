@@ -3,11 +3,11 @@ name: Check self-host runners are Online and than Schedule the tests.
 permissions: write-all
 
 on:
-  #pull_request:
-  push:
+  pull_request:
+  #push:
     branches:
-       #- main
-       - user/jdugar/CheckRunnerStatusAndScheduleTests
+       - main
+       #- user/jdugar/CheckRunnerStatusAndScheduleTests
  
 jobs:
   check-runners:
