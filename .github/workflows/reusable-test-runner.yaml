@@ -32,59 +32,59 @@ jobs:
         shell: powershell    
 
 
-      - name: Run PowerShell Tests
-        shell: powershell
-        working-directory: E2E
-        run: |
-          $failed = $false
-          $summaryLines = @()
+      # - name: Run PowerShell Tests
+      #   shell: powershell
+      #   working-directory: E2E
+      #   run: |
+      #     $failed = $false
+      #     $summaryLines = @()
 
-          try {
-              # Run the script and show what comes out
-              Write-Host "=== Running CheckInTest.ps1 ==="
-              $raw = .\CheckInTest.ps1 *>&1
+      #     try {
+      #         # Run the script and show what comes out
+      #         Write-Host "=== Running CheckInTest.ps1 ==="
+      #         $raw = .\CheckInTest.ps1 *>&1
 
-              Write-Host "`n--- RAW OUTPUT TYPE ---"
-              Write-Host ($raw.GetType().FullName)
+      #         Write-Host "`n--- RAW OUTPUT TYPE ---"
+      #         Write-Host ($raw.GetType().FullName)
 
-              Write-Host "`n--- RAW OUTPUT CONTENT ---"
-              Write-Host $raw
+      #         Write-Host "`n--- RAW OUTPUT CONTENT ---"
+      #         Write-Host $raw
 
-              # Now try splitting it, if it's a string or object array
-              if ($raw -is [string]) {
-                  $lines = $raw -split "`r?`n"
-              } elseif ($raw -is [System.Object[]]) {
-                  $lines = $raw
-              } else {
-                  Write-Warning "Output is of unexpected type: $($raw.GetType().FullName)"
-                  $lines = @()
-              }
+      #         # Now try splitting it, if it's a string or object array
+      #         if ($raw -is [string]) {
+      #             $lines = $raw -split "`r?`n"
+      #         } elseif ($raw -is [System.Object[]]) {
+      #             $lines = $raw
+      #         } else {
+      #             Write-Warning "Output is of unexpected type: $($raw.GetType().FullName)"
+      #             $lines = @()
+      #         }
 
-              Write-Host "`n--- Processing Lines ---"
-              foreach ($line in $lines) {
-                  $lineStr = "$line".Trim()
-                  Write-Host "LINE: $lineStr"
+      #         Write-Host "`n--- Processing Lines ---"
+      #         foreach ($line in $lines) {
+      #             $lineStr = "$line".Trim()
+      #             Write-Host "LINE: $lineStr"
 
-                  if ($lineStr -match '^\d+\.\s+(Pluggedin|Unplugged)\\[^\:]+:\s+(Passed|Failed|Skipped)\s+\([^)]+\)') {
-                      Write-Host "✅ MATCH: $lineStr"
-                      $summaryLines += $lineStr
+      #             if ($lineStr -match '^\d+\.\s+(Pluggedin|Unplugged)\\[^\:]+:\s+(Passed|Failed|Skipped)\s+\([^)]+\)') {
+      #                 Write-Host "✅ MATCH: $lineStr"
+      #                 $summaryLines += $lineStr
 
-                      if ($lineStr -match ":\s*Failed\b") {
-                          Write-Error "❌ Test failed: $lineStr"
-                          $failed = $true
-                      }
-                  }
-              }
+      #                 if ($lineStr -match ":\s*Failed\b") {
+      #                     Write-Error "❌ Test failed: $lineStr"
+      #                     $failed = $true
+      #                 }
+      #             }
+      #         }
 
-              Write-Host "`n=== Summary ==="
-              $summaryLines | ForEach-Object { Write-Host $_ }
+      #         Write-Host "`n=== Summary ==="
+      #         $summaryLines | ForEach-Object { Write-Host $_ }
 
-          } catch {
-              Write-Error "Test script threw an exception: $_"
-              $failed = $true
-          }
+      #     } catch {
+      #         Write-Error "Test script threw an exception: $_"
+      #         $failed = $true
+      #     }
 
-          if ($failed) { exit 1 }
+      #     if ($failed) { exit 1 }
 
       
       # - name: Run PowerShell Tests
@@ -124,38 +124,18 @@ jobs:
 
       #     if ($failed) { exit 1 }
 
-      # # - name: Run PowerShell Tests
-      #   shell: powershell
-      #   working-directory: E2E
-      #   #continue-on-error: true
-      #   run: |
-      #     $failed = $false
-
-      #     try {
-      #         $output = .\CheckInTest.ps1 *>&1 | Tee-Object -Variable raw
-
-      #         # Combine test output lines
-      #         $buffer = @()
-      #         foreach ($line in $raw) {
-      #             $lineStr = "$line".Trim()
-      #             if ($lineStr -match "^\d+\.\s") {
-      #                 if ($buffer.Count -gt 0) { Write-Host ($buffer -join " "); $buffer.Clear() }
-      #             }
-      #             $buffer += $lineStr
-      #         }
-      #         if ($buffer.Count -gt 0) { Write-Host ($buffer -join " ") }
-
-      #         if ($raw -match ":\s*Failed\b") {
-      #             Write-Error "One or more tests failed."
-      #             $failed = $true
-      #         }
-
-      #     } catch {
-      #         Write-Error "Error: $($_.Exception.Message)"
-      #         $failed = $true
-      #     }
-
-      #     if ($failed) { exit 1 }
+      - name: Run PowerShell Tests
+        shell: powershell
+        working-directory: E2E
+        #continue-on-error: true
+        run: |
+        run: |
+          try {
+              .\CheckInTest.ps1
+            } catch {
+              Write-Error "Test failed: $_"
+              exit 1
+            }
 
       - name: Find the latest log folder
         if: always()
