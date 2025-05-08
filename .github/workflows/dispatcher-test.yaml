@@ -1,4 +1,4 @@
-name: Check self-host runners are Online and than Schedule the tests.
+name: Check self-host runners are Online and than Schedule the Tests.
 
 permissions: write-all
 
