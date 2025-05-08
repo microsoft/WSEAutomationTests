@@ -4,11 +4,9 @@ permissions: write-all
 
 on:
   pull_request:
-  #push:
     branches:
        - main
-       #- user/jdugar/CheckRunnerStatusAndScheduleTests
- 
+
 jobs:
   check-runners:
     runs-on: windows-latest
