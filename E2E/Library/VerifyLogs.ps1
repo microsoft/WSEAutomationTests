@@ -86,7 +86,7 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
           if ( $numberOfFramesAbove33ms -gt 0 )
           {   
              #Prints to the console if numberOfFramesAbove33ms is greater than 0
-             Write-Log -Message "   NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms] " -IsHost -ForegroundColor Yellow
+             Write-Host "   NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms] " -ForegroundColor Yellow
              Write-Output "NumberOfFramesAbove33ms:$numberOfFramesAbove33ms [${minProcessingTimePerFrame}ms, ${avgProcessingTimePerFrame}ms, ${maxProcessingTimePerFrame}ms]" >> $pathLogsFolder\ConsoleResults.txt
              Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost
              Write-Output "AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
@@ -104,7 +104,8 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
       {
          #Prints Test failed for specific scenario as proper scenarioID was not found.  
          TestOutputMessage $snarioName "Fail" $strtTime "[ScenarioID:$snarioId] was not found."
-         Write-Log -Message "[ScenarioID:$snarioId] was not found. Logs saved at $pathAsgTraceLogs" -IsHost -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
+         Write-Host "[ScenarioID:$snarioId] was not found. Logs saved at $pathAsgTraceLogs" -ForegroundColor Red
+         Write-Log -Message "[ScenarioID:$snarioId] was not found. Logs saved at $pathAsgTraceLogs" -IsOutput >> "$pathLogsFolder\ConsoleResults.txt"
          return $false
       }
    }
@@ -206,7 +207,7 @@ function PCStartandFirstFrameTime($snarioName, $snarioId)
    }
    else
    {
-      Write-Log -Message "   No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs " -IsHost -ForegroundColor Yellow
+      Write-Host "   No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs " -ForegroundColor Yellow
       Write-Output "No log for - starting Microsoft.ASG.Perception found for Scenario ID $snarioId. Logs are saved here: $pathAsgTraceLogs" >> "$pathLogsFolder\ConsoleResults.txt"
       return $false
    }
@@ -228,7 +229,7 @@ function CheckInitTimePCOnly($snarioName, $snarioId)
    $PCStartandFirstFrameTime = PCStartandFirstFrameTime $snarioName $snarioId
    if($PCStartandFirstFrameTime -eq $false)
    {
-      Write-Log -Message "   No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs" -IsHost -ForegroundColor Yellow
+      Write-Host "   No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs" -ForegroundColor Yellow
       Write-Output "No match found for PC Time To First Frame for Scenario $snarioId. Logs are saved here: $pathAsgTraceLogs" >> "$pathLogsFolder\ConsoleResults.txt"
    }
    else
@@ -241,7 +242,7 @@ function CheckInitTimePCOnly($snarioName, $snarioId)
       if($snarioId -eq "512")
       {  
          Write-Log -Message "PC Time To First Frame: ${InitTimePCOnly}secs" -IsOutput
-         $Results.'timetofirstframeForAudio(In secs)' = $InitTimePCOnly
+         $Results.'timrtofirstframeForAudio(In secs)' = $InitTimePCOnly
       }
       else
       {
@@ -355,7 +356,7 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
              if ( $numberOfFramesAbove33msforAudioBlur -gt 0 )
              {   
                 #Prints to the console if numberOfFramesAbove33ms is greater than 0
-                Write-Log -Message "   NumberOfFramesAbove33msForAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms] " -IsHost -ForegroundColor Yellow
+                Write-Host "   NumberOfFramesAbove33msForAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms] " -ForegroundColor Yellow
                 Write-Output "NumberOfFramesAbove33msforAudioBlur:$numberOfFramesAbove33msforAudioBlur [${minProcessingTimePerFrameforAudioBlur}ms, ${avgProcessingTimePerFrameforAudioBlur}ms, ${maxProcessingTimePerFrameforAudioBlur}ms]" >> $pathLogsFolder\ConsoleResults.txt
                 Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost
                 Write-Output "AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
@@ -366,7 +367,7 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
          else
          {
             #Prints scenarioID was not found for Audio Blur.  
-            Write-Log -Message "   [ScenarioID:$snarioId] was not found.`n   AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost -ForegroundColor Red
+            Write-Host "   [ScenarioID:$snarioId] was not found.`n   AsgTraceLog saved here: $pathAsgTraceLogs" -ForegroundColor Red
             Write-Output "[ScenarioID:$snarioId] was not found. Test is marked as Pass as Camera effects ScenarioID was found. AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt            
             $Results.ReasonForNotPass = "[ScenarioID:$snarioId] was not found.Test is marked as Pass as Camera effects ScenarioID was found "
 
@@ -417,10 +418,11 @@ function CheckMemoryUsage($snarioName)
          if ( $avgWorkingSetSize -ge 250 )
          {   
             #Prints to the console if $avgWorkingSetSize is greater than or equal to 250MBs
-            Write-Log -Message "AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount}, AvgWorkingSetSize:${avgWorkingSetSize}MBs]" -IsHost -BackgroundColor Red
+            Write-Host "AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount}, AvgWorkingSetSize:${avgWorkingSetSize}MBs]"  -BackgroundColor Red 
             Write-Output "AvgWorkingSetSize is greater than 250MBs [PrivateUsage:${privateUsage}MBs, PeakWorkingSetSize:${peakWorkingSetSize}MBs, PageFaultCount:${pageFaultCount}, AvgWorkingSetSize:${avgWorkingSetSize}MBs]" >> $pathLogsFolder\ConsoleResults.txt
-            Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost
+            Write-Log -Message "AsgTraceLog saved here: $pathAsgTraceLogs" -IsHost 
             Write-Output "AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
+                    
          }
          $i++
       }
