@@ -202,8 +202,7 @@ function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder)
      #record video inbetween space presses
      Write-Log -Message "Start recording a video for $scnds seconds" -IsOutput
      [System.Windows.Forms.SendKeys]::SendWait(' ');
-     Write-Output "Camera App start time in UTC: ${cameraAppStartTime}"
-
+    
      # Call python modules for task manager Before starting the test case
      Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scenarioLogFolder, $scnds, -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
      $ui.SetFocus()
