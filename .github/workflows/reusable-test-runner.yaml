@@ -26,9 +26,12 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
+        working-directory: E2E\Library\python
         run: |
+          $requirementsPath = Get-ChildItem -Directory
           python -m pip install --upgrade pip
-          pip install pywinauto
+          pip install -r ${requirementsPath}
+         # pip install pywinauto pandas
         shell: powershell    
 
       - name: Run PowerShell Tests
