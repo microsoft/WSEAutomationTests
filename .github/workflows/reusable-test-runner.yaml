@@ -20,17 +20,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '2.7'
+      # - name: Set up Python
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: '2.7'
+
+      - name: Get latest Python 3.12.x download URL
+        id: get-url
+        shell: powershell
+        run: |
+          $page = Invoke-WebRequest -Uri "https://www.python.org/downloads/windows/"
+          $url = ($page.Links | Where-Object { $_.href -match "/ftp/python/3\.\d+\.\d+/python-3\.\d+\.\d+-amd64\.exe" })[0].href
+          $fullUrl = "https://www.python.org$url"
+          echo "installer_url=$fullUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Download installer
+        run: |
+          Invoke-WebRequest -Uri "${{ steps.get-url.outputs.installer_url }}" -OutFile "python-installer.exe"
+
+      - name: Install Python silently
+        run: |
+          Start-Process -FilePath ".\python-installer.exe" -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0" -Wait
+
+      - name: Verify Python version
+        run: python --version
 
       - name: Install dependencies
         working-directory: E2E\Library\python
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-         # pip install pywinauto pandas
         shell: powershell    
 
       - name: Run PowerShell Tests
