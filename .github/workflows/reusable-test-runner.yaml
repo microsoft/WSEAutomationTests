@@ -192,10 +192,10 @@ jobs:
             Write-Host "+-------------------+---------------------+"
             Write-Host "| TEST SUMMARY      |        COUNT        |"
             Write-Host "+-------------------+---------------------+"
-            Write-Host "| Total Tests       | $x|"
-            Write-Host "| Passed            | $y|"
-            Write-Host "| Failed            | $z|"
-            Write-Host "| Skipped           | $w|"
+            Write-Host "| Total Tests       |$x|"
+            Write-Host "| Passed            |$y|"
+            Write-Host "| Failed            |$z|"
+            Write-Host "| Skipped           |$w|"
             Write-Host "+-------------------+---------------------+"
 
             if ($failed -gt 0) {
