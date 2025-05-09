@@ -1,5 +1,8 @@
 name: Run Tests on Self-Hosted Runner if Online.
 
+permissions:
+   contents: read
+
 on:
   workflow_call:
     inputs:
@@ -112,12 +115,12 @@ jobs:
 
             # Print ASCII fallback summary table
             Write-Host "+-------------------+---------------------+"
-            Write-Host "| TEST SUMMARY      | COUNT               |"
+            Write-Host "| TEST SUMMARY   | COUNT                  |"
             Write-Host "+-------------------+---------------------+"
-            Write-Host "| Total Tests       | $x$($(' ' * $padding))|"
-            Write-Host "| Passed            | $y$($(' ' * $padding))|"
-            Write-Host "| Failed            | $z$($(' ' * $padding))|"
-            Write-Host "| Skipped           | $w$($(' ' * $padding))|"
+            Write-Host "| Total Tests    | $x$($(' ' * $padding)) |"
+            Write-Host "| Passed         | $y$($(' ' * $padding)) |"
+            Write-Host "| Failed         | $z$($(' ' * $padding)) |"
+            Write-Host "| Skipped        | $w$($(' ' * $padding)) |"
             Write-Host "+-------------------+---------------------+"
 
             if ($failed -gt 0) {
