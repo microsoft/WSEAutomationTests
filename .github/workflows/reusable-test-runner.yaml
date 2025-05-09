@@ -79,7 +79,7 @@ jobs:
           Write-Host "Installed Python version: $version"
 
 
-            - name: Install dependencies
+      - name: Install dependencies
         working-directory: E2E\Library\python
         run: |
           python -m pip install --upgrade pip
