@@ -26,29 +26,60 @@ jobs:
       # - name: Set up Python
       #   uses: actions/setup-python@v5
       #   with:
-      #     python-version: '2.7'
+      #     python-version: '3.12'
 
-      - name: Get latest Python 3.12.x download URL
-        id: get-url
+      - name: Download and install Python
         shell: powershell
         run: |
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+          $arch = (Get-CimInstance Win32_OperatingSystem).OSArchitecture
+          if ($arch -ne "64-bit") {
+              Write-Error "Only 64-bit systems are supported. Detected: $arch"
+              exit 1
+          }
+
           $page = Invoke-WebRequest -Uri "https://www.python.org/downloads/windows/"
-          $url = ($page.Links | Where-Object { $_.href -match "/ftp/python/3\.\d+\.\d+/python-3\.\d+\.\d+-amd64\.exe" })[0].href
-          $fullUrl = "https://www.python.org$url"
-          echo "installer_url=$fullUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          $links = $page.Links | Where-Object {
+              $_.href -match "/ftp/python/\d+\.\d+\.\d+/python-\d+\.\d+\.\d+-amd64\.exe"
+          }
 
-      - name: Download installer
-        run: |
-          Invoke-WebRequest -Uri "${{ steps.get-url.outputs.installer_url }}" -OutFile "python-installer.exe"
+          $latestLink = $links |
+            ForEach-Object {
+              if ($_.href -match "/ftp/python/(\d+\.\d+\.\d+)/python-\1-amd64\.exe") {
+                [PSCustomObject]@{
+                  Version = [Version]$Matches[1]
+                  Href    = $_.href
+                }
+              }
+            } |
+            Sort-Object Version -Descending |
+            Select-Object -First 1
 
-      - name: Install Python silently
-        run: |
-          Start-Process -FilePath ".\python-installer.exe" -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0" -Wait
+          if (-not $latestLink) {
+            Write-Error "Could not find a valid installer link."
+            exit 1
+          }
 
-      - name: Verify Python version
-        run: python --version
+          # ✅ Fix: Build valid URL
+          if ($latestLink.Href -notmatch '^https?://') {
+            $downloadUrl = "https://www.python.org$($latestLink.Href)"
+          } else {
+            $downloadUrl = $latestLink.Href
+          }
 
-      - name: Install dependencies
+          $installerPath = "$env:TEMP\python-$($latestLink.Version)-installer.exe"
+          Write-Host "Downloading from: $downloadUrl"
+
+          Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing
+
+          Start-Process -FilePath $installerPath -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0" -Wait
+
+          $version = python --version
+          Write-Host "Installed Python version: $version"
+
+
+            - name: Install dependencies
         working-directory: E2E\Library\python
         run: |
           python -m pip install --upgrade pip
