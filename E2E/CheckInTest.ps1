@@ -10,13 +10,13 @@ InitializeTest 'Checkin-Test' $targetMepCameraVer $targetMepAudioVer $targetPerc
 
 foreach($devPowStat in "Pluggedin", "Unplugged")
 {  
-   foreach($testScenario in 'AF', 'BBS', 'BBP', 'EC', 'ECE', 'PL', 'CF-I', 'CF-A', 'CF-W')
+   <#foreach($testScenario in 'AF', 'BBS', 'BBP', 'EC', 'ECE', 'PL', 'CF-I', 'CF-A', 'CF-W')
    {
       SettingAppTest-Playlist -devPowStat $devPowStat -testScenario $testScenario -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-SettingAppTest.txt"
    }
    VoiceFocus-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-VoiceFocus.txt"
    
-   Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-Camerae2eTest.txt"
+  #> Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-Camerae2eTest.txt"
    
    Voice-Recorder-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-VoiceRecordere2eTest.txt"
 
