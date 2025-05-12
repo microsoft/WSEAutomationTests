@@ -19,15 +19,18 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void 
 #>
-function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$ptoRes,$devPowStat,$VF,$toggleEachAiEffect)
+function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoResDetails,$ptoResDetails,$devPowStat,$VF,$toggleEachAiEffect)
 {
    try
    {  
        $startTime = Get-Date
        $VFdetails= "VF-$VF"
-	   $vdoRes= RetrieveValue($vdoRes)
-	   $ptoRes= RetrieveValue($ptoRes)       
-       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoRes\$ptoRes\$devPowStat\$VFdetails\$toggleEachAiEffect"
+         
+       #Retrieving the video and photo resolution from LookUpTable.ps1
+       $vdoRes= RetrieveValue($vdoResDetails)
+	   $ptoRes= RetrieveValue($ptoResDetails) 
+
+	   $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder
@@ -60,13 +63,10 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           {
              VoiceFocusToggleSwitch $VF
           }
-          
+        
           #video resolution 
           Write-Log -Message "Setting up the video resolution to $vdoRes" -IsOutput
-          
-          #Retrieve video resolution from hash table
-          Write-Log -Message "Retrieve $vdoRes value from hash table" -IsOutput
-          
+                 
           #skip the test if video resolution is not available. 
           $result = SetvideoResolutionInCameraApp $scenarioLogFolder $startTime $vdoRes
           if($result[-1]  -eq $false)
@@ -74,12 +74,9 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
              Write-Log -Message "$vdoRes is not supported" -IsOutput
              return
           }  
-          
           #photo resolution 
           Write-Log -Message "Setting up the Photo resolution to $ptoRes" -IsOutput
           
-          #Retrieve photo resolution from hash table
-          Write-Log -Message "Retrieve $ptoRes value from hash table" -IsOutput
           #skip the test if photo resolution is not available. 
           $result = SetphotoResolutionInCameraApp $scenarioLogFolder $startTime $ptoRes
           if($result[-1]  -eq $false)
