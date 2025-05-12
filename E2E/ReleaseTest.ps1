@@ -22,9 +22,8 @@ foreach($camsnario in $deviceData["CameraScenario"])
    {  
       $initialSetupDone = "true" 
       $startTime = Get-Date 
-      
       #Retrieve video resolution from hash table
-	  $vdoResDetails= RetrieveValue($vdoRes)
+	   $vdoResDetails= RetrieveValue($vdoRes)
       $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails" 
 
       Write-Log -Message "Setting up video Res to $vdoRes" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
@@ -85,7 +84,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                         $pluggedInLast++
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
-                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoResDetails $vdoResDetails -ptoResDetails $ptoResDetails -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                         $batteryPercentage = Get-BatteryPercentage
                      }
                   } else {
@@ -98,7 +97,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
                      }
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoResDetails $vdoResDetails -ptoResDetails $ptoResDetails -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   }
 
                   if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
@@ -137,7 +136,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $unpluggedLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$unpluggedLast]
                      $devPowStat = "Unplugged"
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoResDetails $vdoResDetails -ptoResDetails $ptoResDetails -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "All Unplugged scenarios completed. Exiting." -ForegroundColor Yellow
                      break
@@ -157,7 +156,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $pluggedInLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                      $devPowStat = "PluggedIn"
-                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoResDetails $vdoResDetails -ptoResDetails $ptoResDetails -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "All PluggedIn scenarios completed. Exiting." -ForegroundColor Yellow
                      break
