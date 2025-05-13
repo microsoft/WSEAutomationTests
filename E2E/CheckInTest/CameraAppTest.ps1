@@ -25,9 +25,9 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
    {  
        $startTime = Get-Date
        $VFdetails= "VF-$VF"
-	   $vdoRes= RetrieveValue($vdoRes)
-	   $ptoRes= RetrieveValue($ptoRes)       
-       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoRes\$ptoRes\$devPowStat\$VFdetails\$toggleEachAiEffect"
+	   $vdoResDetails= RetrieveValue($vdoRes)
+	   $ptoResDetails= RetrieveValue($ptoRes)       
+       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder
@@ -63,10 +63,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           
           #video resolution 
           Write-Log -Message "Setting up the video resolution to $vdoRes" -IsOutput
-          
-          #Retrieve video resolution from hash table
-          Write-Log -Message "Retrieve $vdoRes value from hash table" -IsOutput
-          
+           
           #skip the test if video resolution is not available. 
           $result = SetvideoResolutionInCameraApp $scenarioLogFolder $startTime $vdoRes
           if($result[-1]  -eq $false)
