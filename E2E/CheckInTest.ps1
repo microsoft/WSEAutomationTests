@@ -6,6 +6,7 @@
    [string] $targetPerceptionCoreVer = $null
 )
 .".\CheckInTest\Helper-library.ps1"
+ManagePythonSetup -Action install
 InitializeTest 'Checkin-Test' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
 
 foreach($devPowStat in "Pluggedin", "Unplugged")
@@ -29,3 +30,7 @@ if($token.Length -ne 0 -and $SPId.Length -ne 0)
 
 ConvertTxtFileToExcel "$pathLogsFolder\Report.txt"
 [console]::beep(500,300)
+
+Start-Sleep -s 3
+
+ManagePythonSetup -Action uninstall
