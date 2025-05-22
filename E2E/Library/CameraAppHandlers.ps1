@@ -176,7 +176,7 @@ function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder)
 {  
      $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
      $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
-     $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
+
      #Open Camera App
      Write-Log -Message "Open camera App" -IsOutput
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
@@ -262,8 +262,11 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [DateTime] (Returns the start time of the Camera app in UTC format for later time calculations.)
 #>
-function CameraPreviewing($scnds)
+function CameraPreviewing($scnds, $devPowStat, $scenarioLogFolder)
 {  
+     $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
+     $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
+
      #Open Camera App
      Write-Log -Message "Open camera App" -IsOutput
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
@@ -281,7 +284,13 @@ function CameraPreviewing($scnds)
 
      #Coverting the string back to date format for time calculation in code later CheckInitTimeCameraApp function.
      $cameraAppStartTime = [System.DateTime]::ParseExact($cameraAppStartTostring,'yyyy/MM/dd HH:mm:ss:fff',$null)
-                          
+     Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scenarioLogFolder, 5 -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait                     
+     $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+
+     if ($null -eq $utilizationStats) {
+        Write-Error "Failed to get resource utilization stats."
+        return
+     }                     
      #Switch to video mode and start previewing as few photo resolution does not support MEP feature"
      SwitchModeInCameraApp $ui "Switch to video mode" "Take video" 
      Start-Sleep -s $scnds
