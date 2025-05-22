@@ -18,6 +18,7 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
     $ErrorActionPreference='Stop'
     $scenarioName = "$devPowStat\MinMaxCameraApp"
     $logFile = "$devPowStat-MinMaxCameraApp.txt"
+    $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
     
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)
@@ -74,11 +75,28 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
         Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName
 
+        # Open Task Manager
+        Write-Log -Message "Opening Task Manager" -IsOutput
+        $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
+        Start-Sleep -s 1
+        setTMUpdateSpeedLow -uiEle $uitaskmgr
+
         # Open camera App
-        $InitTimeCameraApp = CameraPreviewing "20"
+        $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $logFile
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
         
+        # Close Task Manager and take Screenshot of CPU and NPU Usage
+        Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
+        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
+        
+        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+
+        if ($null -eq $utilizationStats) {
+            Write-Error "Failed to get resource utilization stats."
+            return
+        }
+
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'

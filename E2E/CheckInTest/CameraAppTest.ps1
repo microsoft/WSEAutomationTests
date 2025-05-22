@@ -25,9 +25,10 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
    {  
        $startTime = Get-Date
        $VFdetails= "VF-$VF"
-	   $vdoResDetails= RetrieveValue($vdoRes)
-	   $ptoResDetails= RetrieveValue($ptoRes)       
+	    $vdoResDetails= RetrieveValue($vdoRes)
+	    $ptoResDetails= RetrieveValue($ptoRes)       
        $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
+       $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder
@@ -136,11 +137,14 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
                              
        #Strating to collect Traces
        StartTrace $scenarioLogFolder
+       
        # Open Task Manager
        Write-Log -Message "Opening Task Manager" -IsOutput
        $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
        Start-Sleep -s 1
        setTMUpdateSpeedLow -uiEle $uitaskmgr
+
+       # Start Test Scenario
        Write-Log -Message "Start test for $camsnario" -IsOutput
        if($camsnario -eq "Recording")
        {
@@ -152,12 +156,21 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        else
        {   
            #Start Previewing and close the camera app once finished. 
-           $InitTimeCameraApp = CameraPreviewing "20" #video Previewing duration can be adjusted depending on the number os scenarios
+           $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $scenarioLogFolder #video Previewing duration can be adjusted depending on the number os scenarios
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
-       # Stop Task Manager
-       stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
+
+        # Close Task Manager and take Screenshot of CPU and NPU Usage
+        Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
+        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
+        
+        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+
+        if ($null -eq $utilizationStats) {
+            Write-Error "Failed to get resource utilization stats."
+            return
+        }
        #Checks if frame server is stopped
        Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server' 
