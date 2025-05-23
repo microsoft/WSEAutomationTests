@@ -24,10 +24,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
    try
    {  
        $startTime = Get-Date
-       $VFdetails= "VF-$VF"
-	   $vdoResDetails= RetrieveValue($vdoRes)
-	   $ptoResDetails= RetrieveValue($ptoRes)       
-       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
+       $VFdetails= "VF-$VF"   
+       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoRes\$ptoRes\$devPowStat\$VFdetails\$toggleEachAiEffect"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder
@@ -100,7 +98,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
                     
        #Setting AI effects for Tests in camera setting page 
        Write-Log -Message "Setting up the camera Ai effects" -IsOutput
-       
+
        FindAndSetValue $ui ToggleSwitch "Automatic framing" $toggleEachAiEffect[0]
        FindAndSetValue $ui ToggleSwitch "Eye contact" $toggleEachAiEffect[5]
        
