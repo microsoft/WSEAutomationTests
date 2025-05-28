@@ -80,7 +80,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         
         # Start video recording and close the camera app once finished recording 
         Write-Log -Message "Entering StartVideoRecording function" -IsOutput
-        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat $scenarioLogFolder
+        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
 

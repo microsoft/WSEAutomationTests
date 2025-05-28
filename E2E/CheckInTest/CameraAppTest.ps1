@@ -25,8 +25,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
    {  
        $startTime = Get-Date
        $VFdetails= "VF-$VF"
-	    $vdoResDetails= RetrieveValue($vdoRes)
-	    $ptoResDetails= RetrieveValue($ptoRes)       
+	   $vdoResDetails= RetrieveValue($vdoRes)
+	   $ptoResDetails= RetrieveValue($ptoRes)       
        $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
        $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
@@ -149,14 +149,14 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        if($camsnario -eq "Recording")
        {
            #Start video recording and close the camera app once finished recording 
-           $InitTimeCameraApp = StartVideoRecording "20" $devPowStat $scenarioLogFolder #video recording duration can be adjusted depending on the number os scenarios
+           $InitTimeCameraApp = StartVideoRecording "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated #video recording duration can be adjusted depending on the number os scenarios
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
        else
        {   
            #Start Previewing and close the camera app once finished. 
-           $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $scenarioLogFolder #video Previewing duration can be adjusted depending on the number os scenarios
+           $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated #video Previewing duration can be adjusted depending on the number os scenarios
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }

@@ -172,7 +172,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
-function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder)
+function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder, $resourceUtilizationConsolidated)
 {  
      $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
      $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
@@ -262,7 +262,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [DateTime] (Returns the start time of the Camera app in UTC format for later time calculations.)
 #>
-function CameraPreviewing($scnds, $devPowStat, $scenarioLogFolder)
+function CameraPreviewing($scnds, $devPowStat, $scenarioLogFolder, $resourceUtilizationConsolidated)
 {  
      $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
      $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"

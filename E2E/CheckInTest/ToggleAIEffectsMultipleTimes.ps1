@@ -42,7 +42,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
     $ErrorActionPreference='Stop'
     $scenarioName = "$devPowStat\ToggleAIEffectsMultipleTimes"
     $logFile = "$devPowStat-ToggleAIEffectsMultipleTimes.txt"
-    
+    $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)
     {   
@@ -203,7 +203,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         setTMUpdateSpeedLow -uiEle $uitaskmgr
 
         # Open camera App
-        $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $logFile
+        $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $logFile $resourceUtilizationConsolidated
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
 
