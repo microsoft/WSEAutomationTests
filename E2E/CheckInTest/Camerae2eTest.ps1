@@ -68,6 +68,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
         Start-Sleep -s 1
         setTMUpdateSpeedLow -uiEle $uitaskmgr
+        
         # Call python modules for task manager Before starting the test case
         Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scenarioLogFolder, 5 -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait                     
         $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
@@ -76,14 +77,15 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
             Write-Error "Failed to get resource utilization stats."
             return
         }
+        
         # Start video recording and close the camera app once finished recording 
         Write-Log -Message "Entering StartVideoRecording function" -IsOutput
-        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat $scenarioLogFolder
+        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
 
-        # Capture CPU and NPU Usage
-        Write-Log -Message "Entering CPUandNPU-Usage function to capture CPU and NPU usage Screenshot" -IsOutput
+        # Close Task Manager and take Screenshot of CPU and NPU Usage
+        Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
         stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
         
         $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
