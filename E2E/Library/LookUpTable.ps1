@@ -1,14 +1,73 @@
 ﻿<#
 DESCRIPTION:
-    This function retrieves the corresponding value(s) for a given input key from a predefined 
-    set of mappings. These mappings include configurations for AI effects, camera resolutions, 
-    and other settings. It also considers the Windows Studio Effects (WSEV2) policy state to 
-    adjust values accordingly.
+    Builds a configuration array based on a set of input effects.
 
 INPUT PARAMETERS:
+    - effects [string] : A '+'-separated list of effect names (e.g., "AF+PL+BBP").
+
+RETURN TYPE:
+    - [string[]] : A 14-element array with feature settings.
+                  Includes combined scenario name and ID at the end.
+
+NOTES:
+    - Uses default values and overrides based on the given effects.
+    - Scenario ID and some values depend on WSEV2 policy state.
+#>
+function Get-CombinationReturnValues {
+    param (
+        [string] $effects
+    )
+
+    # Define the base array (default values)
+    $defaultReturnArray = @("Off","Off","Off","False","False","Off","False","False","Off","False","False","False","","")
+    $wsev2PolicyState = CheckWSEV2Policy
+    
+    # Define all overrides in one place
+    $overrides = @{
+        'AF'   = @{ 0 = 'On';               12 = 'AF';     13 = 65536 }
+        'EC'   = @{ 5 = 'On';  6 = 'True';  12 = 'ECS';    13 = 16 }
+        'ECT'  = @{ 5 = 'On';  7 = 'True';  12 = 'ECT';    13 = 131072 }
+        'PL'   = @{ 1 = 'On';               12 = 'PL';     13 = 524288 }
+        'CF-I' = @{ 8 = 'On';   9 = 'True'; 12 = 'CF-I';   13 = 2097152 }
+        'CF-A' = @{ 8 = 'On';  10 = 'True'; 12 = 'CF-A';   13 = 2097152 }
+        'CF-W' = @{ 8 = 'On';  11 = 'True'; 12 = 'CF-W';   13 = 2097152 }
+        'BBP'  = @{ 2 = 'On';   4 = 'True'; 12 = 'BBP';    13 = if ($wsev2PolicyState) { 16384 } else { 16416 } }
+        'BBS'  = @{ 2 = 'On';   3 = 'True'; 12 = 'BBS';    13 = if ($wsev2PolicyState) { 64 }  else { 96 } }
+    }
+    
+    $result = $defaultReturnArray.Clone()
+    $scenarioName = @()
+    $scenarioID = 0
+
+    $effectList = $effects -split "\+"
+
+    foreach ($effect in $effectList) {
+        if ($overrides.ContainsKey($effect)) {
+            $override = $overrides[$effect]
+            foreach ($key in $override.Keys) {
+                if ($key -eq 12) {
+                    $scenarioName += $override[$key]
+                } elseif ($key -eq 13) {
+                    $scenarioID += $override[$key]
+                } else {
+                    $result[$key] = $override[$key]
+                }
+            }
+        }
+    }
+
+    $result[12] = ($scenarioName -join "+")
+    $result[13] = "$scenarioID"
+    return ,$result
+}
+<#
+DESCRIPTION:
+    This function retrieves the corresponding value(s) for a given input key from a predefined 
+    set of mappings. These mappings include configurations for camera resolutions, 
+    and other settings.
+INPUT PARAMETERS:
     - inputValue [string] :- The key for which the corresponding value needs to be retrieved. 
-      This can be an AI effect combination (e.g., 'AF+EC'), a video resolution (e.g., '1080p'), 
-      or a photo resolution (e.g., '12.2MP').
+      This can be a video resolution (e.g., '1080p'), or a photo resolution (e.g., '12.2MP').
 
 RETURN TYPE:
     - [Object] (Returns a string or array of strings corresponding to the input key. If the key 
@@ -18,176 +77,9 @@ function RetrieveValue($inputValue)
 {
  
    $returnValues = @{}
-   $key = 'AF'
-   $value = ("On","Off","Off","False","False","Off","False","False","Off","Fasle","False","False","AF","65536")
+   $key = '1440p' 
+   $value = ("1440p, 16 by 9 aspect ratio, 30 fps")
    $returnValues.Add($key, $value)
-   $returnValues.Add('EC' , ("Off","Off","Off","False","False","On","True","False","Off","Fasle","False","False","ECS","16"))
-   $returnValues.Add('AF+EC' , ("On","Off","Off","False","False","On","True","False","Off","Fasle","False","False","AF+ECS","65552"))
-   
-
-   $wsev2PolicyState = CheckWSEV2Policy
-   if($wsev2PolicyState -eq $false)
-   {
-      $returnValues.Add('BBS' , ("Off","Off","On","True","False","Off","False","False","Off","Fasle","False","False","BBS","96"))
-      $returnValues.Add('BBP' , ("Off","Off","On","False","True","Off","False","False","Off","Fasle","False","False","BBP","16416"))
-      $returnValues.Add('AF+BBS' , ("On","Off","On","True","False","Off","False","False","Off","Fasle","False","False","AF+BBS","65632"))
-      $returnValues.Add('AF+BBP' , ("On","Off","On","False","True","Off","False","False","Off","Fasle","False","False","AF+BBP","81952"))
-      $returnValues.Add('BBS+EC' , ("Off","Off","On","True","False","On","True","False","Off","Fasle","False","False","BBS+ECS","112"))
-      $returnValues.Add('BBP+EC' , ("Off","Off","On","False","True","On","True","False","Off","Fasle","False","False","BBP+ECS","16432"))
-      $returnValues.Add('AF+BBS+EC', ("On","Off","On","True","False","On","True","False","Off","Fasle","False","False","AF+BBS+ECS","65648"))
-      $returnValues.Add('AF+BBP+EC', ("On","Off","On","False","True","On","True","False","Off","Fasle","False","False","AF+BBP+ECS","81968"))
-   }
-
-   $wsev2PolicyState = CheckWSEV2Policy
-   if($wsev2PolicyState -eq $true)
-   {  
-      $returnValues.Add('BBS' , ("Off","Off","On","True","False","Off","False","False","Off","Fasle","False","False","BBS","64"))
-      $returnValues.Add('BBP' , ("Off","Off","On","False","True","Off","False","False","Off","Fasle","False","False","BBP","16384"))
-      $returnValues.Add('AF+BBS' , ("On","Off","On","True","False","Off","False","False","Off","Fasle","False","False","AF+BBS","65600"))
-      $returnValues.Add('AF+BBP' , ("On","Off","On","False","True","Off","False","False","Off","Fasle","False","False","AF+BBP","81920"))
-      $returnValues.Add('BBS+EC' , ("Off","Off","On","True","False","On","True","False","Off","Fasle","False","False","BBS+ECS","80"))
-      $returnValues.Add('BBP+EC' , ("Off","Off","On","False","True","On","True","False","Off","Fasle","False","False","BBP+ECS","16400"))
-      $returnValues.Add('AF+BBS+EC', ("On","Off","On","True","False","On","True","False","Off","Fasle","False","False","AF+BBS+ECS","65616"))
-      $returnValues.Add('AF+BBP+EC', ("On","Off","On","False","True","On","True","False","Off","Fasle","False","False","AF+BBP+ECS","81936"))
-
-      $returnValues.Add('ECE' , ("Off","Off","Off","False","False","On","False","True","Off","Fasle","False","False","ECE","131072"))
-      $returnValues.Add('PL' ,  ("Off","On","Off","False","False","Off","False","False","Off","Fasle","False","False","PL","524288"))
-      $returnValues.Add('AF+PL' , ("On","On","Off","False","False","Off","False","False","Off","Fasle","False","False","AF+PL","589824"))
-      $returnValues.Add('AF+ECE' , ("On","Off","Off","False","False","On","False","True","Off","Fasle","False","False","AF+ECE","196608"))
-      $returnValues.Add('PL+BBS' , ("Off","On","On","True","False","Off","False","False","Off","Fasle","False","False","PL+BBS","524352"))
-      $returnValues.Add('PL+BBP' , ("Off","On","On","False","True","Off","False","False","Off","Fasle","False","False","PL+BBP","540672"))
-      $returnValues.Add('PL+EC' , ("Off","On","Off","False","False","On","True","False","Off","Fasle","False","False","PL+ECS","524304"))
-      $returnValues.Add('PL+ECE' , ("Off","On","Off","False","False","On","False","True","Off","Fasle","False","False","PL+ECE","655360"))
-      $returnValues.Add('BBS+ECE' , ("Off","Off","On","True","False","On","False","True","Off","Fasle","False","False","BBS+ECE","131136"))
-      $returnValues.Add('BBP+ECE' , ("Off","Off","On","False","True","On","False","True","Off","Fasle","False","False","BBP+ECE","147456"))
-      $returnValues.Add('AF+PL+BBS', ("On","On","On","True","False","Off","False","False","Off","Fasle","False","False","AF+PL+BBS","589888"))
-      $returnValues.Add('AF+PL+BBP', ("On","On","On","False","True","Off","False","False","Off","Fasle","False","False","AF+PL+BBP","606208"))
-      $returnValues.Add('AF+PL+EC', ("On","On","Off","False","False","On","True","False","Off","Fasle","False","False","AF+PL+ECS","589840"))
-      $returnValues.Add('AF+PL+ECE', ("On","On","Off","False","False","On","False","True","Off","Fasle","False","False","AF+PL+ECE","720896"))
-      $returnValues.Add('AF+BBS+ECE', ("On","Off","On","True","False","On","False","True","Off","Fasle","False","False","AF+BBS+ECE","196672"))
-      $returnValues.Add('AF+BBP+ECE', ("On","Off","On","False","True","On","False","True","Off","Fasle","False","False","AF+BBP+ECE","212992"))
-      $returnValues.Add('Pl+BBS+EC', ("Off","On","On","True","False","On","True","False","Off","Fasle","False","False","Pl+BBS+ECS","524368"))
-      $returnValues.Add('Pl+BBP+EC', ("Off","On","On","False","True","On","True","False","Off","Fasle","False","False","Pl+BBP+ECS","540688"))
-      $returnValues.Add('Pl+BBS+ECE', ("Off","On","On","True","False","On","False","True","Off","Fasle","False","False","Pl+BBS+ECE","655424"))
-      $returnValues.Add('Pl+BBP+ECE', ("Off","On","On","False","True","On","False","True","Off","Fasle","False","False","Pl+BBP+ECE","671744"))
-      $returnValues.Add('AF+Pl+BBS+EC', ("On","On","On","True","False","On","True","False","Off","Fasle","False","False","AF+Pl+BBS+ECS","589904"))
-      $returnValues.Add('AF+Pl+BBS+ECE', ("On","On","On","True","False","On","False","True","Off","Fasle","False","False","AF+Pl+BBS+ECE","720960"))
-      $returnValues.Add('AF+Pl+BBP+EC', ("On","On","On","False","True","On","True","False","Off","Fasle","False","False","AF+Pl+BBP+ECS","606224"))
-      $returnValues.Add('AF+Pl+BBP+ECE', ("On","On","On","False","True","On","False","True","Off","Fasle","False","False","AF+Pl+BBP+ECE","737280"))
-       
-      $returnValues.Add('CF-I' ,  ("Off","Off","Off","False","False","Off","False","False","On","True","False","False","CF-I","2097152"))
-      $returnValues.Add('AF+CF-I' ,  ("On","Off","Off","False","False","Off","False","False","On","True","False","False","AF+CF-I","2162688"))
-      $returnValues.Add('AF+CF-I+PL' ,  ("On","On","Off","False","False","Off","False","False","On","True","False","False","AF+CF-I+PL","2686976"))
-      $returnValues.Add('AF+CF-I+EC' ,  ("On","Off","Off","False","False","On","True","False","On","True","False","False","AF+CF-I+ECS","2162704"))
-      $returnValues.Add('AF+CF-I+ECE' ,  ("On","Off","Off","False","False","On","False","True","On","True","False","False","AF+CF-I+ECE","2293760"))
-      $returnValues.Add('AF+CF-I+BBS' ,  ("On","Off","On","True","False","Off","False","False","On","True","False","False","AF+CF-I+BBS","2162752"))
-      $returnValues.Add('AF+CF-I+BBP' ,  ("On","Off","On","False","True","Off","False","False","On","True","False","False","AF+CF-I+BBP","2179072"))
-      $returnValues.Add('AF+CF-I+PL+EC' ,  ("On","On","Off","False","False","On","True","False","On","True","False","False","AF+CF-I+PL+ECS","2686992"))
-      $returnValues.Add('AF+CF-I+PL+ECE' ,  ("On","On","Off","False","False","On","False","True","On","True","False","False","AF+CF-I+PL+ECE","2818048"))
-      $returnValues.Add('AF+CF-I+PL+BBS' ,  ("On","On","On","True","False","Off","False","False","On","True","False","False","AF+CF-I+PL+BBS","2687040"))
-      $returnValues.Add('AF+CF-I+PL+BBP' ,  ("On","On","On","False","True","Off","False","False","On","True","False","False","AF+CF-I+PL+BBP","2703360"))
-      $returnValues.Add('AF+CF-I+EC+BBS' ,  ("On","Off","On","True","False","On","True","False","On","True","False","False","AF+CF-I+ECS+BBS","2162768"))
-      $returnValues.Add('AF+CF-I+EC+BBP' ,  ("On","Off","On","false","True","On","True","False","On","True","False","False","AF+CF-I+ECS+BBP","2179088"))
-      $returnValues.Add('AF+CF-I+ECE+BBS' ,  ("On","Off","On","True","False","On","False","true","On","True","False","False","AF+CF-I+ECE+BBS","2293824"))
-      $returnValues.Add('AF+CF-I+ECE+BBP' ,  ("On","Off","On","False","True","On","False","true","On","True","False","False","AF+CF-I+ECE+BBP","2310144"))
-      $returnValues.Add('AF+CF-I+PL+EC+BBS' ,  ("On","On","On","True","False","On","True","False","On","True","False","False","AF+CF-I+PL+ECS+BBS","2687056"))
-      $returnValues.Add('AF+CF-I+PL+EC+BBP' ,  ("On","On","On","False","True","On","True","False","On","True","False","False","AF+CF-I+ECS+BBP","2703376"))
-      $returnValues.Add('AF+CF-I+PL+ECE+BBS' ,  ("On","On","On","True","False","On","False","True","On","True","False","False","AF+CF-I+PL+ECE+BBS","2818112"))
-      $returnValues.Add('AF+CF-I+PL+ECE+BBP' ,  ("On","On","On","False","True","On","False","True","On","True","False","False","AF+CF-I+PL+ECE+BBP","2834432"))
-      $returnValues.Add('PL+CF-I' ,  ("Off","On","Off","False","False","Off","False","False","On","True","False","False","PL+CF-I","2621440"))
-      $returnValues.Add('PL+CF-I+EC' ,  ("Off","On","Off","False","False","On","True","False","On","True","False","False","PL+CF-I+ECS","2621456"))
-      $returnValues.Add('PL+CF-I+ECE' ,  ("Off","On","Off","False","False","On","False","True","On","True","False","False","PL+CF-I+ECE","2752512"))
-      $returnValues.Add('PL+CF-I+BBS' ,  ("Off","On","On","True","False","Off","false","False","On","True","False","False","PL+CF-I+BBS","2621504"))
-      $returnValues.Add('PL+CF-I+BBP' ,  ("Off","On","On","False","True","Off","false","False","On","True","False","False","PL+CF-I+BBP","2637824"))
-      $returnValues.Add('PL+CF-I+EC+BBS' ,  ("Off","On","On","True","False","On","True","False","On","True","False","False","PL+CF-I+ECS+BBS","2621520"))
-      $returnValues.Add('PL+CF-I+EC+BBP' ,  ("Off","On","On","False","True","On","True","False","On","True","False","False","PL+CF-I+ECS+BBP","2637840"))
-      $returnValues.Add('PL+CF-I+ECE+BBS' ,  ("Off","On","On","True","False","On","false","True","On","True","False","False","PL+CF-I+ECE+BBS","2752576"))
-      $returnValues.Add('PL+CF-I+ECE+BBP' ,  ("Off","On","On","False","True","On","False","True","On","True","False","False","PL+CF-I+ECE+BBP","2768896"))
-      $returnValues.Add('EC+CF-I' ,  ("Off","Off","Off","False","False","On","True","False","On","True","False","False","ECS+CF-I","2097168"))
-      $returnValues.Add('ECE+CF-I' ,  ("Off","Off","Off","False","False","On","False","True","On","True","False","False","ECE+CF-I","2228224"))
-      $returnValues.Add('EC+CF-I+BBS' ,  ("Off","Off","On","True","False","On","True","False","On","True","False","False","ECS+CF-I+BBS","2097232"))
-      $returnValues.Add('EC+CF-I+BBP' ,  ("Off","Off","On","False","True","On","True","False","On","True","False","False","ECS+CF-I+BBP","2113552"))
-      $returnValues.Add('ECE+CF-I+BBS' ,  ("Off","Off","On","True","False","On","False","True","On","True","False","False","ECE+CF-I+BBS","2228288"))
-      $returnValues.Add('ECE+CF-I+BBP' ,  ("Off","Off","On","False","True","On","False","True","On","True","False","False","ECE+CF-I+BBP","2244608"))
-      $returnValues.Add('BBS+CF-I' ,  ("Off","Off","On","True","False","Off","False","False","On","True","False","False","BBS+CF-I","2097216"))
-      $returnValues.Add('BBP+CF-I' ,  ("Off","Off","On","False","True","Off","False","False","On","True","False","False","BBP+CF-I","2113536"))
-
-      $returnValues.Add('CF-A' ,  ("Off","Off","Off","False","False","Off","False","False","On","False","True","False","CF-A","2097152"))
-      $returnValues.Add('AF+CF-A' ,  ("On","Off","Off","False","False","Off","False","False","On","False","True","False","AF+CF-A","2162688"))
-      $returnValues.Add('AF+CF-A+PL' ,  ("On","On","Off","False","False","Off","False","False","On","False","True","False","AF+CF-A+PL","2686976"))
-      $returnValues.Add('AF+CF-A+EC' ,  ("On","Off","Off","False","False","On","True","False","On","False","True","False","AF+CF-A+ECS","2162704"))
-      $returnValues.Add('AF+CF-A+ECE' ,  ("On","Off","Off","False","False","On","False","True","On","False","True","False","AF+CF-A+ECE","2293760"))
-      $returnValues.Add('AF+CF-A+BBS' ,  ("On","Off","On","True","False","Off","False","False","On","False","True","False","AF+CF-A+BBS","2162752"))
-      $returnValues.Add('AF+CF-A+BBP' ,  ("On","Off","On","False","True","Off","False","False","On","False","True","False","AF+CF-A+BBP","2179072"))
-      $returnValues.Add('AF+CF-A+PL+EC' ,  ("On","On","Off","False","False","On","True","False","On","False","True","False","AF+CF-A+PL+ECS","2686992"))
-      $returnValues.Add('AF+CF-A+PL+ECE' ,  ("On","On","Off","False","False","On","False","True","On","False","True","False","AF+CF-A+PL+ECE","2818048"))
-      $returnValues.Add('AF+CF-A+PL+BBS' ,  ("On","On","On","True","False","Off","False","False","On","False","True","False","AF+CF-A+PL+BBS","2687040"))
-      $returnValues.Add('AF+CF-A+PL+BBP' ,  ("On","On","On","False","True","Off","False","False","On","False","True","False","AF+CF-A+PL+BBP","2703360"))
-      $returnValues.Add('AF+CF-A+EC+BBS' ,  ("On","Off","On","True","False","On","True","False","On","False","True","False","AF+CF-A+ECS+BBS","2162768"))
-      $returnValues.Add('AF+CF-A+EC+BBP' ,  ("On","Off","On","false","True","On","True","False","On","False","True","False","AF+CF-A+ECS+BBP","2179088"))
-      $returnValues.Add('AF+CF-A+ECE+BBS' ,  ("On","Off","On","True","False","On","False","true","On","False","True","False","AF+CF-A+ECE+BBS","2293824"))
-      $returnValues.Add('AF+CF-A+ECE+BBP' ,  ("On","Off","On","False","True","On","False","true","On","False","True","False","AF+CF-A+ECE+BBP","2310144"))
-      $returnValues.Add('AF+CF-A+PL+EC+BBS' ,  ("On","On","On","True","False","On","True","False","On","False","True","False","AF+CF-A+PL+ECS+BBS","2687056"))
-      $returnValues.Add('AF+CF-A+PL+EC+BBP' ,  ("On","On","On","False","True","On","True","False","On","False","True","False","AF+CF-A+ECS+BBP","2703376"))
-      $returnValues.Add('AF+CF-A+PL+ECE+BBS' ,  ("On","On","On","True","False","On","False","True","On","False","True","False","AF+CF-A+PL+ECE+BBS","2818112"))
-      $returnValues.Add('AF+CF-A+PL+ECE+BBP' ,  ("On","On","On","False","True","On","False","True","On","False","True","False","AF+CF-A+PL+ECE+BBP","2834432"))
-      $returnValues.Add('PL+CF-A' ,  ("Off","On","Off","False","False","Off","False","False","On","False","True","False","PL+CF-A","2621440"))
-      $returnValues.Add('PL+CF-A+EC' ,  ("Off","On","Off","False","False","On","True","False","On","False","True","False","PL+CF-A+ECS","2621456"))
-      $returnValues.Add('PL+CF-A+ECE' ,  ("Off","On","Off","False","False","On","False","True","On","False","True","False","PL+CF-A+ECE","2752512"))
-      $returnValues.Add('PL+CF-A+BBS' ,  ("Off","On","On","True","False","Off","false","False","On","False","True","False","PL+CF-A+BBS","2621504"))
-      $returnValues.Add('PL+CF-A+BBP' ,  ("Off","On","On","False","True","Off","false","False","On","False","True","False","PL+CF-A+BBP","2637824"))
-      $returnValues.Add('PL+CF-A+EC+BBS' ,  ("Off","On","On","True","False","On","True","False","On","False","True","False","PL+CF-A+ECS+BBS","2621520"))
-      $returnValues.Add('PL+CF-A+EC+BBP' ,  ("Off","On","On","False","True","On","True","False","On","False","True","False","PL+CF-A+ECS+BBP","2637840"))
-      $returnValues.Add('PL+CF-A+ECE+BBS' ,  ("Off","On","On","True","False","On","false","True","On","False","True","False","PL+CF-A+ECE+BBS","2752576"))
-      $returnValues.Add('PL+CF-A+ECE+BBP' ,  ("Off","On","On","False","True","On","False","True","On","False","True","False","PL+CF-A+ECE+BBP","2768896"))
-      $returnValues.Add('EC+CF-A' ,  ("Off","Off","Off","False","False","On","True","False","On","False","True","False","ECS+CF-A","2097168"))
-      $returnValues.Add('ECE+CF-A' ,  ("Off","Off","Off","False","False","On","False","True","On","False","True","False","ECE+CF-A","2228224"))
-      $returnValues.Add('EC+CF-A+BBS' ,  ("Off","Off","On","True","False","On","True","False","On","False","True","False","ECS+CF-A+BBS","2097232"))
-      $returnValues.Add('EC+CF-A+BBP' ,  ("Off","Off","On","False","True","On","True","False","On","False","True","False","ECS+CF-A+BBP","2113552"))
-      $returnValues.Add('ECE+CF-A+BBS' ,  ("Off","Off","On","True","False","On","False","True","On","False","True","False","ECE+CF-A+BBS","2228288"))
-      $returnValues.Add('ECE+CF-A+BBP' ,  ("Off","Off","On","False","True","On","False","True","On","False","True","False","ECE+CF-A+BBP","2244608"))
-      $returnValues.Add('BBS+CF-A' ,  ("Off","Off","On","True","False","Off","False","False","On","False","True","False","BBS+CF-A","2097216"))
-      $returnValues.Add('BBP+CF-A' ,  ("Off","Off","On","False","True","Off","False","False","On","False","True","False","BBP+CF-A","2113536"))
-
-      $returnValues.Add('CF-W' ,  ("Off","Off","Off","False","False","Off","False","False","On","False","False","True","CF-W","2097152"))
-      $returnValues.Add('AF+CF-W' ,  ("On","Off","Off","False","False","Off","False","False","On","False","False","True","AF+CF-W","2162688"))
-      $returnValues.Add('AF+CF-W+PL' ,  ("On","On","Off","False","False","Off","False","False","On","False","False","True","AF+CF-W+PL","2686976"))
-      $returnValues.Add('AF+CF-W+EC' ,  ("On","Off","Off","False","False","On","True","False","On","False","False","True","AF+CF-W+ECS","2162704"))
-      $returnValues.Add('AF+CF-W+ECE' ,  ("On","Off","Off","False","False","On","False","True","On","False","False","True","AF+CF-W+ECE","2293760"))
-      $returnValues.Add('AF+CF-W+BBS' ,  ("On","Off","On","True","False","Off","False","False","On","False","False","True","AF+CF-W+BBS","2162752"))
-      $returnValues.Add('AF+CF-W+BBP' ,  ("On","Off","On","False","True","Off","False","False","On","False","False","True","AF+CF-W+BBP","2179072"))
-      $returnValues.Add('AF+CF-W+PL+EC' ,  ("On","On","Off","False","False","On","True","False","On","False","False","True","AF+CF-W+PL+ECS","2686992"))
-      $returnValues.Add('AF+CF-W+PL+ECE' ,  ("On","On","Off","False","False","On","False","True","On","False","False","True","AF+CF-W+PL+ECE","2818048"))
-      $returnValues.Add('AF+CF-W+PL+BBS' ,  ("On","On","On","True","False","Off","False","False","On","False","False","True","AF+CF-W+PL+BBS","2687040"))
-      $returnValues.Add('AF+CF-W+PL+BBP' ,  ("On","On","On","False","True","Off","False","False","On","False","False","True","AF+CF-W+PL+BBP","2703360"))
-      $returnValues.Add('AF+CF-W+EC+BBS' ,  ("On","Off","On","True","False","On","True","False","On","False","False","True","AF+CF-W+ECS+BBS","2162768"))
-      $returnValues.Add('AF+CF-W+EC+BBP' ,  ("On","Off","On","false","True","On","True","False","On","False","False","True","AF+CF-W+ECS+BBP","2179088"))
-      $returnValues.Add('AF+CF-W+ECE+BBS' ,  ("On","Off","On","True","False","On","False","true","On","False","False","True","AF+CF-W+ECE+BBS","2293824"))
-      $returnValues.Add('AF+CF-W+ECE+BBP' ,  ("On","Off","On","False","True","On","False","true","On","False","False","True","AF+CF-W+ECE+BBP","2310144"))
-      $returnValues.Add('AF+CF-W+PL+EC+BBS' ,  ("On","On","On","True","False","On","True","False","On","False","False","True","AF+CF-W+PL+ECS+BBS","2687056"))
-      $returnValues.Add('AF+CF-W+PL+EC+BBP' ,  ("On","On","On","False","True","On","True","False","On","False","False","True","AF+CF-W+ECS+BBP","2703376"))
-      $returnValues.Add('AF+CF-W+PL+ECE+BBS' ,  ("On","On","On","True","False","On","False","True","On","False","False","True","AF+CF-W+PL+ECE+BBS","2818112"))
-      $returnValues.Add('AF+CF-W+PL+ECE+BBP' ,  ("On","On","On","False","True","On","False","True","On","False","False","True","AF+CF-W+PL+ECE+BBP","2834432"))
-      $returnValues.Add('PL+CF-W' ,  ("Off","On","Off","False","False","Off","False","False","On","False","False","True","PL+CF-W","2621440"))
-      $returnValues.Add('PL+CF-W+EC' ,  ("Off","On","Off","False","False","On","True","False","On","False","False","True","PL+CF-W+ECS","2621456"))
-      $returnValues.Add('PL+CF-W+ECE' ,  ("Off","On","Off","False","False","On","False","True","On","False","False","True","PL+CF-W+ECE","2752512"))
-      $returnValues.Add('PL+CF-W+BBS' ,  ("Off","On","On","True","False","Off","false","False","On","False","False","True","PL+CF-W+BBS","2621504"))
-      $returnValues.Add('PL+CF-W+BBP' ,  ("Off","On","On","False","True","Off","false","False","On","False","False","True","PL+CF-W+BBP","2637824"))
-      $returnValues.Add('PL+CF-W+EC+BBS' ,  ("Off","On","On","True","False","On","True","False","On","False","False","True","PL+CF-W+ECS+BBS","2621520"))
-      $returnValues.Add('PL+CF-W+EC+BBP' ,  ("Off","On","On","False","True","On","True","False","On","False","False","True","PL+CF-W+ECS+BBP","2637840"))
-      $returnValues.Add('PL+CF-W+ECE+BBS' ,  ("Off","On","On","True","False","On","false","True","On","False","False","True","PL+CF-W+ECE+BBS","2752576"))
-      $returnValues.Add('PL+CF-W+ECE+BBP' ,  ("Off","On","On","False","True","On","False","True","On","False","False","True","PL+CF-W+ECE+BBP","2768896"))
-      $returnValues.Add('EC+CF-W' ,  ("Off","Off","Off","False","False","On","True","False","On","False","False","True","ECS+CF-W","2097168"))
-      $returnValues.Add('ECE+CF-W' ,  ("Off","Off","Off","False","False","On","False","True","On","False","False","True","ECE+CF-W","2228224"))
-      $returnValues.Add('EC+CF-W+BBS' ,  ("Off","Off","On","True","False","On","True","False","On","False","False","True","ECS+CF-W+BBS","2097232"))
-      $returnValues.Add('EC+CF-W+BBP' ,  ("Off","Off","On","False","True","On","True","False","On","False","False","True","ECS+CF-W+BBP","2113552"))
-      $returnValues.Add('ECE+CF-W+BBS' ,  ("Off","Off","On","True","False","On","False","True","On","False","False","True","ECE+CF-W+BBS","2228288"))
-      $returnValues.Add('ECE+CF-W+BBP' ,  ("Off","Off","On","False","True","On","False","True","On","False","False","True","ECE+CF-W+BBP","2244608"))
-      $returnValues.Add('BBS+CF-W' ,  ("Off","Off","On","True","False","Off","False","False","On","False","False","True","BBS+CF-W","2097216"))
-      $returnValues.Add('BBP+CF-W' ,  ("Off","Off","On","False","True","Off","False","False","On","False","False","True","BBP+CF-W","2113536"))
-
-   }
-   $returnValues.Add('1440p' , "1440p, 16 by 9 aspect ratio, 30 fps")
    $returnValues.Add('1080p' , "1080p, 16 by 9 aspect ratio, 30 fps")
    $returnValues.Add('720p' , "720p, 16 by 9 aspect ratio, 30 fps")
    $returnValues.Add('480p' , "480p, 4 by 3 aspect ratio, 30 fps")
