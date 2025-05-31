@@ -88,3 +88,5 @@ or simply connect charger or smart plug and run
 .\ReleaseTest.ps1 -token <your_token> -SPId <your_SPId> -runMode "UnpluggedOnly"
 ```
 `Important`: Ensure the device battery is above 20% before starting the tests when running in UnpluggedOnly mode or in Both mode (which includes unplugged scenarios).
+
+###Placeholder for Sleep pre-req
