@@ -7,7 +7,7 @@
 )
 .".\CheckInTest\Helper-library.ps1"
 InitializeTest 'StressTest' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
-
+ManagePythonSetup -Action install
 foreach($devPowStat in "Pluggedin" , "Unplugged")
 {
    CameraApp-Hibernation $devPowStat $token $SPId >> $pathLogsFolder\"$devPowStat-CameraAppHibernation.txt"
@@ -26,4 +26,4 @@ foreach($devPowStat in "Pluggedin" , "Unplugged")
 #Turn on the smart plug 
 SetSmartPlugState $token $SPId 1
 [console]::beep(500,300)
-
+ManagePythonSetup -Action uninstall

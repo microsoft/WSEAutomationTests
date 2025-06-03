@@ -21,7 +21,8 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
        $ErrorActionPreference='Stop'
        $scenarioName = "$devPowStat\$testScenario"
        $logFile = "$devPowStat-SettingAppTest.txt"
-       
+       $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
+       $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
        #Check device Power state
        $devState = CheckDevicePowerState $devPowStat $token $SPId
        if($devState -eq $false)
@@ -52,7 +53,7 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
        # Open camera effects page 
        Write-Log -Message "Navigate to camera effects setting page" -IsOutput
        FindCameraEffectsPage $ui
-       Start-Sleep -m 500 
+       Start-Sleep -s 5
        
        # Setting up AI effects for tests in camera setting page 
        $scenarioID = $testScenario[13]
@@ -99,7 +100,24 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
        Write-Log -Message "Opening Task Manager" -IsOutput
        $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
        Start-Sleep -s 1
-       
+       setTMUpdateSpeedLow -uiEle $uitaskmgr
+       # Call python modules for task manager Before starting the test case
+	    Start-Process -FilePath "python" -ArgumentList @(
+		   $pythonLibFolder,
+		   "start_resource_monitoring",
+		   $resourceUtilizationFile,
+		   $scenarioName,
+		   5,
+		   "Before"
+	    ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
+
+	    # Now process is finished, so call GetResourceUtilizationStats
+	    $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
+	    Write-Log -Message $utilizationStats -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+	    if ($null -eq $utilizationStats) {
+		   Write-Error "Failed to get resource utilization stats."
+		   return
+       }       
        Write-Log -Message "Open Setting Page" -IsOutput
        $ui = OpenApp 'ms-settings:' 'Settings'
        Start-Sleep -m 500
@@ -111,7 +129,23 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
        
        # Close system setting page 
        CloseApp 'systemsettings'
-       
+       # Call python modules for task manager Before starting the test case
+	    Start-Process -FilePath "python" -ArgumentList @(
+		   $pythonLibFolder,
+		   "start_resource_monitoring",
+		   $resourceUtilizationFile,
+		   $scenarioName,
+		   5,
+		   "After"
+	    ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
+
+	    # Now process is finished, so call GetResourceUtilizationStats
+	    $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "After"
+	    Write-Log -Message $utilizationStats -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+	    if ($null -eq $utilizationStats) {
+		   Write-Error "Failed to get resource utilization stats."
+		   return
+       }          
        # Capture CPU and NPU Usage
        Write-Log -Message "Entering CPUandNPU-Usage function to capture CPU and NPU usage Screenshot" -IsOutput
        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioName

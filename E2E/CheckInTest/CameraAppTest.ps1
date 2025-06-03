@@ -28,6 +28,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
 	   $vdoResDetails= RetrieveValue($vdoRes)
 	   $ptoResDetails= RetrieveValue($ptoRes)       
        $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
+       $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
        $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
@@ -143,20 +144,36 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
        Start-Sleep -s 1
        setTMUpdateSpeedLow -uiEle $uitaskmgr
+       # Call python modules for task manager Before starting the test case
+	   Start-Process -FilePath "python" -ArgumentList @(
+		   $pythonLibFolder,
+		   "start_resource_monitoring",
+		   $resourceUtilizationFile,
+		   $scenarioLogFolder,
+		   5,
+		   "Before"
+	   ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
 
+	   # Now process is finished, so call GetResourceUtilizationStats
+	   $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
+	   Write-Log -Message $utilizationStats -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+	   if ($null -eq $utilizationStats) {
+		   Write-Error "Failed to get resource utilization stats."
+		   return
+       }
        # Start Test Scenario
        Write-Log -Message "Start test for $camsnario" -IsOutput
        if($camsnario -eq "Recording")
        {
            #Start video recording and close the camera app once finished recording 
-           $InitTimeCameraApp = StartVideoRecording "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated #video recording duration can be adjusted depending on the number os scenarios
+           $InitTimeCameraApp = StartVideoRecording "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated "After" #video recording duration can be adjusted depending on the number os scenarios
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
        else
        {   
            #Start Previewing and close the camera app once finished. 
-           $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated #video Previewing duration can be adjusted depending on the number os scenarios
+           $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated "After" #video Previewing duration can be adjusted depending on the number os scenarios
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
@@ -165,7 +182,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
         Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
         stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
         
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "After"
 
         if ($null -eq $utilizationStats) {
             Write-Error "Failed to get resource utilization stats."

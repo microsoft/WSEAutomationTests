@@ -18,7 +18,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
     $ErrorActionPreference='Stop'
     $scenarioName = "$devPowStat\Camerae2eTest"
     $logFile = "$devPowStat-Camerae2eTest.txt"
-    $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
+    #$pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
         
     try
 	{  
@@ -70,8 +70,17 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         setTMUpdateSpeedLow -uiEle $uitaskmgr
         
         # Call python modules for task manager Before starting the test case
-        Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scenarioLogFolder, 5 -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait                     
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+        Start-Process -FilePath "python" -ArgumentList @(
+			$pythonLibFolder,
+			"start_resource_monitoring",
+			$resourceUtilizationFile,
+			$scenarioLogFolder,
+			5,
+			"Before"
+		) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
+        
+        # Get the resource utilization stats before starting the video recording
+        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
 
         if ($null -eq $utilizationStats) {
             Write-Error "Failed to get resource utilization stats."
@@ -80,7 +89,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         
         # Start video recording and close the camera app once finished recording 
         Write-Log -Message "Entering StartVideoRecording function" -IsOutput
-        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated
+        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated "After"
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
 
@@ -88,7 +97,8 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
         stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
         
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+        # Get the resource utilization stats after starting the video recording
+        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "After"
 
         if ($null -eq $utilizationStats) {
             Write-Error "Failed to get resource utilization stats."
