@@ -34,31 +34,31 @@
    [ValidateSet("Pluggedin", "Unplugged")]
    [string] $devPowStat = "Pluggedin",   # Default if not provided
 
-   [ValidateSet('AF', 'PL', 'BBS', 'BBP', 'EC', 'ECE', 'AF+PL', 'AF+BBS', 'AF+BBP', 'AF+EC', 'AF+ECE', `
-                     'PL+BBS', 'PL+BBP', 'PL+EC', 'PL+ECE', 'BBS+EC', 'BBS+ECE', 'BBP+EC', 'BBP+ECE', 'AF+PL+BBS', `
-                     'AF+PL+BBP','AF+PL+EC', 'AF+PL+ECE', 'AF+BBS+EC', 'AF+BBS+ECE', 'AF+BBP+EC', 'AF+BBP+ECE', `
-                     'Pl+BBS+EC', 'Pl+BBP+EC', 'Pl+BBS+ECE', 'Pl+BBP+ECE', 'AF+Pl+BBS+EC', 'AF+Pl+BBS+ECE', `
-                     'AF+Pl+BBP+EC', 'AF+Pl+BBP+ECE','CF-I', 'AF+CF-I', 'AF+CF-I+PL', 'AF+CF-I+EC', `
-                     'AF+CF-I+ECE', 'AF+CF-I+BBS', 'AF+CF-I+BBP', 'AF+CF-I+PL+EC', 'AF+CF-I+PL+ECE', `
-                     'AF+CF-I+PL+BBS', 'AF+CF-I+PL+BBP', 'AF+CF-I+EC+BBS', 'AF+CF-I+EC+BBP', 'AF+CF-I+ECE+BBS', `
-                     'AF+CF-I+ECE+BBP', 'AF+CF-I+PL+EC+BBS', 'AF+CF-I+PL+EC+BBP', 'AF+CF-I+PL+ECE+BBS', `
-                     'AF+CF-I+PL+ECE+BBP', 'PL+CF-I', 'PL+CF-I+EC', 'PL+CF-I+ECE', 'PL+CF-I+BBS', `
-                     'PL+CF-I+BBP', 'PL+CF-I+EC+BBS', 'PL+CF-I+EC+BBP', 'PL+CF-I+ECE+BBS', 'PL+CF-I+ECE+BBP', `
-                     'EC+CF-I', 'ECE+CF-I', 'EC+CF-I+BBS', 'EC+CF-I+BBP', 'ECE+CF-I+BBS', 'ECE+CF-I+BBP', `
-                     'BBS+CF-I', 'BBP+CF-I','CF-A', 'AF+CF-A', 'AF+CF-A+PL', 'AF+CF-A+EC', 'AF+CF-A+ECE', `
-                     'AF+CF-A+BBS', 'AF+CF-A+BBP', 'AF+CF-A+PL+EC', 'AF+CF-A+PL+ECE', 'AF+CF-A+PL+BBS', `
-                     'AF+CF-A+PL+BBP', 'AF+CF-A+EC+BBS', 'AF+CF-A+EC+BBP', 'AF+CF-A+ECE+BBS', 'AF+CF-A+ECE+BBP', `
-                     'AF+CF-A+PL+EC+BBS', 'AF+CF-A+PL+EC+BBP', 'AF+CF-A+PL+ECE+BBS', 'AF+CF-A+PL+ECE+BBP', 'PL+CF-A', `
-                     'PL+CF-A+EC', 'PL+CF-A+ECE', 'PL+CF-A+BBS', 'PL+CF-A+BBP', 'PL+CF-A+EC+BBS', 'PL+CF-A+EC+BBP', `
-                     'PL+CF-A+ECE+BBS', 'PL+CF-A+ECE+BBP', 'EC+CF-A', 'ECE+CF-A', 'EC+CF-A+BBS', 'EC+CF-A+BBP', `
-                     'ECE+CF-A+BBS', 'ECE+CF-A+BBP', 'BBS+CF-A', 'BBP+CF-A','CF-W', 'AF+CF-W', 'AF+CF-W+PL', `
-                     'AF+CF-W+EC', 'AF+CF-W+ECE', 'AF+CF-W+BBS', 'AF+CF-W+BBP', 'AF+CF-W+PL+EC', 'AF+CF-W+PL+ECE', `
-                     'AF+CF-W+PL+BBS', 'AF+CF-W+PL+BBP', 'AF+CF-W+EC+BBS', 'AF+CF-W+EC+BBP', 'AF+CF-W+ECE+BBS', `
-                     'AF+CF-W+ECE+BBP', 'AF+CF-W+PL+EC+BBS', 'AF+CF-W+PL+EC+BBP', 'AF+CF-W+PL+ECE+BBS', `
-                     'AF+CF-W+PL+ECE+BBP', 'PL+CF-W', 'PL+CF-W+EC', 'PL+CF-W+ECE', 'PL+CF-W+BBS', 'PL+CF-W+BBP', `
-                     'PL+CF-W+EC+BBS', 'PL+CF-W+EC+BBP', 'PL+CF-W+ECE+BBS', 'PL+CF-W+ECE+BBP', 'EC+CF-W', `
-                     'ECE+CF-W', 'EC+CF-W+BBS', 'EC+CF-W+BBP', 'ECE+CF-W+BBS', 'ECE+CF-W+BBP', 'BBS+CF-W', 'BBP+CF-W')]
-   [string] $togAiEfft = "AF+BBS+EC"  # Default if not provided 
+   [ValidateSet('AF', 'PL', 'BBS', 'BBP', 'ECS', 'ECT', 'AF+PL', 'AF+BBS', 'AF+BBP', 'AF+ECS', 'AF+ECT', `
+                     'PL+BBS', 'PL+BBP', 'PL+ECS', 'PL+ECT', 'BBS+ECS', 'BBS+ECT', 'BBP+ECS', 'BBP+ECT', 'AF+PL+BBS', `
+                     'AF+PL+BBP','AF+PL+ECS', 'AF+PL+ECT', 'AF+BBS+ECS', 'AF+BBS+ECT', 'AF+BBP+ECS', 'AF+BBP+ECT', `
+                     'Pl+BBS+ECS', 'Pl+BBP+ECS', 'Pl+BBS+ECT', 'Pl+BBP+ECT', 'AF+Pl+BBS+ECS', 'AF+Pl+BBS+ECT', `
+                     'AF+Pl+BBP+ECS', 'AF+Pl+BBP+ECT','CF-I', 'AF+CF-I', 'AF+CF-I+PL', 'AF+CF-I+ECS', `
+                     'AF+CF-I+ECT', 'AF+CF-I+BBS', 'AF+CF-I+BBP', 'AF+CF-I+PL+ECS', 'AF+CF-I+PL+ECT', `
+                     'AF+CF-I+PL+BBS', 'AF+CF-I+PL+BBP', 'AF+CF-I+ECS+BBS', 'AF+CF-I+ECS+BBP', 'AF+CF-I+ECT+BBS', `
+                     'AF+CF-I+ECT+BBP', 'AF+CF-I+PL+ECS+BBS', 'AF+CF-I+PL+ECS+BBP', 'AF+CF-I+PL+ECT+BBS', `
+                     'AF+CF-I+PL+ECT+BBP', 'PL+CF-I', 'PL+CF-I+ECS', 'PL+CF-I+ECT', 'PL+CF-I+BBS', `
+                     'PL+CF-I+BBP', 'PL+CF-I+ECS+BBS', 'PL+CF-I+ECS+BBP', 'PL+CF-I+ECT+BBS', 'PL+CF-I+ECT+BBP', `
+                     'ECS+CF-I', 'ECT+CF-I', 'ECS+CF-I+BBS', 'ECS+CF-I+BBP', 'ECT+CF-I+BBS', 'ECT+CF-I+BBP', `
+                     'BBS+CF-I', 'BBP+CF-I','CF-A', 'AF+CF-A', 'AF+CF-A+PL', 'AF+CF-A+ECS', 'AF+CF-A+ECT', `
+                     'AF+CF-A+BBS', 'AF+CF-A+BBP', 'AF+CF-A+PL+ECS', 'AF+CF-A+PL+ECT', 'AF+CF-A+PL+BBS', `
+                     'AF+CF-A+PL+BBP', 'AF+CF-A+ECS+BBS', 'AF+CF-A+ECS+BBP', 'AF+CF-A+ECT+BBS', 'AF+CF-A+ECT+BBP', `
+                     'AF+CF-A+PL+ECS+BBS', 'AF+CF-A+PL+ECS+BBP', 'AF+CF-A+PL+ECT+BBS', 'AF+CF-A+PL+ECT+BBP', 'PL+CF-A', `
+                     'PL+CF-A+ECS', 'PL+CF-A+ECT', 'PL+CF-A+BBS', 'PL+CF-A+BBP', 'PL+CF-A+ECS+BBS', 'PL+CF-A+ECS+BBP', `
+                     'PL+CF-A+ECT+BBS', 'PL+CF-A+ECT+BBP', 'ECS+CF-A', 'ECT+CF-A', 'ECS+CF-A+BBS', 'ECS+CF-A+BBP', `
+                     'ECT+CF-A+BBS', 'ECT+CF-A+BBP', 'BBS+CF-A', 'BBP+CF-A','CF-W', 'AF+CF-W', 'AF+CF-W+PL', `
+                     'AF+CF-W+ECS', 'AF+CF-W+ECT', 'AF+CF-W+BBS', 'AF+CF-W+BBP', 'AF+CF-W+PL+ECS', 'AF+CF-W+PL+ECT', `
+                     'AF+CF-W+PL+BBS', 'AF+CF-W+PL+BBP', 'AF+CF-W+ECS+BBS', 'AF+CF-W+ECS+BBP', 'AF+CF-W+ECT+BBS', `
+                     'AF+CF-W+ECT+BBP', 'AF+CF-W+PL+ECS+BBS', 'AF+CF-W+PL+ECS+BBP', 'AF+CF-W+PL+ECT+BBS', `
+                     'AF+CF-W+PL+ECT+BBP', 'PL+CF-W', 'PL+CF-W+ECS', 'PL+CF-W+ECT', 'PL+CF-W+BBS', 'PL+CF-W+BBP',  `
+                     'PL+CF-W+ECS+BBS', 'PL+CF-W+ECS+BBP', 'PL+CF-W+ECT+BBS', 'PL+CF-W+ECT+BBP', 'ECS+CF-W', `
+                     'ECT+CF-W', 'ECS+CF-W+BBS', 'ECS+CF-W+BBP', 'ECT+CF-W+BBS', 'ECT+CF-W+BBP', 'BBS+CF-W', 'BBP+CF-W')]
+   [string] $togAiEfft = "AF+BBS+ECS"  # Default if not provided 
 )
 .".\CheckInTest\Helper-library.ps1"
 InitializeTest 'ScenarioTesting'

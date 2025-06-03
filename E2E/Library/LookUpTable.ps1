@@ -21,20 +21,20 @@ function Get-CombinationReturnValues {
     # Define the base array (default values)
     $defaultReturnArray = @("Off","Off","Off","False","False","Off","False","False","Off","False","False","False","","")
     $wsev2PolicyState = CheckWSEV2Policy
-    
-    # Define all overrides in one place
+
+    # Define overrides with support check
     $overrides = @{
-        'AF'   = @{ 0 = 'On';               12 = 'AF';     13 = 65536 }
-        'EC'   = @{ 5 = 'On';  6 = 'True';  12 = 'ECS';    13 = 16 }
-        'ECT'  = @{ 5 = 'On';  7 = 'True';  12 = 'ECT';    13 = 131072 }
-        'PL'   = @{ 1 = 'On';               12 = 'PL';     13 = 524288 }
-        'CF-I' = @{ 8 = 'On';   9 = 'True'; 12 = 'CF-I';   13 = 2097152 }
-        'CF-A' = @{ 8 = 'On';  10 = 'True'; 12 = 'CF-A';   13 = 2097152 }
-        'CF-W' = @{ 8 = 'On';  11 = 'True'; 12 = 'CF-W';   13 = 2097152 }
-        'BBP'  = @{ 2 = 'On';   4 = 'True'; 12 = 'BBP';    13 = if ($wsev2PolicyState) { 16384 } else { 16416 } }
-        'BBS'  = @{ 2 = 'On';   3 = 'True'; 12 = 'BBS';    13 = if ($wsev2PolicyState) { 64 }  else { 96 } }
+        'AF'   = @{ supported = $true;                         data = @{ 0 = 'On';               12 = 'AF';     13 = 65536 } }
+        'ECS'   = @{ supported = $true;                        data = @{ 5 = 'On';  6 = 'True';  12 = 'ECS';    13 = 16 } }
+        'ECT'  = @{ supported = $wsev2PolicyState;             data = @{ 5 = 'On';  7 = 'True';  12 = 'ECT';    13 = 131072 } }
+        'PL'   = @{ supported = $wsev2PolicyState;             data = @{ 1 = 'On';               12 = 'PL';     13 = 524288 } }
+        'CF-I' = @{ supported = $wsev2PolicyState;             data = @{ 8 = 'On';  9 = 'True';  12 = 'CF-I';   13 = 2097152 } }
+        'CF-A' = @{ supported = $wsev2PolicyState;             data = @{ 8 = 'On'; 10 = 'True';  12 = 'CF-A';   13 = 2097152 } }
+        'CF-W' = @{ supported = $wsev2PolicyState;             data = @{ 8 = 'On'; 11 = 'True';  12 = 'CF-W';   13 = 2097152 } }
+        'BBP'  = @{ supported = $true;                         data = @{ 2 = 'On';  4 = 'True';  12 = 'BBP';    13 = if ($wsev2PolicyState) { 16384 } else { 16416 } } }
+        'BBS'  = @{ supported = $true;                         data = @{ 2 = 'On';  3 = 'True';  12 = 'BBS';    13 = if ($wsev2PolicyState) { 64 } else { 96 } } }
     }
-    
+
     $result = $defaultReturnArray.Clone()
     $scenarioName = @()
     $scenarioID = 0
@@ -43,7 +43,13 @@ function Get-CombinationReturnValues {
 
     foreach ($effect in $effectList) {
         if ($overrides.ContainsKey($effect)) {
-            $override = $overrides[$effect]
+            $check = $overrides[$effect]
+            if (-not $check.supported) {
+                Write-Host "Effect '$effect' is not supported on this device. Skipping test."
+                return $null  # Or throw to fail 
+            }
+
+            $override = $check.data
             foreach ($key in $override.Keys) {
                 if ($key -eq 12) {
                     $scenarioName += $override[$key]
