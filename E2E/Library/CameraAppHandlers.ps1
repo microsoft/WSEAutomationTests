@@ -172,9 +172,9 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
-function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder, $resourceUtilizationConsolidated)
+function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder, $resourceUtilizationConsolidated, $executionState)
 {  
-     $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
+     
      $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
 
      #Open Camera App
@@ -204,11 +204,18 @@ function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder, $resourceU
      [System.Windows.Forms.SendKeys]::SendWait(' ');
     
      # Call python modules for task manager Before starting the test case
-     Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scenarioLogFolder, $scnds, -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
+     Start-Process -FilePath "python" -ArgumentList @(
+	 $pythonLibFolder,
+	 "start_resource_monitoring",
+	 $resourceUtilizationFile,
+	 $scenarioLogFolder,
+	 5,
+	 $executionState
+	 ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
      $ui.SetFocus()
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
-     $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+     $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated $executionState
 
      if ($null -eq $utilizationStats) {
          Write-Error "Failed to get utilization stats."
@@ -262,7 +269,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [DateTime] (Returns the start time of the Camera app in UTC format for later time calculations.)
 #>
-function CameraPreviewing($scnds, $devPowStat, $scenarioLogFolder, $resourceUtilizationConsolidated)
+function CameraPreviewing($scnds, $devPowStat, $scenarioLogFolder, $resourceUtilizationConsolidated, $executionState)
 {  
      $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
      $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
@@ -284,8 +291,16 @@ function CameraPreviewing($scnds, $devPowStat, $scenarioLogFolder, $resourceUtil
 
      #Coverting the string back to date format for time calculation in code later CheckInitTimeCameraApp function.
      $cameraAppStartTime = [System.DateTime]::ParseExact($cameraAppStartTostring,'yyyy/MM/dd HH:mm:ss:fff',$null)
-     Start-Process -FilePath "python" -ArgumentList $pythonLibFolder, "start_resource_monitoring", $resourceUtilizationFile, $scenarioLogFolder, 5 -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait                     
-     $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+     # Call python modules for task manager Before starting the test case
+     Start-Process -FilePath "python" -ArgumentList @(
+        $pythonLibFolder,
+        "start_resource_monitoring",
+        $resourceUtilizationFile,
+        $scenarioLogFolder,
+        5,
+        $executionState
+	 ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
+     $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated $executionState
 
      if ($null -eq $utilizationStats) {
         Write-Error "Failed to get resource utilization stats."
