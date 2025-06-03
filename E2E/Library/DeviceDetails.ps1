@@ -51,54 +51,33 @@ NOTES:
     - Feature options change depending on whether the WSEV2 policy is enabled.
     - Skips empty combinations (i.e., when no features are selected).
 #>
-function Generate-Combinations
-{
-   $wsev2PolicyState = CheckWSEV2Policy
-   if($wsev2PolicyState -eq $false)	
-   {  
-      # Define options
-      $AFOptions = @("", "AF")
-      $PLOptions = @("")
-      $ECOptions = @("", "ECS")
-      $BlurOptions = @("", "BBP", "BBS")
-      $CFOptions = @("")
-   }
-   else
-   {
-      # Define options
-      $AFOptions = @("", "AF")
-      $PLOptions = @("", "PL")
-      $ECOptions = @("", "ECT", "ECS")
-      $BlurOptions = @("", "BBP", "BBS")
-      $CFOptions = @("", "CF-I", "CF-A", "CF-W")
-   }
-   $combinations = @()
-   
-   foreach ($af in $AFOptions) {
-       foreach ($pl in $PLOptions) {
-           foreach ($ec in $ECOptions) {
-               foreach ($blur in $BlurOptions) {
-                   foreach ($cf in $CFOptions) {
-   
-                       # Create an array of chosen options, ignoring empty strings
-                       $selected = @($af, $pl, $ec, $blur, $cf) | Where-Object { $_ -ne "" }
-   
-                       # Skip empty combination
-                       if ($selected.Count -eq 0) {
-                           continue
-                       }
-   
-                       # Format combination string (joined by '+')
-                       $comboString = $selected -join "+"
-   
-                       # Add to list
-                       $combinations += $comboString
-                       #$combinations | Sort-Object | ForEach-Object { Write-Host $_ }
-                   }
-               }
-           }
-       }
-   }return $combinations
+function Generate-Combinations {
+    $wsev2PolicyState = CheckWSEV2Policy
+
+    # Use conditional assignments based on the policy state
+    $AFOptions   = @("", "AF")
+    $PLOptions   = if ($wsev2PolicyState) { @("", "PL") } else { @("") }
+    $ECOptions   = if ($wsev2PolicyState) { @("", "ECT", "ECS") } else { @("", "ECS") }
+    $BlurOptions = @("", "BBP", "BBS")
+    $CFOptions   = if ($wsev2PolicyState) { @("", "CF-I", "CF-A", "CF-W") } else { @("") }
+
+    $combinations = @()
+
+    foreach ($af in $AFOptions) {
+        foreach ($pl in $PLOptions) {
+            foreach ($ec in $ECOptions) {
+                foreach ($blur in $BlurOptions) {
+                    foreach ($cf in $CFOptions) {
+                        $selected = @($af, $pl, $ec, $blur, $cf) | Where-Object { $_ -ne "" }
+                        if ($selected.Count -eq 0) { continue }
+                        $comboString = $selected -join "+"
+                        $combinations += $comboString
+                    }
+                }
+            }
+        }
+    }
+    return $combinations
 }
 <#
 DESCRIPTION:
