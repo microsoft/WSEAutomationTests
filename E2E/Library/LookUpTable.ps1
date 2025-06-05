@@ -1,4 +1,4 @@
-﻿<#
+<#
 DESCRIPTION:
     This function retrieves the corresponding value(s) for a given input key from a predefined 
     set of mappings. These mappings include configurations for AI effects, camera resolutions, 
@@ -14,6 +14,8 @@ RETURN TYPE:
     - [Object] (Returns a string or array of strings corresponding to the input key. If the key 
       does not exist, it returns $null.)
 #>
+
+
 function RetrieveValue($inputValue)
 {
  
@@ -185,63 +187,85 @@ function RetrieveValue($inputValue)
       $returnValues.Add('ECE+CF-W+BBP' ,  ("Off","Off","On","False","True","On","False","True","On","False","False","True","ECE+CF-W+BBP","2244608"))
       $returnValues.Add('BBS+CF-W' ,  ("Off","Off","On","True","False","Off","False","False","On","False","False","True","BBS+CF-W","2097216"))
       $returnValues.Add('BBP+CF-W' ,  ("Off","Off","On","False","True","Off","False","False","On","False","False","True","BBP+CF-W","2113536"))
-
    }
-   $returnValues.Add('1440p' , "1440p, 16 by 9 aspect ratio, 30 fps")
-   $returnValues.Add('1080p' , "1080p, 16 by 9 aspect ratio, 30 fps")
-   $returnValues.Add('720p' , "720p, 16 by 9 aspect ratio, 30 fps")
-   $returnValues.Add('480p' , "480p, 4 by 3 aspect ratio, 30 fps")
-   $returnValues.Add('360p' , "360p, 16 by 9 aspect ratio, 30 fps")
-   $returnValues.Add('1440p1' , "1440p, 4 by 3 aspect ratio, 30 fps")
-   $returnValues.Add('1080p1' , "1080p, 4 by 3 aspect ratio, 30 fps")
-   $returnValues.Add('960p' , "960p, 4 by 3 aspect ratio, 30 fps")
-   $returnValues.Add('640p' , "640p, 1 by 1 aspect ratio, 30 fps")
-   $returnValues.Add('540p' , "540p, 16 by 9 aspect ratio, 30 fps")
-   $returnValues.Add('8.3MP' , "8.3 megapixels, 16 by 9 aspect ratio,  3840 by 2160 resolution")
-   $returnValues.Add('12.2MP' , "12.2 megapixels, 4 by 3 aspect ratio,  4032 by 3024 resolution")
-   $returnValues.Add('5.0MP' , "5.0 megapixels, 4 by 3 aspect ratio,  2592 by 1944 resolution")
-   $returnValues.Add('4.5MP' , "4.5 megapixels, 3 by 2 aspect ratio,  2592 by 1728 resolution")
-   $returnValues.Add('3.8MP' , "3.8 megapixels, 16 by 9 aspect ratio,  2592 by 1458 resolution")
-   $returnValues.Add('2.1MP' ,  "2.1 megapixels, 16 by 9 aspect ratio,  1920 by 1080 resolution")
-   $returnValues.Add('1.6MP' , "1.6 megapixels, 4 by 3 aspect ratio,  1440 by 1080 resolution")
-   $returnValues.Add('0.9MP' , "0.9 megapixels, 16 by 9 aspect ratio,  1280 by 720 resolution")
-   $returnValues.Add('0.8MP' , "0.8 megapixels, 4 by 3 aspect ratio,  1024 by 768 resolution")
-   $returnValues.Add('0.3MP' , "0.3 megapixels, 4 by 3 aspect ratio,  640 by 480 resolution")
-   $returnValues.Add('0.2MP' , "0.2 megapixels, 16 by 9 aspect ratio,  640 by 360 resolution")
-   $returnValues.Add('1.2MP' , "1.2 megapixels, 4 by 3 aspect ratio,  1280 by 960 resolution")
-   $returnValues.Add('0.08MP' , "0.08 megapixels, 4 by 3 aspect ratio,  320 by 240 resolution")
-   $returnValues.Add('0.02MP' , "0.02 megapixels, 4 by 3 aspect ratio,  160 by 120 resolution")
-   $returnValues.Add('0.1MP' , "0.1 megapixels, 11 by 9 aspect ratio,  352 by 288 resolution")
-   $returnValues.Add('0.03MP' , "0.03 megapixels, 11 by 9 aspect ratio,  176 by 144 resolution")
-   $returnValues.Add("1440p, 16 by 9 aspect ratio, 30 fps" ,'1440p')
-   $returnValues.Add("1080p, 16 by 9 aspect ratio, 30 fps" , '1080p')
-   $returnValues.Add("720p, 16 by 9 aspect ratio, 30 fps" , '720p')
-   $returnValues.Add("480p, 4 by 3 aspect ratio, 30 fps" , '480p')
-   $returnValues.Add("360p, 16 by 9 aspect ratio, 30 fps" , '360p')
-   $returnValues.Add("1440p, 4 by 3 aspect ratio, 30 fps" , '1440p1')
-   $returnValues.Add("1080p, 4 by 3 aspect ratio, 30 fps" , '1080p1')
-   $returnValues.Add("960p, 4 by 3 aspect ratio, 30 fps" , '960p')
-   $returnValues.Add("640p, 1 by 1 aspect ratio, 30 fps" , '640p')
-   $returnValues.Add("540p, 16 by 9 aspect ratio, 30 fps" , '540p')
-   $returnValues.Add("8.3 megapixels, 16 by 9 aspect ratio,  3840 by 2160 resolution" , '8.3MP')
-   $returnValues.Add("12.2 megapixels, 4 by 3 aspect ratio,  4032 by 3024 resolution" , '12.2MP')
-   $returnValues.Add("5.0 megapixels, 4 by 3 aspect ratio,  2592 by 1944 resolution" , '5.0MP')
-   $returnValues.Add("4.5 megapixels, 3 by 2 aspect ratio,  2592 by 1728 resolution" , '4.5MP')
-   $returnValues.Add("3.8 megapixels, 16 by 9 aspect ratio,  2592 by 1458 resolution" , '3.8MP')
-   $returnValues.Add("2.1 megapixels, 16 by 9 aspect ratio,  1920 by 1080 resolution" , '2.1MP')
-   $returnValues.Add("1.6 megapixels, 4 by 3 aspect ratio,  1440 by 1080 resolution" , '1.6MP')
-   $returnValues.Add("0.9 megapixels, 16 by 9 aspect ratio,  1280 by 720 resolution" , '0.9MP')
-   $returnValues.Add("0.8 megapixels, 4 by 3 aspect ratio,  1024 by 768 resolution" , '0.8MP')
-   $returnValues.Add("0.3 megapixels, 4 by 3 aspect ratio,  640 by 480 resolution" , '0.3MP')
-   $returnValues.Add("0.2 megapixels, 16 by 9 aspect ratio,  640 by 360 resolution" , '0.2MP')
-   $returnValues.Add("1.2 megapixels, 4 by 3 aspect ratio,  1280 by 960 resolution" , '1.2MP')
-   $returnValues.Add("0.08 megapixels, 4 by 3 aspect ratio,  320 by 240 resolution" , '0.08MP')
-   $returnValues.Add("0.02 megapixels, 4 by 3 aspect ratio,  160 by 120 resolution" , '0.02MP')
-   $returnValues.Add("0.1 megapixels, 11 by 9 aspect ratio,  352 by 288 resolution" , '0.1MP')
-   $returnValues.Add("0.03 megapixels, 11 by 9 aspect ratio,  176 by 144 resolution" ,'0.03MP')
-
    
    $outputValue = $returnValues[$inputValue]
    return $outputValue
-}   
-    
+}
+
+function RetrieveMap
+{
+    # Video resolutions mapping
+    $videoResList = $deviceData["VideoResolutions"]
+    $videoResMap = @{}
+    $pCounts = @{}
+ 
+    foreach ($res in $videoResList)
+	{
+        if ($res -match '(\d+p)')
+		{
+            $keyBase = $matches[1]
+            if ($pCounts.ContainsKey($keyBase))
+			{
+                $pCounts[$keyBase]++
+                $key = "$keyBase$($pCounts[$keyBase])"
+            }
+			else
+			{
+                $pCounts[$keyBase] = 0
+                $key = $keyBase
+            }
+            $videoResMap[$res] = $key
+        }
+		else
+		{
+            $videoResMap[$res] = $res
+        }
+    }
+ 
+    # Photo resolutions mapping
+    $photoResList = $deviceData["PhotoResolutions"]
+    $photoResMap = @{}
+    $mpCounts = @{}
+ 
+    foreach ($res in $photoResList)
+	{
+        if ($res -match '([\d+\.,]+)\s*megapixels?')
+		{
+            $keyBase = "$($matches[1])MP"
+            if ($mpCounts.ContainsKey($keyBase))
+			{
+                $mpCounts[$keyBase]++
+                $key = "$keyBase$($mpCounts[$keyBase])"
+            }
+			else
+			{
+                $mpCounts[$keyBase] = 0
+                $key = $keyBase
+            }
+            $photoResMap[$res] = $key
+        }
+		else
+		{
+            $photoResMap[$res] = $res
+        }
+    }
+ 
+    #Print maps
+    Write-Host "`nVideoResMap:"
+    foreach ($key in $videoResMap.Keys)
+	{
+        Write-Host "  $key => $($videoResMap[$key])"
+    }
+    Write-Host "`nPhotoResMap:"
+    foreach ($key in $photoResMap.Keys)
+	{
+        Write-Host "  $key => $($photoResMap[$key])"
+    }
+	
+	 # Return as hashtable
+    return @{
+        VideoResMap = $videoResMap
+        PhotoResMap = $photoResMap
+    }
+}
