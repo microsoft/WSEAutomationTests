@@ -24,10 +24,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
    try
    {  
        $startTime = Get-Date
-       $VFdetails= "VF-$VF"
-	   $vdoResDetails= RetrieveValue($vdoRes)
-	   $ptoResDetails= RetrieveValue($ptoRes)       
-       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
+       $VFdetails= "VF-$VF"   
+       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoRes\$ptoRes\$devPowStat\$VFdetails\$toggleEachAiEffect"
        $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
@@ -101,7 +99,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
                     
        #Setting AI effects for Tests in camera setting page 
        Write-Log -Message "Setting up the camera Ai effects" -IsOutput
-       
+
        FindAndSetValue $ui ToggleSwitch "Automatic framing" $toggleEachAiEffect[0]
        FindAndSetValue $ui ToggleSwitch "Eye contact" $toggleEachAiEffect[5]
        
@@ -137,7 +135,6 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
                              
        #Strating to collect Traces
        StartTrace $scenarioLogFolder
-       
        # Open Task Manager
        Write-Log -Message "Opening Task Manager" -IsOutput
        $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
@@ -228,5 +225,3 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
         continue;
     }                                
 }
-
-   
