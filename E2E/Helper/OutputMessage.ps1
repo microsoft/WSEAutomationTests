@@ -98,15 +98,42 @@ function ResetFields {
    $Results.'AvgWorkingSetSize(In MB)' = $null
    $Results.Status = $null
    $Results.ReasonForNotPass = $null
-   $Results.MedianCPUUsage = $null
-   $Results.MedianNPUUsage = $null
-   $Results.MedianMemoryUsage = $null
-   $Results.PeakCPUUsage = $null
-   $Results.PeakNPUUsage = $null
-   $Results.PeakMemoryUsage = $null
-   $Results.AverageCPUUsage = $null
-   $Results.AverageNPUUsage = $null
-   $Results.AverageMemoryUsage = $null
+   $Results.BeforeMedianCPUUsage = $null
+   $Results.BeforeMedianNPUUsage = $null
+   $Results.BeforeMedianMemoryUsage = $null
+   $Results.BeforeMedianMemoryUsageGB = $null
+   $Results.BeforePeakCPUUsage = $null
+   $Results.BeforePeakNPUUsage = $null
+   $Results.BeforePeakMemoryUsage = $null
+   $Results.BeforePeakMemoryUsageGB = $null
+   $Results.BeforeAverageCPUUsage = $null
+   $Results.BeforeAverageNPUUsage = $null
+   $Results.BeforeAverageMemoryUsage = $null
+   $Results.BeforeAverageMemoryUsageGB = $null
+   $Results.AfterMedianCPUUsage = $null
+   $Results.AfterMedianNPUUsage = $null
+   $Results.AfterMedianMemoryUsage = $null
+   $Results.AfterMedianMemoryUsageGB = $null
+   $Results.AfterPeakCPUUsage = $null
+   $Results.AfterPeakNPUUsage = $null
+   $Results.AfterPeakMemoryUsage = $null
+   $Results.AfterPeakMemoryUsageGB = $null
+   $Results.AfterAverageCPUUsage = $null
+   $Results.AfterAverageNPUUsage = $null
+   $Results.AfterAverageMemoryUsage = $null
+   $Results.AfterAverageMemoryUsageGB = $null
+   $Results.DiffMedianCPUUsage = $null
+   $Results.DiffMedianNPUUsage = $null
+   $Results.DiffMedianMemoryUsage = $null
+   $Results.DiffMedianMemoryUsageGB = $null
+   $Results.DiffPeakCPUUsage = $null
+   $Results.DiffPeakNPUUsage = $null
+   $Results.DiffPeakMemoryUsage = $null
+   $Results.DiffPeakMemoryUsageGB = $null
+   $Results.DiffAverageCPUUsage = $null
+   $Results.DiffAverageNPUUsage = $null
+   $Results.DiffAverageMemoryUsage = $null
+   $Results.DiffAverageMemoryUsageGB = $null
 }
 
 <#
@@ -219,47 +246,136 @@ if($functionToCall -eq  "CameraAppTest")
    }
 }
 
-function GetResourceUtilizationStats($rawTextFile)
+function GetResourceUtilizationStats($rawTextFile, $executionState)
 {
     if (-Not (Test-Path $rawTextFile)) {
         Write-Error "File not found: $rawTextFile"
         return $null
     }
-    $content = Get-Content $rawTextFile
-    $startIndex = ($content | Select-String "--- Resource Utilization Stats ---").LineNumber
 
-    if (-not $startIndex) {
-        Write-Error "'--- Resource Utilization Statis ---' section not found."
+	$contentRaw = Get-Content -Path $rawTextFile -Raw
+    $contentLines = $contentRaw -split "`r?`n"
+
+    # Write raw content to console results file
+    Write-Log -Message "$contentLines" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+    $utilizationStats = @{}
+    if ($executionState -eq "Before") {
+        $startIndex = ($contentLines | Select-String "--- Before Resource Utilization Statistics ---").LineNumber
+
+		Write-Log -Message "startIndex :  $startIndex" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+        if (-not $startIndex) {
+            Write-Error "'$sectionHeader' section not found."
+            return $null
+        }
+        for ($i = $startIndex; $i -lt $contentLines.Count; $i++) {
+            $line = $contentLines[$i].Trim()
+            if ($line -match "^---") { continue }
+			Parse-UtilizationLine -line $line -prefix 'before' -utilizationStats $utilizationStats
+
+        }
+
+        $Results.BeforeMedianCPUUsage = "$($utilizationStats['before_median_cpu'])%"
+        $Results.BeforePeakCPUUsage = "$($utilizationStats['before_peak_cpu'])%"
+        $Results.BeforeAverageCPUUsage = "$($utilizationStats['before_avg_cpu'])%"
+
+        $Results.BeforeMedianNPUUsage = "$($utilizationStats['before_median_npu'])%"
+        $Results.BeforePeakNPUUsage = "$($utilizationStats['before_peak_npu'])%"
+        $Results.BeforeAverageNPUUsage = "$($utilizationStats['before_avg_npu'])%"
+
+        $Results.BeforeMedianMemoryUsage = "$($utilizationStats['before_median_memory'])%"
+        $Results.BeforePeakMemoryUsage = "$($utilizationStats['before_peak_memory'])%"
+        $Results.BeforeAverageMemoryUsage = "$($utilizationStats['before_avg_memory'])%"
+		
+		$Results.BeforeMedianMemoryUsageGB = "$($utilizationStats['before_median_memory_usage_gb'])"
+        $Results.BeforePeakMemoryUsageGB = "$($utilizationStats['before_peak_memory_usage_gb'])"
+        $Results.BeforeAverageMemoryUsageGB = "$($utilizationStats['before_avg_memory_usage_gb'])"
+
+    } elseif ($executionState -eq "After") {
+		$afterIndex = ($contentLines | Select-String "--- After Resource Utilization Statistics ---").LineNumber
+		Write-Log -Message "afterIndex :  $afterIndex" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+
+        if (-not $afterIndex) {
+            Write-Error "'$sectionHeader' section not found."
+            return $null
+        }
+		Write-Log -Message "contenttLines Count : $($contentLines.Count)" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+        for ($i = $afterIndex; $i -lt $contentLines.Count; $i++) {
+            $line = $contentLines[$i].Trim()
+			Write-Log -Message "Inside line : $line" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+            if ($line -match "^---") { break }
+			Parse-UtilizationLine -line $line -prefix 'after' -utilizationStats $utilizationStats
+
+        }
+        $Results.AfterMedianCPUUsage = "$($utilizationStats['after_median_cpu'])%"
+        $Results.AfterPeakCPUUsage = "$($utilizationStats['after_peak_cpu'])%"
+        $Results.AfterAverageCPUUsage = "$($utilizationStats['after_avg_cpu'])%"
+
+        $Results.AfterMedianNPUUsage = "$($utilizationStats['after_median_npu'])%"
+        $Results.AfterPeakNPUUsage = "$($utilizationStats['after_peak_npu'])%"
+        $Results.AfterAverageNPUUsage = "$($utilizationStats['after_avg_npu'])%"
+
+        $Results.AfterMedianMemoryUsage = "$($utilizationStats['after_median_memory'])%"
+        $Results.AfterPeakMemoryUsage = "$($utilizationStats['after_peak_memory'])%"
+        $Results.AfterAverageMemoryUsage = "$($utilizationStats['after_avg_memory'])%"
+		
+		$Results.AfterMedianMemoryUsageGB = "$($utilizationStats['after_median_memory_usage_gb'])"
+        $Results.AfterPeakMemoryUsageGB = "$($utilizationStats['after_peak_memory_usage_gb'])"
+        $Results.AfterAverageMemoryUsageGB = "$($utilizationStats['after_avg_memory_usage_gb'])"
+
+        $diffIndex = ($contentLines | Select-String "--- Statistics Difference \(After vs Before\) ---").LineNumber
+        if (-not $diffIndex) {
+            Write-Error "'--- Statistics Difference (After vs Before) ---' section not found."
+            return $null
+        }
+
+        for ($i = $diffIndex; $i -lt $contentLines.Count; $i++) {
+            $line = $contentLines[$i].Trim()
+            if ($line -match "^---") { continue }
+			Parse-UtilizationLine -line $line -prefix 'diff' -utilizationStats $utilizationStats
+
+        }
+        $Results.DiffMedianCPUUsage = "$($utilizationStats['diff_median_cpu'])%"
+        $Results.DiffPeakCPUUsage = "$($utilizationStats['diff_peak_cpu'])%"
+        $Results.DiffAverageCPUUsage = "$($utilizationStats['diff_avg_cpu'])%"
+
+        $Results.DiffMedianNPUUsage = "$($utilizationStats['diff_median_npu'])%"
+        $Results.DiffPeakNPUUsage = "$($utilizationStats['diff_peak_npu'])%"
+        $Results.DiffAverageNPUUsage = "$($utilizationStats['diff_avg_npu'])%"
+
+        $Results.DiffMedianMemoryUsage = "$($utilizationStats['diff_median_memory'])%"
+        $Results.DiffPeakMemoryUsage = "$($utilizationStats['diff_peak_memory'])%"
+        $Results.DiffAverageMemoryUsage = "$($utilizationStats['diff_avg_memory'])%"
+		
+		$Results.DiffMedianMemoryUsageGB = "$($utilizationStats['diff_median_memory_usage_gb'])"
+        $Results.DiffPeakMemoryUsageGB = "$($utilizationStats['diff_peak_memory_usage_gb'])"
+        $Results.DiffAverageMemoryUsageGB = "$($utilizationStats['diff_avg_memory_usage_gb'])"
+    }
+    else {
+        Write-Error "Invalid execution state: $executionState. Use 'Before', 'After', or 'Diff'."
         return $null
     }
 
-    # Prepare a result hashtable
-    $utilizationStats = @{}
-
-    # Process only the lines after the heading, up to next blank line or non-stats line
-    for ($i = $startIndex; $i -lt $content.Count; $i++) {
-        $line = $content[$i].Trim()
-        
-        if ($line -match "^---") { continue }
-        if ($line -eq "") { break }
-
-        if ($line -match "^(\w+)\s*-\s*Median:\s*([\d.]+)%,\s*Average:\s*([\d.]+)%,\s*Peak:\s*([\d.]+)%") {
-            $component = $matches[1].ToLower()
-            $utilizationStats["median_$component"] = [double]$matches[2]
-            $utilizationStats["avg_$component"] = [double]$matches[3]
-            $utilizationStats["peak_$component"] = [double]$matches[4]
-        }
-    }
-	$Results.MedianCPUUsage = "$($utilizationStats['median_cpu'])%"
-	$Results.PeakCPUUsage = "$($utilizationStats['peak_cpu'])%"
-	$Results.AverageCPUUsage = "$($utilizationStats['avg_cpu'])%"
-
-	$Results.MedianNPUUsage = "$($utilizationStats['median_npu'])%"
-	$Results.PeakNPUUsage = "$($utilizationStats['peak_npu'])%"
-	$Results.AverageNPUUsage = "$($utilizationStats['avg_npu'])%"
-
-	$Results.MedianMemoryUsage = "$($utilizationStats['median_memory'])%"
-	$Results.PeakMemoryUsage = "$($utilizationStats['peak_memory'])%"
-	$Results.AverageMemoryUsage = "$($utilizationStats['avg_memory'])%"
     return $utilizationStats
+}
+
+function Parse-UtilizationLine {
+    param (
+        [string]$line,
+        [string]$prefix,
+        [hashtable]$utilizationStats,
+        [switch]$EnableLog
+    )
+
+    if ($line -match "^(.+?)\s*-\s*Median:\s*([\d.]+)%?,\s*Average:\s*([\d.]+)%?,\s*Peak:\s*([\d.]+)%?") {
+        $component = ($matches[1].ToLower() -replace '[^a-z0-9]+', '_').Trim('_')
+
+        if ($EnableLog) {
+            Write-Log -Message "line matched" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+            Write-Log -Message "component : $component" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+        }
+
+        $utilizationStats["${prefix}_median_$component"] = [double]$matches[2]
+        $utilizationStats["${prefix}_avg_$component"]    = [double]$matches[3]
+        $utilizationStats["${prefix}_peak_$component"]   = [double]$matches[4]
+    }
 }

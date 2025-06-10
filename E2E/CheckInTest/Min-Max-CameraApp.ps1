@@ -19,7 +19,7 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
     $scenarioName = "$devPowStat\MinMaxCameraApp"
     $logFile = "$devPowStat-MinMaxCameraApp.txt"
     $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
-    
+    $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)
     {   
@@ -80,17 +80,33 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
         $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
         Start-Sleep -s 1
         setTMUpdateSpeedLow -uiEle $uitaskmgr
+        # Call python modules for task manager Before starting the test case
+        Start-Process -FilePath "python" -ArgumentList @(
+            $pythonLibFolder,
+            "start_resource_monitoring",
+            $resourceUtilizationFile,
+            $scenarioName,
+            5,
+            "Before"
+        ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
 
+        # Now process is finished, so call GetResourceUtilizationStats
+        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
+        Write-Log -Message $utilizationStats -IsOutput >> $pathLogsFolder\ConsoleResults.txt
+        if ($null -eq $utilizationStats) {
+            Write-Error "Failed to get resource utilization stats."
+            return
+        }
         # Open camera App
-        $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $logFile $resourceUtilizationConsolidated
+        $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $logFile $resourceUtilizationConsolidated "After"
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
         
         # Close Task Manager and take Screenshot of CPU and NPU Usage
         Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
-        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
+        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioName
         
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated
+        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "After"
 
         if ($null -eq $utilizationStats) {
             Write-Error "Failed to get resource utilization stats."
