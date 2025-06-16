@@ -38,7 +38,7 @@ function GetDeviceDetails()
 }
 <#
 DESCRIPTION:
-    Generates all valid combinations of camera features based on WSEV2 policy state.
+    Generates all valid combinations of camera features based on WSEV2 policy state
     Each combination is a '+'-joined string of selected features.
 
 INPUT:
