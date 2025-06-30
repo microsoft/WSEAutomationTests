@@ -3,7 +3,7 @@ Add-Type -AssemblyName UIAutomationClient
 <#
 DESCRIPTION:
     This function tests the Camera App by setting video and photo resolutions, adjusting AI effects,
-    toggling power states, and validating logs for recording and previewing scenarios.
+    toggling power states and power profiles, and validating logs for recording and previewing scenarios.
     It ensures proper logging, checks service states, and collects trace data.
 INPUT PARAMETERS:
     - logFile [string] :- Path to the log file where test results will be recorded.
@@ -16,10 +16,11 @@ INPUT PARAMETERS:
     - devPowStat [string] :- The device power state (e.g., "PluggedIn", "OnBattery").
     - VF [string] :- Voice Focus setting ("On"/"Off"/"NA").
     - toggleEachAiEffect [array] :- Array containing AI effect toggles for various camera settings.
+    - powerProfile [string] :- The power profile to use for testing (Best Power Efficiency/Balanced/Best Performance/Recommended/Better Performance).
 RETURN TYPE:
     - void 
 #>
-function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$ptoRes,$devPowStat,$VF,$toggleEachAiEffect)
+function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsnario,$vdoRes,$ptoRes,$devPowStat,$VF,$toggleEachAiEffect)
 {
    try
    {  
@@ -27,10 +28,14 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        $VFdetails= "VF-$VF"
 	   $vdoResDetails= RetrieveValue($vdoRes)
 	   $ptoResDetails= RetrieveValue($ptoRes)       
-       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
+       $powerProfile = $powerProfile -replace ' ', ''
+        # Updated scenario folder path to include power profile
+       $scenarioLogFolder = "CameraAppTest\$powerProfile\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
        $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
        $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
+        # Enhanced logging with power profile information
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
+       Write-Log -Message "Power Profile: $powerProfile" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder
 
@@ -44,7 +49,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
 
        #Set the device Power state
        #if token and SPid is available than run scenarios for both pluggedin and unplugged 
-       Write-Output "Start Tests for $devPowStat scenario" 
+        Write-Output "Start Tests for $devPowStat scenario with $powerProfile profile" 
        $devState = CheckDevicePowerState $devPowStat $token $SPId
        if($devState -eq $false)
        {   
@@ -162,7 +167,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
 		   return
        }
        # Start Test Scenario
-       Write-Log -Message "Start test for $camsnario" -IsOutput
+        Write-Log -Message "Start test for $camsnario with power profile: $powerProfile" -IsOutput
        if($camsnario -eq "Recording")
        {
            #Start video recording and close the camera app once finished recording 
@@ -226,6 +231,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
     {
         Take-Screenshot "Error-Exception" $scenarioLogFolder
         Write-Log -Message "Error occured and enter catch statement" -IsOutput
+	Take-Screenshot "Error-$powerProfile" $scenarioLogFolder
+        Write-Log -Message "Error occurred during test with power profile: $powerProfile" -IsOutput
         CloseApp 'systemsettings'
         CloseApp 'WindowsCamera'
         CloseApp 'Taskmgr'
@@ -233,6 +240,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
         CheckServiceState 'Windows Camera Frame Server'
         Write-Output $_
         TestOutputMessage $scenarioLogFolder "Exception" $startTime $_.Exception.Message
+        TestOutputMessage $scenarioLogFolder "Exception" $startTime "Error in power profile '$powerProfile': $_"
         Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
         Reporting $Results "$pathLogsFolder\Report.txt"
         GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioLogFolder
@@ -245,5 +253,3 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
         continue;
     }                                
 }
-
-   

@@ -22,6 +22,7 @@ function GetDeviceDetails()
    $deviceData.VideoResolutions = GetVideoResList
    $deviceData.PhotoResolutions = GetPhotoResList
    $deviceData.PowerStates      = @("Pluggedin", "Unplugged")
+   $deviceData.PowerProfiles = GetPowerProfiles
    $voiceFocusExists = CheckVoiceFocusPolicy 
    if($voiceFocusExists -eq $false)
    {
@@ -124,4 +125,32 @@ Function GetPhotoResList()
    Stop-Process -Name 'WindowsCamera'
    start-sleep -s 1
    return $ptoResList
+}
+
+<#
+DESCRIPTION:
+    This function retrieves the list of supported Power Profiles.
+    It opens the Settings app and checks the available Power Profiles options.
+
+RETURN TYPE:
+    - Array: List of supported Power Profiles.
+#>
+function GetPowerProfiles
+{
+    Add-Type -AssemblyName UIAutomationClient
+
+    $ui = OpenApp 'ms-settings:' 'Settings'
+    Start-Sleep -Seconds 1
+    FindAndClick $ui ListViewItem "Power & battery"
+    Start-Sleep -Seconds 2
+    FindAndClick $ui "ExpanderToggleButton" "Show more settings"
+    Start-Sleep -Seconds 2
+    FindAndClick $ui "ComboBox" "Plugged in"
+    Start-Sleep -Seconds 1
+    $pluggedInProfiles = FindAllElementsNameWithClassName $ui ComboBoxItem
+	Start-Sleep -Seconds 2
+    Write-Host "pluggedInProfiles is $pluggedInProfiles"
+    Stop-Process -Name 'systemsettings'
+	
+    return $pluggedInProfiles
 }

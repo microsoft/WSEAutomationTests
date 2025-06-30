@@ -14,18 +14,23 @@ Write-Log -Message "$deviceData" | Out-File -FilePath "$pathLogsFolder\CameraApp
 
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
-
-# Loop through Camera mode
-foreach($camsnario in $deviceData["CameraScenario"])
-{  
-   # Loop through video resolutions
-   foreach ($vdoRes in $deviceData["VideoResolutions"])
+foreach ($powerProfile in  $deviceData["PowerProfiles"])
+{
+   Write-Log -Message "Setting up Power Profile to $powerProfile" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+   # Loop through Camera mode
+   $uiEle = OpenApp 'ms-settings:' 'Settings'
+   SetPowerProfileInSettingsPage -ui $uiEle -powerProfile $powerProfile
+   Stop-Process -Name 'systemsettings'
+   foreach($camsnario in $deviceData["CameraScenario"])
    {  
-      $initialSetupDone = "true" 
-      $startTime = Get-Date 
-      #Retrieve video resolution from hash table
-	   $vdoResDetails= RetrieveValue($vdoRes)
-      $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails" 
+      # Loop through video resolutions
+      foreach ($vdoRes in $deviceData["VideoResolutions"])
+      {
+		 $initialSetupDone = "true" 
+         $startTime = Get-Date 
+         #Retrieve video resolution from hash table
+         $vdoResDetails= RetrieveValue($vdoRes)
+               $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails" 
 
       Write-Log -Message "Setting up video Res to $vdoRes" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
       
@@ -65,9 +70,10 @@ foreach($camsnario in $deviceData["CameraScenario"])
             $unpluggedLast = -1
             $pluggedInLast = -1
 
-            while ($true) {
-               $batteryPercentage = Get-BatteryPercentage
-               $chargingState = Get-ChargingState  # Fetch current charging state
+               while ($true)
+			   {
+                  $batteryPercentage = Get-BatteryPercentage
+                  $chargingState = Get-ChargingState  # Fetch current charging state
 
                <#
                Approach we follow to run all the tests (pluggedin + unplugged) when smart plug details are provided along with run mode = Both or null (null meaning not provided):
@@ -85,7 +91,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                         $pluggedInLast++
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
-                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                           CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                         $batteryPercentage = Get-BatteryPercentage
                      }
                   } else {
@@ -98,7 +104,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
                      }
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   }
 
                   if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
@@ -137,7 +143,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $unpluggedLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$unpluggedLast]
                      $devPowStat = "Unplugged"
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "All Unplugged scenarios completed. Exiting." -ForegroundColor Yellow
                      break
@@ -157,7 +163,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $pluggedInLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                      $devPowStat = "PluggedIn"
-                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                        CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "All PluggedIn scenarios completed. Exiting." -ForegroundColor Yellow
                      break
@@ -178,6 +184,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
          } 
       }
    }
+	}
 }
 
 [console]::beep(500,300)
