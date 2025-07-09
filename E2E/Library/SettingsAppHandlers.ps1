@@ -141,7 +141,8 @@ Function VoiceFocusToggleSwitch($proptyVal)
      Start-Sleep -m 500
      
      Write-Log -Message "Turn $proptyVal all audio effects" -IsOutput
-     FindAndSetValue $ui ToggleSwitch "Voice Focus" $proptyVal
+     FindAndClick $ui ComboBox "Voice Focus" 
+     FindAndClick $ui ComboBoxItem $proptyVal
      Start-Sleep -s 1
 
      #close settings app
