@@ -187,12 +187,19 @@ if (!(test-path "$pathLogsFolder\ReRunFailedTests.ps1"))
 }
 else
 {  
+    # Install Python before running the test rerun script
+    ManagePythonSetup -Action install
   
-   @('.".\CheckInTest\Helper-library.ps1"') + ("InitializeTest 'ReRunfailedTest'") + (Get-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1") | Set-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1" 
+   @('.".\CheckInTest\Helper-library.ps1"') + ("InitializeTest 'ReRunfailedTests'") + (Get-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1") | Set-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1" 
    (Get-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1") -replace "111222", $token | Set-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1" 
    (Get-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1") -replace "333444", $SPId | Set-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1"
    copy-Item $pathLogsFolder\ReRunFailedTests.ps1 -Destination ReRunFailedTests.ps1
    
+    # Run the rerun script
+    .\ReRunFailedTests.ps1
+
+    # Uninstall Python after the rerun
+    ManagePythonSetup -Action uninstall
 }
 if($token.Length -ne 0 -and $SPId.Length -ne 0)
 {
