@@ -314,7 +314,7 @@ function parseOptInCameraInfoFromDxDiagInfo_External_Camera()
 		optinCameraFriendlyName		= "n/a"
 		optinCameraDriverVersion	= "n/a"
 		optinCameraHardwareID		= "n/a"
-		mepDriverVersion			= "n/a"
+		mepDriverVersion		= "n/a"
 		optinCameraMepHighResMode	= "n/a"
 		externalUsbCameras          = @()   # New: will hold external USB camera names
 	}
@@ -339,22 +339,51 @@ function parseOptInCameraInfoFromDxDiagInfo_External_Camera()
 	$videoCaptureDeviceMEPOptedInArray = $dxdiagContent | Select-String -Pattern "^\s+MEPOptedIn: (.+)" | ForEach-Object { $_.Line -replace "^\s+MEPOptedIn: ", "" }
 	$videoCaptureDeviceMEPVersionArray = $dxdiagContent | Select-String -Pattern "^\s+MEPVersion: (.+)" | ForEach-Object { $_.Line -replace "^\s+MEPVersion: ", "" }
 	$videoCaptureDeviceFMEPHighResModeArray = $dxdiagContent | Select-String -Pattern "^\s+MEPHighResMode: (.+)" | ForEach-Object { $_.Line -replace "^\s+MEPHighResMode: ", "" }
+    $videoCaptureDeviceLocationArray = $dxdiagContent | Select-String -Pattern "^\s+Location: (.+)" | ForEach-Object { $_.Line -replace "^\s+Location: ", "" }
 
-	# 🔍 Print and collect all external USB cameras
+	# 🔍 Parse external USB cameras
 	Write-Host "Parsing External USB Cameras..."
+	$selectedIndex = -1
+
 	for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
-		if ($videoCaptureDeviceHardwareIDArray[$i] -match 'USB') {
+		if ($videoCaptureDeviceLocationArray[$i] -ieq 'n/a') {
 			Write-Host "External USB Camera: $($videoCaptureDeviceFriendlyNameArray[$i])"
+			Write-Host "Location: $($videoCaptureDeviceLocationArray[$i])"
+
 			# Add to externalUsbCameras array
 			$parseResults.externalUsbCameras += $videoCaptureDeviceFriendlyNameArray[$i]
+
+			# Select the first external USB camera for opt-in checks
+			if ($selectedIndex -eq -1) {
+				$selectedIndex = $i
+			}
 		}
 	}
 
-	$selectedIndex = -1
+	# 🛡️ Safe property assignments with null checks
+	if ($selectedIndex -ge 0) {
+		if ($videoCaptureDeviceFriendlyNameArray) {
+			$parseResults.optinCameraFriendlyName = $videoCaptureDeviceFriendlyNameArray[$selectedIndex]
+		}
+		if ($videoCaptureDeviceDriverVersionArray) {
+			$parseResults.optinCameraDriverVersion = $videoCaptureDeviceDriverVersionArray[$selectedIndex]
+		}
+		if ($videoCaptureDeviceHardwareIDArray) {
+			$parseResults.optinCameraHardwareID = $videoCaptureDeviceHardwareIDArray[$selectedIndex]
+		}
+		if ($videoCaptureDeviceMepDriverVersionArray) {
+			$parseResults.mepDriverVersion = $videoCaptureDeviceMepDriverVersionArray[$selectedIndex]
+		}
+		if ($videoCaptureDeviceMepHighResModeArray) {
+			$parseResults.optinCameraMepHighResMode = $videoCaptureDeviceMepHighResModeArray[$selectedIndex]
+		}
+	} else {
+		Write-Warning "No external USB camera found. Skipping camera detail assignment."
+	}
 
-	# Priority 1: external USB + opted-in
+   # Priority 1: external (Location=n/a) + opted-in
 	for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
-		if ("Camera" -ieq $videoCaptureDeviceCategoryArray[$i] -and $videoCaptureDeviceHardwareIDArray[$i] -match "USB") {
+        if ("Camera" -ieq $videoCaptureDeviceCategoryArray[$i] -and $videoCaptureDeviceLocationArray[$i] -ieq "n/a") {
 			if ("True" -ieq $videoCaptureDeviceMEPOptedInArray[$i]) {
 				$selectedIndex = $i
 				break
@@ -362,10 +391,10 @@ function parseOptInCameraInfoFromDxDiagInfo_External_Camera()
 		}
 	}
 
-	# Priority 2: any external USB camera (even if not opted-in)
+    # Priority 2: any external (Location=n/a)
 	if ($selectedIndex -eq -1) {
 		for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
-			if ("Camera" -ieq $videoCaptureDeviceCategoryArray[$i] -and $videoCaptureDeviceHardwareIDArray[$i] -match "USB") {
+            if ("Camera" -ieq $videoCaptureDeviceCategoryArray[$i] -and $videoCaptureDeviceLocationArray[$i] -ieq "n/a") {
 				$selectedIndex = $i
 				break
 			}
@@ -375,11 +404,9 @@ function parseOptInCameraInfoFromDxDiagInfo_External_Camera()
 	# Priority 3: any internal camera with MEPOptedIn = True
 	if ($selectedIndex -eq -1) {
 		for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
-			if ("Camera" -ieq $videoCaptureDeviceCategoryArray[$i]) {
-				if ("True" -ieq $videoCaptureDeviceMEPOptedInArray[$i]) {
+            if ("Camera" -ieq $videoCaptureDeviceCategoryArray[$i] -and "True" -ieq $videoCaptureDeviceMEPOptedInArray[$i]) {
 					$selectedIndex = $i
 					break
-				}
 			}
 		}
 	}
