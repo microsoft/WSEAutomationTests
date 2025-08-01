@@ -1,5 +1,3 @@
-new
-
 <#
 DESCRIPTION:
     This function initializes the environment for a test run. It sets up global variables 
