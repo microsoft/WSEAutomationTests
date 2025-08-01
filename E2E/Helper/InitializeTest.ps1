@@ -1,4 +1,6 @@
-﻿<#
+new
+
+<#
 DESCRIPTION:
     This function initializes the environment for a test run. It sets up global variables 
     for log storage, initializes result tracking structures, and validates the 
@@ -8,7 +10,7 @@ INPUT PARAMETERS:
     - targetMepCameraVer [string] :- The target version of the MEP Camera component to be validated.
     - targetMepAudioVer [string] :- The target version of the MEP Audio component to be validated.
     - targetPerceptionCoreVer [string] :- The target version of the Perception Core component to be validated.
-    - CameraType [string] :- Camera Type - Internal or External, default being Internal Camera.
+    - CameraType [string] :- Camera Type - Internal Camera or External Camera, default being Internal Camera.
 RETURN TYPE:
     - void
 #>
@@ -23,10 +25,9 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
     $Global:validatedCameraFriendlyName = ""
     $Global:pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
 
-    # Use WseEnablingStatus or WseEnablingStatus_External_Camera based on CameraType
     if ($CameraType -ieq "External Camera")
 	{
-        WseEnablingStatus_External_Camera $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer $CameraType
+        WseEnablingStatus $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer -CameraType "External Camera"
 		return
     } else
 	{
