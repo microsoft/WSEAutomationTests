@@ -161,26 +161,6 @@ function parseOptInCameraInfoFromDxDiagInfo([ValidateSet("Internal Camera","Exte
             }
         }
 
-        # 🛡️ Safe property assignments with null checks
-        if ($selectedIndex -ge 0) {
-            if ($videoCaptureDeviceFriendlyNameArray) {
-                $parseResults.optinCameraFriendlyName = $videoCaptureDeviceFriendlyNameArray[$selectedIndex]
-            }
-            if ($videoCaptureDeviceDriverVersionArray) {
-                $parseResults.optinCameraDriverVersion = $videoCaptureDeviceDriverVersionArray[$selectedIndex]
-            }
-            if ($videoCaptureDeviceHardwareIDArray) {
-                $parseResults.optinCameraHardwareID = $videoCaptureDeviceHardwareIDArray[$selectedIndex]
-            }
-		if ($videoCaptureDeviceMepDriverVersionArray) {
-			$parseResults.mepDriverVersion = $videoCaptureDeviceMepDriverVersionArray[$selectedIndex]
-		}
-		if ($videoCaptureDeviceMepHighResModeArray) {
-			$parseResults.optinCameraMepHighResMode = $videoCaptureDeviceMepHighResModeArray[$selectedIndex]
-		}
-	} else {
-		Write-Warning "No external USB camera found. Skipping camera detail assignment."
-	}
 
         # Priority 1: external (Location=n/a) + opted-in
         for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
@@ -202,15 +182,10 @@ function parseOptInCameraInfoFromDxDiagInfo([ValidateSet("Internal Camera","Exte
             }
         }
 
-        # Priority 3: any internal camera with MEPOptedIn = True
-        if ($selectedIndex -eq -1) {
-            for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
-                if ("Camera" -ieq $videoCaptureDeviceCategoryArray[$i] -and "True" -ieq $videoCaptureDeviceMEPOptedInArray[$i]) {
-                    $selectedIndex = $i
-                    break
-                }
-            }
-        }
+		# If still not found, throw an error
+		if ($selectedIndex -eq -1) {
+			throw "External camera is not found / unavailable / not connected."
+		}
 
         # Fill parseResults with selected camera info
         if ($selectedIndex -ne -1) {
@@ -286,7 +261,7 @@ function displaySystemInfo() {
 #>
 function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerceptionCoreVer, [ValidateSet("Internal Camera","External Camera")][string]$CameraType = "Internal Camera")
 {
-    Write-Host "CameraType is: $CameraType"
+	Write-Host "CameraType is: $CameraType"
     # check device manager for NPU opt-in
     $wseCameraDriverInstance = getWseCameraDriverInstance
     if ($null -eq $wseCameraDriverInstance) {
@@ -307,7 +282,7 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
 
         # check MEP camera opt-in
         if ($mepCameraOptedIn -ieq "n/a")
-	{
+		{
             Write-Log -Message "can not find Opt-in camera instance" -IsHost -ForegroundColor Red
             return $false
         } elseif ($mepCameraOptedIn -ieq "False") {
