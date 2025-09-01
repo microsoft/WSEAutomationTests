@@ -4,13 +4,185 @@
    [string] $targetMepCameraVer = $null,
    [string] $targetMepAudioVer = $null,
    [string] $targetPerceptionCoreVer = $null,
-   [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null
+   [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null,
+   [string[]] $videoResolutions = @(),
+   [string[]] $photoResolutions = @()
 )
 .".\CheckInTest\Helper-library.ps1"
 ManagePythonSetup -Action install
 InitializeTest 'ReleaseTest' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
 $deviceData = GetDeviceDetails 
 Write-Log -Message "$deviceData" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+
+# Handle resolution filtering based on command line parameters
+$allVideoResolutions = $deviceData["VideoResolutions"]
+$allPhotoResolutions = $deviceData["PhotoResolutions"]
+
+if ($videoResolutions.Count -gt 0) {
+    # Check if user wants all video resolutions
+    if ($videoResolutions -contains "All" -or $videoResolutions -contains "*") {
+        $filteredVideoResolutions = $allVideoResolutions
+        Write-Log -Message "Using ALL available video resolutions as requested" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+    } else {
+        # Use command line specified video resolutions
+        $filteredVideoResolutions = @()
+        $invalidVideoResolutions = @()
+        
+        foreach ($requestedRes in $videoResolutions) {
+            # Convert short keys to full descriptive strings if needed
+            $fullResString = RetrieveValue($requestedRes)
+            if ($fullResString -ne $null) {
+                $searchTarget = $fullResString
+            } else {
+                $searchTarget = $requestedRes
+            }
+            
+            if ($allVideoResolutions -contains $searchTarget) {
+                $filteredVideoResolutions += $searchTarget
+                Write-Log -Message "Video resolution '$requestedRes' found and selected" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+            } else {
+                # Try partial matching for flexibility
+                $found = $false
+                foreach ($availableRes in $allVideoResolutions) {
+                    if ($availableRes -like "*$requestedRes*") {
+                        $filteredVideoResolutions += $availableRes
+                        Write-Log -Message "Video resolution '$requestedRes' matched to '$availableRes'" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+                        $found = $true
+                        break
+                    }
+                }
+                if (-not $found) {
+                    $invalidVideoResolutions += $requestedRes
+                }
+            }
+        }
+        
+        # Handle invalid resolutions gracefully
+        if ($invalidVideoResolutions.Count -gt 0) {
+            Write-Warning "The following video resolutions are not available on this device:"
+            foreach ($invalidRes in $invalidVideoResolutions) {
+                Write-Warning "  ✗ '$invalidRes'"
+            }
+            Write-Host "`Available video resolutions on this device:" -ForegroundColor Cyan
+            foreach ($availableRes in $allVideoResolutions) {
+                $shortKey = RetrieveValue($availableRes)
+                if ($shortKey -ne $null) {
+                    Write-Host "  • $shortKey -> $availableRes" -ForegroundColor Green
+                } else {
+                    Write-Host "  • $availableRes" -ForegroundColor Green
+                }
+            }
+        }
+        
+        if ($filteredVideoResolutions.Count -eq 0) {
+            Write-Error "CRITICAL: None of the requested video resolutions are available on this device."
+            Write-Host "Please use one of the available video resolutions listed above, or use -videoResolutions @('All') to test all available resolutions." -ForegroundColor Red
+            Write-Host "Example: .\ReleaseTest.ps1 -videoResolutions @('1080p', '720p') -photoResolutions @('12.2MP')" -ForegroundColor Yellow
+            return
+        }
+    }
+} else {
+    # Default behavior: use strategic subset (highest + 720p + 360p)
+    $filteredVideoResolutions = @()
+    if ($allVideoResolutions.Count -gt 0) {
+        $filteredVideoResolutions += $allVideoResolutions[0]  # Highest resolution
+    }
+    
+    # Look for 720p and 360p in the available resolutions
+    foreach ($res in $allVideoResolutions) {
+        if ($res -like "*720p*" -and $filteredVideoResolutions -notcontains $res) {
+            $filteredVideoResolutions += $res  # 720p
+        }
+        if ($res -like "*360p*" -and $filteredVideoResolutions -notcontains $res) {
+            $filteredVideoResolutions += $res  # 360p
+        }
+    }
+    
+    if ($filteredVideoResolutions.Count -eq 0) {
+        $filteredVideoResolutions = $allVideoResolutions  # Fallback to all if none found
+    }
+}
+
+if ($photoResolutions.Count -gt 0) {
+    # Check if user wants all photo resolutions
+    if ($photoResolutions -contains "All" -or $photoResolutions -contains "*") {
+        $filteredPhotoResolutions = $allPhotoResolutions
+        Write-Log -Message "Using ALL available photo resolutions as requested" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+    } else {
+        # Use command line specified photo resolutions
+        $filteredPhotoResolutions = @()
+        $invalidPhotoResolutions = @()
+        
+        foreach ($requestedRes in $photoResolutions) {
+            # Convert short keys to full descriptive strings if needed
+            $fullResString = RetrieveValue($requestedRes)
+            if ($fullResString -ne $null) {
+                $searchTarget = $fullResString
+            } else {
+                $searchTarget = $requestedRes
+            }
+            
+            if ($allPhotoResolutions -contains $searchTarget) {
+                $filteredPhotoResolutions += $searchTarget
+                Write-Log -Message "Photo resolution '$requestedRes' found and selected" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+            } else {
+                # Try partial matching for flexibility
+                $found = $false
+                foreach ($availableRes in $allPhotoResolutions) {
+                    if ($availableRes -like "*$requestedRes*") {
+                        $filteredPhotoResolutions += $availableRes
+                        Write-Log -Message "Photo resolution '$requestedRes' matched to '$availableRes'" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+                        $found = $true
+                        break
+                    }
+                }
+                if (-not $found) {
+                    $invalidPhotoResolutions += $requestedRes
+                }
+            }
+        }
+        
+        # Handle invalid resolutions gracefully
+        if ($invalidPhotoResolutions.Count -gt 0) {
+            Write-Warning "The following photo resolutions are not available on this device:"
+            foreach ($invalidRes in $invalidPhotoResolutions) {
+                Write-Warning "  ✗ '$invalidRes'"
+            }
+            Write-Host "`nAvailable photo resolutions on this device:" -ForegroundColor Cyan
+            foreach ($availableRes in $allPhotoResolutions) {
+                $shortKey = RetrieveValue($availableRes)
+                if ($shortKey -ne $null) {
+                    Write-Host "  • $shortKey -> $availableRes" -ForegroundColor Green
+                } else {
+                    Write-Host "  • $availableRes" -ForegroundColor Green
+                }
+            }
+        }
+        
+        if ($filteredPhotoResolutions.Count -eq 0) {
+            Write-Error "CRITICAL: None of the requested photo resolutions are available on this device."
+            Write-Host "Please use one of the available photo resolutions listed above, or use -photoResolutions @('All') to test all available resolutions." -ForegroundColor Red
+            Write-Host "Example: .\ReleaseTest.ps1 -videoResolutions @('1080p') -photoResolutions @('12.2MP', '8.3MP')" -ForegroundColor Yellow
+            return
+        }
+    }
+} else {
+    # Default behavior: use highest photo resolution only
+    $filteredPhotoResolutions = @()
+    if ($allPhotoResolutions.Count -gt 0) {
+        $filteredPhotoResolutions += $allPhotoResolutions[0]  # Highest resolution
+    }
+    if ($filteredPhotoResolutions.Count -eq 0) {
+        $filteredPhotoResolutions = $allPhotoResolutions  # Fallback to all if none found
+    }
+}
+
+# Update device data with filtered resolutions
+$deviceData["VideoResolutions"] = $filteredVideoResolutions
+$deviceData["PhotoResolutions"] = $filteredPhotoResolutions
+
+Write-Log -Message "Using Video Resolutions: $($filteredVideoResolutions -join ', ')" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+Write-Log -Message "Using Photo Resolutions: $($filteredPhotoResolutions -join ', ')" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
 
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
@@ -102,7 +274,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                   }
 
                   if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
-                     Write-Host "breaking from the while loop"
+                     Write-Host "Completed all AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
                   }
                }
@@ -139,7 +311,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $devPowStat = "Unplugged"
                      CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
-                     Write-Host "All Unplugged scenarios completed. Exiting." -ForegroundColor Yellow
+                     Write-Host "Completed all Unplugged AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
                   }
                }
@@ -159,7 +331,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $devPowStat = "PluggedIn"
                      CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
-                     Write-Host "All PluggedIn scenarios completed. Exiting." -ForegroundColor Yellow
+                     Write-Host "Completed all PluggedIn AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
                   } 
                }
