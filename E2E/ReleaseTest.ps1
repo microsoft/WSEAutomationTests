@@ -18,171 +18,148 @@ Write-Log -Message "$deviceData" | Out-File -FilePath "$pathLogsFolder\CameraApp
 $allVideoResolutions = $deviceData["VideoResolutions"]
 $allPhotoResolutions = $deviceData["PhotoResolutions"]
 
-if ($videoResolutions.Count -gt 0) {
-    # Check if user wants all video resolutions
-    if ($videoResolutions -contains "All" -or $videoResolutions -contains "*") {
-        $filteredVideoResolutions = $allVideoResolutions
-        Write-Log -Message "Using ALL available video resolutions as requested" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-    } else {
-        # Use command line specified video resolutions
-        $filteredVideoResolutions = @()
-        $invalidVideoResolutions = @()
+# Optimized resolution filtering function
+function Filter-Resolutions {
+    param(
+        [string[]]$requestedResolutions,
+        [string[]]$availableResolutions,
+        [string]$resolutionType
+    )
+    
+    if ($requestedResolutions.Count -eq 0) {
+        # Automatically select strategic defaults: highest, middle, and lowest resolutions
+        $filtered = [System.Collections.Generic.List[string]]::new()
         
-        foreach ($requestedRes in $videoResolutions) {
-            # Convert short keys to full descriptive strings if needed
-            $fullResString = RetrieveValue($requestedRes)
-            if ($fullResString -ne $null) {
-                $searchTarget = $fullResString
-            } else {
-                $searchTarget = $requestedRes
+        if ($availableResolutions.Count -gt 0) {
+            # Always add highest (first in array)
+            $filtered.Add($availableResolutions[0])
+            
+            # Add middle resolution if available
+            if ($availableResolutions.Count -gt 2) {
+                $middleIndex = [Math]::Floor($availableResolutions.Count / 2)
+                if ($filtered -notcontains $availableResolutions[$middleIndex]) {
+                    $filtered.Add($availableResolutions[$middleIndex])
+                }
             }
             
-            if ($allVideoResolutions -contains $searchTarget) {
-                $filteredVideoResolutions += $searchTarget
-                Write-Log -Message "Video resolution '$requestedRes' found and selected" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-            } else {
-                # Try partial matching for flexibility
-                $found = $false
-                foreach ($availableRes in $allVideoResolutions) {
-                    if ($availableRes -like "*$requestedRes*") {
-                        $filteredVideoResolutions += $availableRes
-                        Write-Log -Message "Video resolution '$requestedRes' matched to '$availableRes'" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-                        $found = $true
-                        break
-                    }
-                }
-                if (-not $found) {
-                    $invalidVideoResolutions += $requestedRes
+            # Add lowest resolution if different from highest
+            if ($availableResolutions.Count -gt 1) {
+                $lowestRes = $availableResolutions[-1]  # Last element
+                if ($filtered -notcontains $lowestRes) {
+                    $filtered.Add($lowestRes)
                 }
             }
         }
         
-        # Handle invalid resolutions gracefully
-        if ($invalidVideoResolutions.Count -gt 0) {
-            Write-Warning "The following video resolutions are not available on this device:"
-            foreach ($invalidRes in $invalidVideoResolutions) {
-                Write-Warning "  ✗ '$invalidRes'"
+        Write-Log -Message "No $resolutionType resolutions specified. Using strategic defaults: $($filtered -join ', ')" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+        
+        if ($filtered.Count -gt 0) {
+            return $filtered.ToArray()
+        } else {
+            return @($availableResolutions[0])
+        }
+    }
+    
+    # Check for wildcard (all resolutions)
+    if ($requestedResolutions -contains "All" -or $requestedResolutions -contains "*") {
+        Write-Log -Message "Using ALL available $resolutionType resolutions as requested" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+        return $availableResolutions
+    }
+    
+    # Process requested resolutions
+    $filtered = [System.Collections.Generic.List[string]]::new()
+    $invalid = [System.Collections.Generic.List[string]]::new()
+    
+    foreach ($requestedRes in $requestedResolutions) {
+        $found = $false
+        
+        # Try direct lookup first (RetrieveValue)
+        $fullResString = RetrieveValue($requestedRes)
+        $searchTarget = if ($fullResString) { $fullResString } else { $requestedRes }
+        
+        # Check exact match
+        if ($availableResolutions -contains $searchTarget) {
+            if ($filtered -notcontains $searchTarget) {
+                $filtered.Add($searchTarget)
+                Write-Log -Message "$resolutionType resolution '$requestedRes' found and selected" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
             }
-            Write-Host "`Available video resolutions on this device:" -ForegroundColor Cyan
-            foreach ($availableRes in $allVideoResolutions) {
-                $shortKey = RetrieveValue($availableRes)
-                if ($shortKey -ne $null) {
-                    Write-Host "  • $shortKey -> $availableRes" -ForegroundColor Green
-                } else {
-                    Write-Host "  • $availableRes" -ForegroundColor Green
+            $found = $true
+        } else {
+            # Try partial matching
+            $partialMatch = $availableResolutions | Where-Object { $_ -like "*$requestedRes*" } | Select-Object -First 1
+            if ($partialMatch) {
+                if ($filtered -notcontains $partialMatch) {
+                    $filtered.Add($partialMatch)
+                    Write-Log -Message "$resolutionType resolution '$requestedRes' matched to '$partialMatch'" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
                 }
+                $found = $true
             }
         }
         
-        if ($filteredVideoResolutions.Count -eq 0) {
-            Write-Error "CRITICAL: None of the requested video resolutions are available on this device."
-            Write-Host "Please use one of the available video resolutions listed above, or use -videoResolutions @('All') to test all available resolutions." -ForegroundColor Red
-            Write-Host "Example: .\ReleaseTest.ps1 -videoResolutions @('1080p', '720p') -photoResolutions @('12.2MP')" -ForegroundColor Yellow
-            return
-        }
-    }
-} else {
-    # Default behavior: use strategic subset (highest + 720p + 360p)
-    $filteredVideoResolutions = @()
-    if ($allVideoResolutions.Count -gt 0) {
-        $filteredVideoResolutions += $allVideoResolutions[0]  # Highest resolution
-    }
-    
-    # Look for 720p and 360p in the available resolutions
-    foreach ($res in $allVideoResolutions) {
-        if ($res -like "*720p*" -and $filteredVideoResolutions -notcontains $res) {
-            $filteredVideoResolutions += $res  # 720p
-        }
-        if ($res -like "*360p*" -and $filteredVideoResolutions -notcontains $res) {
-            $filteredVideoResolutions += $res  # 360p
+        if (-not $found) {
+            $invalid.Add($requestedRes)
         }
     }
     
-    if ($filteredVideoResolutions.Count -eq 0) {
-        $filteredVideoResolutions = $allVideoResolutions  # Fallback to all if none found
+    # Handle invalid resolutions
+    if ($invalid.Count -gt 0) {
+        Write-Warning "The following $resolutionType resolutions are not available on this device:"
+        $invalid | ForEach-Object { Write-Warning "  ✗ '$_'" }
+        
+        Write-Host "`nAvailable $resolutionType resolutions on this device:" -ForegroundColor Cyan
+        foreach ($availableRes in $availableResolutions) {
+            $shortKey = RetrieveValue($availableRes)
+            $displayText = if ($shortKey) { "$shortKey -> $availableRes" } else { $availableRes }
+            Write-Host "  • $displayText" -ForegroundColor Green
+        }
     }
+    
+    # Validate we have at least one valid resolution
+    if ($filtered.Count -eq 0) {
+        Write-Error "CRITICAL: None of the requested $resolutionType resolutions are available on this device."
+        Write-Host "Please use one of the available $resolutionType resolutions listed above, or use -${resolutionType}Resolutions @('All') to test all available resolutions." -ForegroundColor Red
+        Write-Host "Example: .\ReleaseTest.ps1 -videoResolutions @('1080p', '720p') -photoResolutions @('12.2MP')" -ForegroundColor Yellow
+        exit 1
+    }
+    
+    return $filtered.ToArray()
 }
 
-if ($photoResolutions.Count -gt 0) {
-    # Check if user wants all photo resolutions
-    if ($photoResolutions -contains "All" -or $photoResolutions -contains "*") {
-        $filteredPhotoResolutions = $allPhotoResolutions
-        Write-Log -Message "Using ALL available photo resolutions as requested" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-    } else {
-        # Use command line specified photo resolutions
-        $filteredPhotoResolutions = @()
-        $invalidPhotoResolutions = @()
-        
-        foreach ($requestedRes in $photoResolutions) {
-            # Convert short keys to full descriptive strings if needed
-            $fullResString = RetrieveValue($requestedRes)
-            if ($fullResString -ne $null) {
-                $searchTarget = $fullResString
-            } else {
-                $searchTarget = $requestedRes
-            }
-            
-            if ($allPhotoResolutions -contains $searchTarget) {
-                $filteredPhotoResolutions += $searchTarget
-                Write-Log -Message "Photo resolution '$requestedRes' found and selected" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-            } else {
-                # Try partial matching for flexibility
-                $found = $false
-                foreach ($availableRes in $allPhotoResolutions) {
-                    if ($availableRes -like "*$requestedRes*") {
-                        $filteredPhotoResolutions += $availableRes
-                        Write-Log -Message "Photo resolution '$requestedRes' matched to '$availableRes'" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-                        $found = $true
-                        break
-                    }
-                }
-                if (-not $found) {
-                    $invalidPhotoResolutions += $requestedRes
-                }
-            }
-        }
-        
-        # Handle invalid resolutions gracefully
-        if ($invalidPhotoResolutions.Count -gt 0) {
-            Write-Warning "The following photo resolutions are not available on this device:"
-            foreach ($invalidRes in $invalidPhotoResolutions) {
-                Write-Warning "  ✗ '$invalidRes'"
-            }
-            Write-Host "`nAvailable photo resolutions on this device:" -ForegroundColor Cyan
-            foreach ($availableRes in $allPhotoResolutions) {
-                $shortKey = RetrieveValue($availableRes)
-                if ($shortKey -ne $null) {
-                    Write-Host "  • $shortKey -> $availableRes" -ForegroundColor Green
-                } else {
-                    Write-Host "  • $availableRes" -ForegroundColor Green
-                }
-            }
-        }
-        
-        if ($filteredPhotoResolutions.Count -eq 0) {
-            Write-Error "CRITICAL: None of the requested photo resolutions are available on this device."
-            Write-Host "Please use one of the available photo resolutions listed above, or use -photoResolutions @('All') to test all available resolutions." -ForegroundColor Red
-            Write-Host "Example: .\ReleaseTest.ps1 -videoResolutions @('1080p') -photoResolutions @('12.2MP', '8.3MP')" -ForegroundColor Yellow
-            return
-        }
-    }
-} else {
-    # Default behavior: use highest photo resolution only
-    $filteredPhotoResolutions = @()
-    if ($allPhotoResolutions.Count -gt 0) {
-        $filteredPhotoResolutions += $allPhotoResolutions[0]  # Highest resolution
-    }
-    if ($filteredPhotoResolutions.Count -eq 0) {
-        $filteredPhotoResolutions = $allPhotoResolutions  # Fallback to all if none found
-    }
-}
+# Apply filtering with strategic defaults (highest, middle, lowest)
+$filteredVideoResolutions = Filter-Resolutions -requestedResolutions $videoResolutions -availableResolutions $allVideoResolutions -resolutionType "video"
+
+$filteredPhotoResolutions = Filter-Resolutions -requestedResolutions $photoResolutions -availableResolutions $allPhotoResolutions -resolutionType "photo"
 
 # Update device data with filtered resolutions
 $deviceData["VideoResolutions"] = $filteredVideoResolutions
 $deviceData["PhotoResolutions"] = $filteredPhotoResolutions
 
-Write-Log -Message "Using Video Resolutions: $($filteredVideoResolutions -join ', ')" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-Write-Log -Message "Using Photo Resolutions: $($filteredPhotoResolutions -join ', ')" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+# Log selected resolutions
+$logMessage = @(
+    "Using Video Resolutions: $($filteredVideoResolutions -join ', ')",
+    "Using Photo Resolutions: $($filteredPhotoResolutions -join ', ')"
+) -join "`n"
+Write-Log -Message $logMessage | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+
+# Display selected resolutions to console
+Write-Host "`n=== RESOLUTION SELECTION SUMMARY ===" -ForegroundColor Cyan
+Write-Host "Selected Video Resolutions ($($filteredVideoResolutions.Count)):" -ForegroundColor Yellow
+foreach ($res in $filteredVideoResolutions) {
+    $resDetails = RetrieveValue($res)
+    $displayText = if ($resDetails) { "$resDetails -> $res" } else { $res }
+    Write-Host "  • $displayText" -ForegroundColor Green
+}
+
+Write-Host "`nSelected Photo Resolutions ($($filteredPhotoResolutions.Count)):" -ForegroundColor Yellow
+foreach ($res in $filteredPhotoResolutions) {
+    $resDetails = RetrieveValue($res)
+    $displayText = if ($resDetails) { "$resDetails -> $res" } else { $res }
+    Write-Host "  • $displayText" -ForegroundColor Green
+}
+
+$totalCombinations = $filteredVideoResolutions.Count * $filteredPhotoResolutions.Count * $deviceData["CameraScenario"].Count * $deviceData["VoiceFocus"].Count * $deviceData["ToggleAiEffect"].Count
+Write-Host "`nTotal Test Combinations: $totalCombinations" -ForegroundColor Magenta
+Write-Host "====================================`n" -ForegroundColor Cyan
 
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
