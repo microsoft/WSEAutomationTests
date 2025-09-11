@@ -91,7 +91,7 @@ function FindVoiceFocusPage($uiEle){
         }
     }
     $i=0
-    $allSoundDevices = @( "Internal Microphone" , "Microphone on SoundWire Device" , "Microphone Array" ,"Internal Microphone Array - Front")
+    $allSoundDevices = @( "Internal Microphone" , "Microphone on SoundWire Device" , "Microphone Array" ,"Internal Microphone Array - Front","Surface Stereo Microphones")
     $exists = CheckIfElementExists $uiEle Button $allSoundDevices[$i]
     while($exists.length -eq 0 -and $i -lt 4)
     {
