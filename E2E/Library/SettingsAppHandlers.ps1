@@ -141,9 +141,17 @@ Function VoiceFocusToggleSwitch($proptyVal)
      Start-Sleep -m 500
      
      Write-Log -Message "Turn $proptyVal all audio effects" -IsOutput
-     FindAndClick $ui ComboBox "Voice Focus" 
-     FindAndClick $ui ComboBoxItem $proptyVal
-     Start-Sleep -s 1
+     $exists = CheckIfElementExists $ui ToggleSwitch "Voice Focus" 
+     if ($exists)
+     {
+        FindAndSetValue $ui ToggleSwitch "Voice Focus" $proptyVal
+        Start-Sleep -s 1
+     }
+     else
+     {
+        FindAndClick $ui ComboBox "Voice Focus"
+        FindAndClick $ui ComboBoxItem $proptyVal
+     }
 
      #close settings app
      CloseApp 'systemsettings'
