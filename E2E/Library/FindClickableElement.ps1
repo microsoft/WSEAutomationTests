@@ -7,6 +7,7 @@ INPUT PARAMETERS:
     - uiEle [object] :- The root UI element to search within.
     - clsNme [string] :- The class name of the UI element to search for.
     - proptyNme [string] :- The property name of the UI element to search for.
+    - timeoutSeconds [int] :- Maximum time for polling in seconds (Default : 2)
 RETURN TYPE:
     - [object] :- Returns the UI element if found, otherwise returns $null.
 #>
