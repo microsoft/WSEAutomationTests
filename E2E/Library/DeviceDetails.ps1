@@ -277,5 +277,19 @@ function Filter-Resolutions {
         exit 1
     }
     
+    # Log and display selected resolutions
+    $selectedResolutionsText = $filtered.ToArray() -join ', '
+    Write-Log -Message "Selected $resolutionType Resolutions: $selectedResolutionsText" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+    
+    # Display selected resolutions to console
+    Write-Host "`n=== $($resolutionType.ToUpper()) RESOLUTION SELECTION ===" -ForegroundColor Cyan
+    Write-Host "Selected $resolutionType Resolutions ($($filtered.Count)):" -ForegroundColor Yellow
+    foreach ($res in $filtered) {
+        $resDetails = RetrieveValue($res)
+        $displayText = if ($resDetails) { "$resDetails -> $res" } else { $res }
+        Write-Host "  • $displayText" -ForegroundColor Green
+    }
+    Write-Host "==============================`n" -ForegroundColor Cyan
+    
     return $filtered.ToArray()
 }

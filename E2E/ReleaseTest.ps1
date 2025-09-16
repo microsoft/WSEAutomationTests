@@ -22,37 +22,6 @@ $filteredVideoResolutions = Filter-Resolutions -requestedResolutions @() -availa
 
 $filteredPhotoResolutions = Filter-Resolutions -requestedResolutions @() -availableResolutions $allPhotoResolutions -resolutionType "photo"
 
-# Update device data with filtered resolutions
-$deviceData["VideoResolutions"] = $filteredVideoResolutions
-$deviceData["PhotoResolutions"] = $filteredPhotoResolutions
-
-# Log selected resolutions
-$logMessage = @(
-    "Using Video Resolutions: $($filteredVideoResolutions -join ', ')",
-    "Using Photo Resolutions: $($filteredPhotoResolutions -join ', ')"
-) -join "`n"
-Write-Log -Message $logMessage | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-
-# Display selected resolutions to console
-Write-Host "`n=== RESOLUTION SELECTION SUMMARY ===" -ForegroundColor Cyan
-Write-Host "Selected Video Resolutions ($($filteredVideoResolutions.Count)):" -ForegroundColor Yellow
-foreach ($res in $filteredVideoResolutions) {
-    $resDetails = RetrieveValue($res)
-    $displayText = if ($resDetails) { "$resDetails -> $res" } else { $res }
-    Write-Host "  • $displayText" -ForegroundColor Green
-}
-
-Write-Host "`nSelected Photo Resolutions ($($filteredPhotoResolutions.Count)):" -ForegroundColor Yellow
-foreach ($res in $filteredPhotoResolutions) {
-    $resDetails = RetrieveValue($res)
-    $displayText = if ($resDetails) { "$resDetails -> $res" } else { $res }
-    Write-Host "  • $displayText" -ForegroundColor Green
-}
-
-$totalCombinations = $filteredVideoResolutions.Count * $filteredPhotoResolutions.Count * $deviceData["CameraScenario"].Count * $deviceData["VoiceFocus"].Count * $deviceData["ToggleAiEffect"].Count
-Write-Host "`nTotal Test Combinations: $totalCombinations" -ForegroundColor Magenta
-Write-Host "====================================`n" -ForegroundColor Cyan
-
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
 
@@ -60,7 +29,7 @@ Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
 foreach($camsnario in $deviceData["CameraScenario"])
 {  
    # Loop through video resolutions
-   foreach ($vdoRes in $deviceData["VideoResolutions"])
+   foreach ($vdoRes in $filteredVideoResolutions)
    {  
       $initialSetupDone = "true" 
       $startTime = Get-Date 
@@ -79,7 +48,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
       }  
       
       # Loop through photo resolutions  
-      foreach ($ptoRes in  $deviceData["PhotoResolutions"])
+      foreach ($ptoRes in  $filteredPhotoResolutions)
       {   
          #Retrieve photo resolution from hash table 
          $ptoResDetails= RetrieveValue($ptoRes)       
