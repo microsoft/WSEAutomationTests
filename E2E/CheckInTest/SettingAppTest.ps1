@@ -37,8 +37,8 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
 
        Write-Log -Message "Starting Test for $scenarioName" -IsOutput
        
-       # Retrieve value for scenario from LookUp table for camera effects
-       $testScenario = RetrieveValue $testScenario
+       #Retrieve value for scenario from Get-CombinationReturnValues function
+       $testScenario = Get-CombinationReturnValues -effects $testScenario
        if($testScenario.length -eq 0)
        {
           TestOutputMessage $scenarioName "Skipped" $startTime "wsev2Policy Not Supported"
