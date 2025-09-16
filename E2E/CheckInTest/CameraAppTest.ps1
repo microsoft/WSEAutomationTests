@@ -34,8 +34,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder
 
-       #Retrieve value for scenario from Hash table
-       $toggleEachAiEffect = RetrieveValue $toggleEachAiEffect
+       #Retrieve value for scenario from Get-CombinationReturnValues function
+       $toggleEachAiEffect = Get-CombinationReturnValues -effects $toggleEachAiEffect
        if($toggleEachAiEffect.length -eq 0)
        {
           TestOutputMessage $scenarioLogFolder "Skipped" $startTime "wsev2Policy Not Supported"

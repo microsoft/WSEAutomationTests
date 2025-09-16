@@ -14,7 +14,7 @@ function AudioRecording($scnds)
      #open voice recorder App
      Write-Log -Message "Open Voice Recorder App" -IsOutput
      #TODO: Don't use full exe path to open voice recorder. We may have to set the path in the environment variable	
-     $ui = OpenApp "C:\Program Files\WindowsApps\Microsoft.WindowsSoundRecorder_*_arm64__8wekyb3d8bbwe\VoiceRecorder.exe" 'Sound Recorder'
+     $ui = OpenApp "C:\Program Files\WindowsApps\Microsoft.WindowsSoundRecorder_*_*__8wekyb3d8bbwe\VoiceRecorder.exe" 'Sound Recorder'
      
      Start-Sleep -m 500
      

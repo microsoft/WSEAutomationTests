@@ -91,7 +91,7 @@ function FindVoiceFocusPage($uiEle){
         }
     }
     $i=0
-    $allSoundDevices = @( "Internal Microphone" , "Microphone on SoundWire Device" , "Microphone Array" ,"Internal Microphone Array - Front")
+    $allSoundDevices = @( "Internal Microphone" , "Microphone on SoundWire Device" , "Microphone Array" ,"Internal Microphone Array - Front","Surface Stereo Microphones")
     $exists = CheckIfElementExists $uiEle Button $allSoundDevices[$i]
     while($exists.length -eq 0 -and $i -lt 4)
     {
@@ -141,8 +141,17 @@ Function VoiceFocusToggleSwitch($proptyVal)
      Start-Sleep -m 500
      
      Write-Log -Message "Turn $proptyVal all audio effects" -IsOutput
-     FindAndSetValue $ui ToggleSwitch "Voice Focus" $proptyVal
-     Start-Sleep -s 1
+     $exists = CheckIfElementExists $ui ToggleSwitch "Voice Focus" 
+     if ($exists)
+     {
+        FindAndSetValue $ui ToggleSwitch "Voice Focus" $proptyVal
+        Start-Sleep -s 1
+     }
+     else
+     {
+        FindAndClick $ui ComboBox "Voice Focus"
+        FindAndClick $ui ComboBoxItem $proptyVal
+     }
 
      #close settings app
      CloseApp 'systemsettings'

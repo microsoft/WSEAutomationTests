@@ -242,7 +242,7 @@ function CheckInitTimePCOnly($snarioName, $snarioId)
       if($snarioId -eq "512")
       {  
          Write-Log -Message "PC Time To First Frame: ${InitTimePCOnly}secs" -IsOutput
-         $Results.'timrtofirstframeForAudio(In secs)' = $InitTimePCOnly
+         $Results.'timetofirstframeForAudio(In secs)' = $InitTimePCOnly
       }
       else
       {
