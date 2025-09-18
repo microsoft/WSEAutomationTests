@@ -208,38 +208,36 @@ function Filter-Resolutions {
         
         Write-Log -Message "No $resolutionType resolutions specified. Using strategic defaults: $($filtered -join ', ')" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
         
-        if ($filtered.Count -gt 0) {
-            return $filtered.ToArray()
-        } else {
-            return @($availableResolutions[0])
+        if ($filtered.Count -eq 0) {
+            $filtered.Add($availableResolutions[0])
         }
     }
-    
     # Check for wildcard (all resolutions)
-    if ($requestedResolutions -contains "All" -or $requestedResolutions -contains "*") {
+    elseif ($requestedResolutions -contains "All" -or $requestedResolutions -contains "*") {
         Write-Log -Message "Using ALL available $resolutionType resolutions as requested" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-        return $availableResolutions
+        $filtered = [System.Collections.Generic.List[string]]::new()
+        $filtered.AddRange($availableResolutions)
     }
-    
     # Process requested resolutions
-    $filtered = [System.Collections.Generic.List[string]]::new()
-    $invalid = [System.Collections.Generic.List[string]]::new()
-    
-    foreach ($requestedRes in $requestedResolutions) {
-        $found = $false
+    else {
+        $filtered = [System.Collections.Generic.List[string]]::new()
+        $invalid = [System.Collections.Generic.List[string]]::new()
         
-        # Try direct lookup first (RetrieveValue)
-        $fullResString = RetrieveValue($requestedRes)
-        $searchTarget = if ($fullResString) { $fullResString } else { $requestedRes }
-        
-        # Check exact match
-        if ($availableResolutions -contains $searchTarget) {
-            if ($filtered -notcontains $searchTarget) {
-                $filtered.Add($searchTarget)
-                Write-Log -Message "$resolutionType resolution '$requestedRes' found and selected" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-            }
-            $found = $true
-        } else {
+        foreach ($requestedRes in $requestedResolutions) {
+            $found = $false
+            
+            # Try direct lookup first (RetrieveValue)
+            $fullResString = RetrieveValue($requestedRes)
+            $searchTarget = if ($fullResString) { $fullResString } else { $requestedRes }
+            
+            # Check exact match
+            if ($availableResolutions -contains $searchTarget) {
+                if ($filtered -notcontains $searchTarget) {
+                    $filtered.Add($searchTarget)
+                    Write-Log -Message "$resolutionType resolution '$requestedRes' found and selected" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+                }
+                $found = $true
+            } else {
             # Try partial matching
             $partialMatch = $availableResolutions | Where-Object { $_ -like "*$requestedRes*" } | Select-Object -First 1
             if ($partialMatch) {
@@ -267,17 +265,18 @@ function Filter-Resolutions {
             $displayText = if ($shortKey) { "$shortKey -> $availableRes" } else { $availableRes }
             Write-Host "  • $displayText" -ForegroundColor Green
         }
+        }
+        
+        # Validate we have at least one valid resolution
+        if ($filtered.Count -eq 0) {
+            Write-Error "CRITICAL: None of the requested $resolutionType resolutions are available on this device."
+            Write-Host "Please use one of the available $resolutionType resolutions listed above, or use -${resolutionType}Resolutions @('All') to test all available resolutions." -ForegroundColor Red
+            Write-Host "Example: .\ReleaseTest.ps1 -videoResolutions @('1080p', '720p') -photoResolutions @('12.2MP')" -ForegroundColor Yellow
+            exit 1
+        }
     }
     
-    # Validate we have at least one valid resolution
-    if ($filtered.Count -eq 0) {
-        Write-Error "CRITICAL: None of the requested $resolutionType resolutions are available on this device."
-        Write-Host "Please use one of the available $resolutionType resolutions listed above, or use -${resolutionType}Resolutions @('All') to test all available resolutions." -ForegroundColor Red
-        Write-Host "Example: .\ReleaseTest.ps1 -videoResolutions @('1080p', '720p') -photoResolutions @('12.2MP')" -ForegroundColor Yellow
-        exit 1
-    }
-    
-    # Log and display selected resolutions
+    # Log and display selected resolutions (common for all paths)
     $selectedResolutionsText = $filtered.ToArray() -join ', '
     Write-Log -Message "Selected $resolutionType Resolutions: $selectedResolutionsText" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
     

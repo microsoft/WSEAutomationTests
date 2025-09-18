@@ -13,14 +13,11 @@ $deviceData = GetDeviceDetails
 Write-Log -Message "$deviceData" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
 
 # Handle resolution filtering based on command line parameters
-$allVideoResolutions = $deviceData["VideoResolutions"]
-$allPhotoResolutions = $deviceData["PhotoResolutions"]
-
 # ReleaseTest always uses default strategic selection (max+min+720p for video, highest for photo)
 # Pass empty arrays to trigger default behavior in Filter-Resolutions function
-$filteredVideoResolutions = Filter-Resolutions -requestedResolutions @() -availableResolutions $allVideoResolutions -resolutionType "video"
+$filteredVideoResolutions = Filter-Resolutions -requestedResolutions @() -availableResolutions $deviceData["VideoResolutions"] -resolutionType "video"
 
-$filteredPhotoResolutions = Filter-Resolutions -requestedResolutions @() -availableResolutions $allPhotoResolutions -resolutionType "photo"
+$filteredPhotoResolutions = Filter-Resolutions -requestedResolutions @() -availableResolutions $deviceData["PhotoResolutions"] -resolutionType "photo"
 
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
