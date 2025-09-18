@@ -42,6 +42,7 @@
 
 )
 .".\CheckInTest\Helper-library.ps1"
+ManagePythonSetup -Action install
 InitializeTest 'ScenarioTesting'
 $voiceFocusExists = CheckVoiceFocusPolicy  
 if($voiceFocusExists -eq $false)
@@ -58,3 +59,7 @@ if($token.Length -ne 0 -and $SPId.Length -ne 0)
 [console]::beep(500,300)
  
 ConvertTxtFileToExcel "$pathLogsFolder\Report.txt"
+
+Start-Sleep -s 3
+
+ManagePythonSetup -Action uninstall
