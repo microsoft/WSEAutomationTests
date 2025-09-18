@@ -12,6 +12,13 @@ InitializeTest 'ReleaseTest' $targetMepCameraVer $targetMepAudioVer $targetPerce
 $deviceData = GetDeviceDetails 
 Write-Log -Message "$deviceData" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
 
+# Handle resolution filtering based on command line parameters
+# ReleaseTest always uses default strategic selection (max+min+720p for video, highest for photo)
+# Pass empty arrays to trigger default behavior in Filter-Resolutions function
+$filteredVideoResolutions = Filter-Resolutions -requestedResolutions @() -availableResolutions $deviceData["VideoResolutions"] -resolutionType "video"
+
+$filteredPhotoResolutions = Filter-Resolutions -requestedResolutions @() -availableResolutions $deviceData["PhotoResolutions"] -resolutionType "photo"
+
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
 
@@ -19,7 +26,7 @@ Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
 foreach($camsnario in $deviceData["CameraScenario"])
 {  
    # Loop through video resolutions
-   foreach ($vdoRes in $deviceData["VideoResolutions"])
+   foreach ($vdoRes in $filteredVideoResolutions)
    {  
       $initialSetupDone = "true" 
       $startTime = Get-Date 
@@ -38,7 +45,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
       }  
       
       # Loop through photo resolutions  
-      foreach ($ptoRes in  $deviceData["PhotoResolutions"])
+      foreach ($ptoRes in  $filteredPhotoResolutions)
       {   
          #Retrieve photo resolution from hash table 
          $ptoResDetails= RetrieveValue($ptoRes)       
@@ -102,7 +109,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                   }
 
                   if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
-                     Write-Host "breaking from the while loop"
+                     Write-Host "Completed all AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
                   }
                }
@@ -139,7 +146,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $devPowStat = "Unplugged"
                      CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
-                     Write-Host "All Unplugged scenarios completed. Exiting." -ForegroundColor Yellow
+                     Write-Host "Completed all Unplugged AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
                   }
                }
@@ -159,7 +166,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $devPowStat = "PluggedIn"
                      CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
-                     Write-Host "All PluggedIn scenarios completed. Exiting." -ForegroundColor Yellow
+                     Write-Host "Completed all PluggedIn AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
                   } 
                }
