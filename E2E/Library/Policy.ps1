@@ -37,7 +37,7 @@ RETURN TYPE:
 #>
 function CheckWSEV2Policy
 {
-   $libSnpeHtpV73Skel = "C:\Windows\System32\DriverStore\FileRepository\microsofteffectpack_extension.inf*\libSnpeHtpV73Skel.so"
+   $libSnpeHtpV73Skel = "C:\Windows\System32\DriverStore\FileRepository\microsofteffectpack_extension.inf*\lib*.so"
    if(!(Test-path -Path $libSnpeHtpV73Skel))
    {
       return $false
