@@ -13,7 +13,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void
 #>
-function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId) 
+function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [string]$CameraType = "Internal Camera") 
 {   
    try
    { 
@@ -61,7 +61,11 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
        Write-Log -Message "Setting up the camera Ai effects" -IsOutput      
 
       FindAndSetValue $ui ToggleSwitch "Automatic framing" $testScenario[0]
-      FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[5]
+	  
+	  if ($CameraType -ne "External Camera")
+	  {
+		FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[5]
+	  }
 
       FindAndSetValue $ui ToggleSwitch "Background effects" $testScenario[2]
       if($testScenario[2] -eq "On")
@@ -190,5 +194,4 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId)
         Write-Log -Message "(Logs saved here:$logs)" -IsHost
         SetSmartPlugState $token $SPID 1
      }
-                 
 }
