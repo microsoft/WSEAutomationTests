@@ -1,4 +1,4 @@
-﻿<#
+<#
 DESCRIPTION:
     Builds a configuration array based on a set of input effects.
 
@@ -96,19 +96,15 @@ function RetrieveValue($inputValue)
    $returnValues.Add('640p' , "640p, 1 by 1 aspect ratio, 30 fps")
    $returnValues.Add('540p' , "540p, 16 by 9 aspect ratio, 30 fps")
    $returnValues.Add('8.3MP' , "8.3 megapixels, 16 by 9 aspect ratio,  3840 by 2160 resolution")
-   $returnValues.Add('9.2MP' , "9.2 megapixels, 16 by 10 aspect ratio,  3840 by 2400 resolution")
    $returnValues.Add('12.2MP' , "12.2 megapixels, 4 by 3 aspect ratio,  4032 by 3024 resolution")
    $returnValues.Add('5.0MP' , "5.0 megapixels, 4 by 3 aspect ratio,  2592 by 1944 resolution")
    $returnValues.Add('4.5MP' , "4.5 megapixels, 3 by 2 aspect ratio,  2592 by 1728 resolution")
    $returnValues.Add('3.8MP' , "3.8 megapixels, 16 by 9 aspect ratio,  2592 by 1458 resolution")
    $returnValues.Add('2.1MP' ,  "2.1 megapixels, 16 by 9 aspect ratio,  1920 by 1080 resolution")
-   $returnValues.Add('3.7MP' ,  "3.7 megapixels, 16 by 9 aspect ratio,  2560 by 1440 resolution")
-   $returnValues.Add('4.7MP' ,  "4.7 megapixels, 16 by 9 aspect ratio,  2880 by 1620 resolution")
    $returnValues.Add('1.6MP' , "1.6 megapixels, 4 by 3 aspect ratio,  1440 by 1080 resolution")
    $returnValues.Add('0.9MP' , "0.9 megapixels, 16 by 9 aspect ratio,  1280 by 720 resolution")
    $returnValues.Add('0.8MP' , "0.8 megapixels, 4 by 3 aspect ratio,  1024 by 768 resolution")
    $returnValues.Add('0.3MP' , "0.3 megapixels, 4 by 3 aspect ratio,  640 by 480 resolution")
-   $returnValues.Add('0.4MP' , "0.4 megapixels, 1 by 1 aspect ratio,  640 by 640 resolution")
    $returnValues.Add('0.2MP' , "0.2 megapixels, 16 by 9 aspect ratio,  640 by 360 resolution")
    $returnValues.Add('1.2MP' , "1.2 megapixels, 4 by 3 aspect ratio,  1280 by 960 resolution")
    $returnValues.Add('0.08MP' , "0.08 megapixels, 4 by 3 aspect ratio,  320 by 240 resolution")
@@ -126,19 +122,15 @@ function RetrieveValue($inputValue)
    $returnValues.Add("640p, 1 by 1 aspect ratio, 30 fps" , '640p')
    $returnValues.Add("540p, 16 by 9 aspect ratio, 30 fps" , '540p')
    $returnValues.Add("8.3 megapixels, 16 by 9 aspect ratio,  3840 by 2160 resolution" , '8.3MP')
-   $returnValues.Add("9.2 megapixels, 16 by 10 aspect ratio,  3840 by 2400 resolution" , '9.2MP')
    $returnValues.Add("12.2 megapixels, 4 by 3 aspect ratio,  4032 by 3024 resolution" , '12.2MP')
    $returnValues.Add("5.0 megapixels, 4 by 3 aspect ratio,  2592 by 1944 resolution" , '5.0MP')
    $returnValues.Add("4.5 megapixels, 3 by 2 aspect ratio,  2592 by 1728 resolution" , '4.5MP')
    $returnValues.Add("3.8 megapixels, 16 by 9 aspect ratio,  2592 by 1458 resolution" , '3.8MP')
    $returnValues.Add("2.1 megapixels, 16 by 9 aspect ratio,  1920 by 1080 resolution" , '2.1MP')
-   $returnValues.Add("3.7 megapixels, 16 by 9 aspect ratio,  2560 by 1440 resolution" , '3.7MP')
-   $returnValues.Add("4.7 megapixels, 16 by 9 aspect ratio,  2880 by 1620 resolution" , '4.7MP')
    $returnValues.Add("1.6 megapixels, 4 by 3 aspect ratio,  1440 by 1080 resolution" , '1.6MP')
    $returnValues.Add("0.9 megapixels, 16 by 9 aspect ratio,  1280 by 720 resolution" , '0.9MP')
    $returnValues.Add("0.8 megapixels, 4 by 3 aspect ratio,  1024 by 768 resolution" , '0.8MP')
    $returnValues.Add("0.3 megapixels, 4 by 3 aspect ratio,  640 by 480 resolution" , '0.3MP')
-   $returnValues.Add("0.4 megapixels, 1 by 1 aspect ratio,  640 by 640 resolution" , '0.4MP')
    $returnValues.Add("0.2 megapixels, 16 by 9 aspect ratio,  640 by 360 resolution" , '0.2MP')
    $returnValues.Add("1.2 megapixels, 4 by 3 aspect ratio,  1280 by 960 resolution" , '1.2MP')
    $returnValues.Add("0.08 megapixels, 4 by 3 aspect ratio,  320 by 240 resolution" , '0.08MP')
@@ -149,4 +141,5 @@ function RetrieveValue($inputValue)
    
    $outputValue = $returnValues[$inputValue]
    return $outputValue
-}
+}   
+    
