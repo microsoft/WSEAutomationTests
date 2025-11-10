@@ -72,20 +72,25 @@ function parseOptInCameraInfoFromDxDiagInfo([ValidateSet("Internal Camera","Exte
         mepCameraOptedIn              = "n/a"
         mepDriverVersion              = "n/a"
         optinCameraMepHighResMode     = "n/a"
-        externalUsbCameras            = @()
+        externalUsbCameras            = [System.Collections.Generic.List[string]]::new()
     }
 
     $outputDxDiagFilePath = "$pathLogsFolder\$OUTPUT_DXDIAG_FILE_NAME"
 
-    $dxdiagProcess = Start-Process "dxdiag.exe" -ArgumentList "/t $outputDxDiagFilePath" -Wait -PassThru
+    try {
+        $dxdiagProcess = Start-Process "dxdiag.exe" -ArgumentList "/t $outputDxDiagFilePath" -Wait -PassThru -ErrorAction Stop
 
-    if ($dxdiagProcess.ExitCode -ne 0) {
-        Write-Log -Message "DxDiag process failed with exit code $($dxdiagProcess.ExitCode)" -IsHost -ForegroundColor Red
+        if ($dxdiagProcess.ExitCode -ne 0) {
+            Write-Log -Message "DxDiag process failed with exit code $($dxdiagProcess.ExitCode)" -IsHost -ForegroundColor Red
+            return $parseResults
+        }
+
+        # Read the content of the generated output DxDiag file
+        $dxdiagContent = Get-Content -Path $outputDxDiagFilePath -ErrorAction Stop
+    } catch {
+        Write-Log -Message "Failed to run or read DxDiag output: $_" -IsHost -ForegroundColor Red
         return $parseResults
     }
-
-    # Read the content of the generated output DxDiag file
-    $dxdiagContent = Get-Content -Path $outputDxDiagFilePath
 
     # Extract information using Select-String and regex patterns
     $videoCaptureDeviceFriendlyNameArray = $dxdiagContent | Select-String -Pattern "^\s+FriendlyName: (.+)" | ForEach-Object { $_.Line -replace "^\s+FriendlyName: ", "" }
@@ -146,13 +151,13 @@ function parseOptInCameraInfoFromDxDiagInfo([ValidateSet("Internal Camera","Exte
         Write-Host "Parsing External USB Cameras..."
         $selectedIndex = -1
 
-        for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
+    for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
             if ($videoCaptureDeviceLocationArray[$i] -ieq 'n/a') {
                 Write-Host "External USB Camera: $($videoCaptureDeviceFriendlyNameArray[$i])"
                 Write-Host "Location: $($videoCaptureDeviceLocationArray[$i])"
 
-                # Add to externalUsbCameras array
-                $parseResults.externalUsbCameras += $videoCaptureDeviceFriendlyNameArray[$i]
+                # Add to externalUsbCameras list
+        try { $parseResults.externalUsbCameras.Add($videoCaptureDeviceFriendlyNameArray[$i]) } catch { Write-Error "Failed to add external USB camera: $_" }
 
                 # Select the first external USB camera for opt-in checks
                 if ($selectedIndex -eq -1) {
@@ -182,10 +187,11 @@ function parseOptInCameraInfoFromDxDiagInfo([ValidateSet("Internal Camera","Exte
             }
         }
 
-		# If still not found, throw an error
-		if ($selectedIndex -eq -1) {
-			throw "External camera is not found / unavailable / not connected."
-		}
+        # If still not found, log and return results
+        if ($selectedIndex -eq -1) {
+            Write-Log -Message "External camera is not found / unavailable / not connected." -IsHost -ForegroundColor Yellow
+            return $parseResults
+        }
 
         # Fill parseResults with selected camera info
         if ($selectedIndex -ne -1) {
@@ -261,13 +267,20 @@ function displaySystemInfo() {
 #>
 function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerceptionCoreVer, [ValidateSet("Internal Camera","External Camera")][string]$CameraType = "Internal Camera")
 {
-	Write-Host "CameraType is: $CameraType"
-    # check device manager for NPU opt-in
-    $wseCameraDriverInstance = getWseCameraDriverInstance
-    if ($null -eq $wseCameraDriverInstance) {
-        Write-Log -Message "can not find '$WSE_CAMERA_DRIVER_FRIENDLY_NAME' in device manager, extension .inf for MEP camera was not correctly deployed" -IsHost -ForegroundColor Red
-        return $false
-    }
+    try {
+        Write-Host "CameraType is: $CameraType"
+        # parameter validation
+        if (-not $pathLogsFolder) {
+            Write-Log -Message "pathLogsFolder is not set. Cannot proceed." -IsHost -ForegroundColor Red
+            return $false
+        }
+
+        # check device manager for NPU opt-in
+        $wseCameraDriverInstance = getWseCameraDriverInstance
+        if ($null -eq $wseCameraDriverInstance) {
+            Write-Log -Message "can not find '$WSE_CAMERA_DRIVER_FRIENDLY_NAME' in device manager, extension .inf for MEP camera was not correctly deployed" -IsHost -ForegroundColor Red
+            return $false
+        }
 
     if ($CameraType -eq "Internal Camera")
     {
@@ -432,4 +445,9 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
     }
 
     return $true
+    } catch {
+        # Log unexpected errors and return failure
+        Write-Log -Message "Unexpected error in WseEnablingStatus: $_" -IsHost -ForegroundColor Red
+        return $false
+    }
 }
