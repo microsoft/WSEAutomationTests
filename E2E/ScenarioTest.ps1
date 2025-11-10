@@ -38,7 +38,12 @@
    [string] $ptoRes = "2.1 megapixels, 16 by 9 aspect ratio,  1920 by 1080 resolution",  # Default if not provided
 
    [ValidateSet("Pluggedin", "Unplugged")]
-   [string] $devPowStat = "Pluggedin"  # Default if not provided
+   [string] $devPowStat = "Pluggedin",  # Default if not provided
+
+   # Power Profile options: Best Power Efficiency, Balanced, Best Performance
+   # This parameter controls the Windows power mode setting used during the test
+   [ValidateSet("Best Power Efficiency", "Balanced", "Best Performance")]
+   [string] $powerProfile = "Balanced"  # Default if not provided
 
 )
 .".\CheckInTest\Helper-library.ps1"
@@ -48,7 +53,14 @@ if($voiceFocusExists -eq $false)
 {
    $VF = "NA"
 }
-CameraAppTest -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\ScenarioTesting.txt"
+
+# Set up Power Profile
+Write-Log -Message "Setting up Power Profile to $powerProfile" | Out-File -FilePath "$pathLogsFolder\ScenarioTesting.txt" -Append
+$uiEle = OpenApp 'ms-settings:' 'Settings'
+SetPowerProfileInSettingsPage -ui $uiEle -powerProfile $powerProfile
+Stop-Process -Name 'systemsettings'
+
+CameraAppTest -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\ScenarioTesting.txt"
 
 [console]::beep(500,300)
 if($token.Length -ne 0 -and $SPId.Length -ne 0)
