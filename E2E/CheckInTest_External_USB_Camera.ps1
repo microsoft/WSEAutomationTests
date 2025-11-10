@@ -24,10 +24,10 @@ foreach($devPowStat in "Pluggedin", "Unplugged")
 }
 
 
-#Turn on the smart plug 
-if($token.Length -ne 0 -and $SPId.Length -ne 0)
+#Turn on the smart plug
+if (-not [string]::IsNullOrEmpty($token) -and -not [string]::IsNullOrEmpty($SPId))
 {
-   SetSmartPlugState $token $SPId 1
+	SetSmartPlugState $token $SPId 1
 }
 
 ConvertTxtFileToExcel "$pathLogsFolder\Report.txt"
