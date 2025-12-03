@@ -67,7 +67,7 @@ function Start-Camera($uiEle)
     }
     else
     {
-       FindAndClick -uiEle $uiTeams -proptyNme "Turn camera on"
+       FindAndClick -uiEle $uiEle -proptyNme "Turn camera on"
     }
 }
 <#
@@ -88,6 +88,6 @@ function Start-Audio($uiEle)
     }
     else
     {
-       FindAndClick -uiEle $uiTeams -proptyNme  "Unmute mic"
+       FindAndClick -uiEle $uiEle -proptyNme  "Unmute mic"
     }
 }
