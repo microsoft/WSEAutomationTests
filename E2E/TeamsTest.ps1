@@ -55,7 +55,7 @@ function Teamse2eTesting
             Write-Output "Entering CheckServiceState function"
             CheckServiceState 'Windows Camera Frame Server'
                           
-            # Strating to collect Traces
+            # Starting to collect Traces
             Write-Output "Entering StartTrace function"
             StartTrace $scenarioLogFolder
             
