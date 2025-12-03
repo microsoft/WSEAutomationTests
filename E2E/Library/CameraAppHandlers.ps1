@@ -202,7 +202,7 @@ function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder, $resourceU
      #record video inbetween space presses
      Write-Log -Message "Start recording a video for $scnds seconds" -IsOutput
      [System.Windows.Forms.SendKeys]::SendWait(' ');
-    
+     Start-Sleep -s $scnds
      # Call python modules for task manager Before starting the test case
      Start-Process -FilePath "python" -ArgumentList @(
 	 $pythonLibFolder,
