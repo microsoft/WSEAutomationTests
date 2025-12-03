@@ -108,8 +108,15 @@ function FindVoiceFocusPage($uiEle){
     } 
     FindAndClick $uiEle ComboBox "Audio enhancements"
     Start-Sleep -m 500
-    FindAndClick $uiEle ComboBoxItem "Microsoft Windows Studio Voice Focus"
-  
+    Foreach($audioEnhancementOptions in "Microsoft Windows Studio Voice Focus" , "Windows Studio Effects Voice Clarity")
+    {
+       $exists = CheckIfElementExists $uiEle ComboBoxItem  $audioEnhancementOptions
+       if ($exists)
+       {
+           FindAndClick $uiEle ComboBoxItem $audioEnhancementOptions
+       }
+    
+    }
 }
 
 <#
