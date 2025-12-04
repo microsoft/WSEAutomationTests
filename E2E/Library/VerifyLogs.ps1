@@ -368,11 +368,14 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
          {
             #Prints scenarioID was not found for Audio Blur.  
             Write-Host "   [ScenarioID:$snarioId] was not found.`n   AsgTraceLog saved here: $pathAsgTraceLogs" -ForegroundColor Red
-            if ($Results.Status == "Fail") {
+            # Only set ReasonForNotPass if the test has already failed
+            if ($Results.Status -eq "Fail") {
                Write-Output "[ScenarioID:$snarioId] was not found. AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
                $Results.ReasonForNotPass = "[ScenarioID:$snarioId] was not found."
-            } elseif ($Results.Status == "Pass") {
-               Write-Output "[ScenarioID:$snarioId] was not found. Test is marked as Pass as Camera effects ScenarioID was found AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
+            } elseif ($Results.Status -eq "Pass") {
+               Write-Output "[ScenarioID:$snarioId] was not found. Test is marked as Pass as Camera effects ScenarioID was found. AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
+            } else {
+               Write-Output "[ScenarioID:$snarioId] was not found (Status: $($Results.Status)). AsgTraceLog saved here: $pathAsgTraceLogs" >> $pathLogsFolder\ConsoleResults.txt
             }
          }  
       }
