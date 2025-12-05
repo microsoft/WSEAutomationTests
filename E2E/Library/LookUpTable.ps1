@@ -1,4 +1,4 @@
-﻿<#
+<#
 DESCRIPTION:
     Builds a configuration array based on a set of input effects.
 
