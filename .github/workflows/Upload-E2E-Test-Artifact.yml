@@ -1,9 +1,15 @@
 name: Add Version Details and Upload E2E Tests Artifact
 
-on: [push]
- # push:
-  #  branches:
-     # - main  # Trigger the action on push to the master branch
+on: 
+  push:
+    branches:
+     - main  # Trigger the action on push to the master branch
+
+permissions:
+  contents: write        # Allow write access to repository contents (e.g., pushing changes)
+  pull-requests: write   # Allow write access to pull requests (e.g., create or merge PRs)
+  issues: write          # Allow write access to issues (optional, if needed)
+  actions: write         # Allow write access to Actions (e.g., update or create workflows)
 
 jobs:
   build-and-upload:
