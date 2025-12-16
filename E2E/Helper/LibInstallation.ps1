@@ -106,31 +106,49 @@ function ManagePythonSetup {
     function InstallMissingLibrariesOffline {
         $modules = @("pandas", "pywinauto", "openpyxl")
         foreach ($module in $modules) {
-            if (-not (TestPythonModuleInstalled $module)) {
-                $whl = Get-ChildItem -Path $offlinePackagesPath -Filter "$module*.whl" | Select-Object -First 1
-                if ($whl) {
-                    Write-Host "Installing $module from offline wheel..."
-                    & python -m pip install $whl.FullName
-                } else {
+            try {
+                if (-not (TestPythonModuleInstalled $module)) {
+                    $whl = Get-ChildItem -Path $offlinePackagesPath -Filter "$module*.whl" | Select-Object -First 1
+                    if ($whl) {
+                        Write-Host "Installing $module from offline wheel..."
+                        & python -m pip install $whl.FullName
+                    } else {
                     Write-Host "Offline wheel for $module not found."
+                    }
+                } else {
+                    Write-Host "$module already installed."
                 }
-            } else {
-                Write-Host "$module already installed."
+            } catch {
+                Write-Host "Failed to install $module. Uninstalling Python..." -ForegroundColor Red
+                UninstallPython
+                return
             }
         }
     }
 
     function InstallMissingLibrariesOnline {
         Write-Host "Upgrading pip and installing missing packages online..."
-        & python -m pip install --upgrade pip
+        try {
+            & python -m pip install --upgrade pip
+        } catch {
+            Write-Host "Failed to upgrade pip. Uninstalling Python..." -ForegroundColor Red
+            UninstallPython
+            return
+        }
 
         $modules = @("pandas", "pywinauto", "openpyxl")
         foreach ($module in $modules) {
-            if (-not (TestPythonModuleInstalled $module)) {
-                Write-Host "Installing $module online..."
-                & python -m pip install $module
-            } else {
-                Write-Host "$module already installed."
+            try {
+                if (-not (TestPythonModuleInstalled $module)) {
+                    Write-Host "Installing $module online..."
+                    & python -m pip install $module
+                } else {
+                    Write-Host "$module already installed."
+                }
+            } catch {
+                Write-Host "Failed to install $module. Uninstalling Python..." -ForegroundColor Red
+                UninstallPython
+                return
             }
         }
     }

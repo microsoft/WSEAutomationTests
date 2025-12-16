@@ -1,4 +1,4 @@
-﻿param ( 
+param ( 
    [string] $token = $null,
    [string] $SPId = $null,
    [string] $targetMepCameraVer = $null,
@@ -194,12 +194,32 @@ if (!(test-path "$pathLogsFolder\ReRunFailedTests.ps1"))
 }
 else
 {  
-  
-   @('.".\CheckInTest\Helper-library.ps1"') + ("InitializeTest 'ReRunfailedTest'") + (Get-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1") | Set-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1" 
+	# Step 1: Build initial content (including the line to be written)
+	$scriptContent = @(
+		'.".\CheckInTest\Helper-library.ps1"'
+		"InitializeTest 'ReRunfailedTests'"
+		"ManagePythonSetup -Action install"
+	)
+
+	# Step 2: Call the setup function in real-time
+	ManagePythonSetup -Action install
+
+	# Step 3: Append the dynamic test cases from the old file
+	$scriptContent += Get-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1"
+
+	# Step 4: Add uninstall command (to be written into the file)
+	$scriptContent += "ManagePythonSetup -Action uninstall"
+
+	# Step 5: Write everything to the generated script
+	$scriptContent | Set-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1"
+
+	# Step 6: Call the uninstall function in real-time
+	ManagePythonSetup -Action uninstall
+
+
    (Get-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1") -replace "111222", $token | Set-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1" 
    (Get-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1") -replace "333444", $SPId | Set-Content -Path "$pathLogsFolder\ReRunFailedTests.ps1"
    copy-Item $pathLogsFolder\ReRunFailedTests.ps1 -Destination ReRunFailedTests.ps1
-   
 }
 if($token.Length -ne 0 -and $SPId.Length -ne 0)
 {
