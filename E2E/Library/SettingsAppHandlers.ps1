@@ -235,3 +235,46 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,
      #close settings app
      CloseApp 'systemsettings'
 }
+
+<#
+DESCRIPTION:
+    This function opens the Settings page -> System -> Power & battery -> Power mode. It waits for the UI
+    and attempts to set the specified power profile for both "Plugged in" and "On battery" modes. If the Power profile 
+    is unsupported, the test is skipped and logged.
+INPUT PARAMETERS:
+    - ui [object] :- The UI automation element representing the Settings page.
+    - powerProfile [string] :- The desired Power profile (e.g., "Balanced"/"Best Power Efficiency"/"Best Performance").
+RETURN TYPE:
+    - [bool] (Returns `$false` if the Power profile is unsupported, otherwise closes the app without returning a value.)
+#>
+function SetPowerProfileInSettingsPage($ui,$powerProfile)
+{
+    Write-Log -Message "Opening Settings Page to set power profile..." -IsOutput
+
+    # Launch Settings App
+    FindAndClick $ui Microsoft.UI.Xaml.Controls.NavigationViewItem System
+	Start-Sleep -Seconds 2
+    
+	# Navigate to 'Power & battery'
+    FindAndClick $ui "ListViewItem" "Power & battery"
+	Start-Sleep -Seconds 2
+
+    # Expand "Show more settings"
+    FindAndClick $ui "ExpanderToggleButton" "Show more settings"
+	Start-Sleep -Seconds 2
+	
+    # Click "Plugged in" dropdown
+    Write-Host "powerProfile is: $powerProfile"
+    FindAndClick $ui "ComboBox" "Plugged in"
+	Start-Sleep -Seconds 2
+    FindAndClick $ui "ComboBoxItem" -proptyNme $powerProfile
+	Start-Sleep -Seconds 2
+    Write-Host "Plugged in mode set to $powerProfile"
+    FindAndClick $ui "ComboBox" "On battery"
+	Start-Sleep -Seconds 2
+    FindAndClick $ui "ComboBoxItem" -proptyNme $powerProfile
+	Start-Sleep -Seconds 2
+    Write-Host "On battery mode set to $powerProfile"
+    FindAndClick $ui "ComboBoxLightDismiss" -proptyNme "Close"
+    Write-Host "powerProfile set to $powerProfile"
+}
