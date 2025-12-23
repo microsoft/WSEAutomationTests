@@ -1,4 +1,102 @@
-﻿param (
+<#
+.SYNOPSIS
+    Executes Camera App scenario testing across multiple configurations.
+
+.DESCRIPTION
+    This script tests Camera App functionality across multiple scenarios by configuring
+    video and photo resolutions, toggling AI camera effects, validating voice focus behavior,
+    and handling device power states.
+
+    It supports running tests for both Recording and Previewing scenarios, applies one or
+    more AI effect combinations per run, verifies required services and policies, logs results,
+    and generates a final report.
+
+    The script can optionally retrieve all supported AI effects dynamically from the device
+    and executes test iterations for each AI effect combination provided.
+
+.PARAMETER token
+    Authentication token required to control the smart plug for power state changes.
+
+.PARAMETER SPId
+    Smart plug ID used to control device power states during testing.
+
+.PARAMETER targetMepCameraVer
+    Target MEP Camera component version to validate against the installed version.
+
+.PARAMETER targetMepAudioVer
+    Target MEP Audio component version to validate against the installed version.
+
+.PARAMETER targetPerceptionCoreVer
+    Target Perception Core component version to validate against the installed version.
+
+.PARAMETER logFile
+    Path to the log file where scenario test results will be recorded.
+
+.PARAMETER toggleAIEffects
+    Array of AI camera effect combinations to be applied during testing.
+    Each element represents a single test iteration and may contain multiple effects
+    combined using the "+" symbol.
+
+    Supported AI Effects:
+        AF   - Auto Framing
+        PL   - Portrait Light
+        ECS  - Eye Contact (Standard)
+        ECT  - Eye Contact (Teleprompter)
+        BBS  - Background Blur (Standard)
+        BBP  - Background Blur (Portrait)
+        CF-I - Creative Filter (Illustrated)
+        CF-A - Creative Filter (Animated)
+        CF-W - Creative Filter (Watercolor)
+
+    Example values:
+        "AF+BBS+ECS"
+        "AF+BBP+ECS"
+        "AF+CF-I+PL+BBS"
+
+    If set to "All", the script dynamically retrieves all supported AI effect combinations
+    from the device and executes tests for each.
+
+.PARAMETER initSetUpDone
+    Indicates whether the initial setup has already been completed.
+    Accepted values: "true", "false".
+
+.PARAMETER camsnario
+    Specifies the Camera App test scenario.
+    Accepted values: "Recording", "Previewing".
+
+.PARAMETER VF
+    Voice Focus configuration.
+    Accepted values:
+        On  - Enable Voice Focus
+        Off - Disable Voice Focus
+        NA  - Not applicable (automatically set if policy is not present)
+
+.PARAMETER vdoRes
+    Video resolution setting to be applied in the Camera App.
+
+.PARAMETER ptoRes
+    Photo resolution setting to be applied in the Camera App.
+
+.PARAMETER devPowStat
+    Device power state during testing.
+    Accepted values:
+        Pluggedin
+        Unplugged
+
+.EXAMPLE
+    Run the script using all default values:
+        .\ScenarioTest.ps1
+
+.EXAMPLE
+    Run with specific AI effects:
+        .\ScenarioTest.ps1 -toggleAIEffects AF+BBS+ECS AF+BBP+ECS
+
+.RETURNVALUE
+    None. This script does not return a value.
+#>
+
+
+param (
    [string] $token = $null,
    [string] $SPId = $null,
    [string] $targetMepCameraVer = $null,
@@ -10,7 +108,7 @@
    #CF-I:Creative filter-Illustrated, CF-A:Creative filter-Animated, CF-W:Creative filter-Watercolor
    #You can combine multiple effects using the "+" symbol. Here are some examples: 'AF+CF-I+PL+BBS', 'AF+CF-I+PL+BBP', 'AF+CF-I+ECS+BBS', 'AF+CF-I+ECS+BBP', 'AF+CF-I+ECT+BBS'
 
-   [string] $togAiEfft = "AF+BBS+ECS" ,  # Default if not provided
+   [string[]] $toggleAIEffects = @("AF+BBS+ECS","AF+BBP+ECS") ,  # Default if not provided
    
    [ValidateSet("true" , "false")]
    [string] $initSetUpDone = "false",  # Default if not provided
@@ -48,8 +146,15 @@ if($voiceFocusExists -eq $false)
 {
    $VF = "NA"
 }
-CameraAppTest -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\ScenarioTesting.txt"
-
+if($toggleAIEffects -eq "All")
+{
+   $deviceData = GetDeviceDetails
+   $toggleAIEffects = $deviceData["ToggleAiEffect"]
+}    
+foreach ($togAiEfft in $toggleAIEffects)
+{
+   CameraAppTest -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\ScenarioTesting.txt"
+}
 [console]::beep(500,300)
 if($token.Length -ne 0 -and $SPId.Length -ne 0)
 {
