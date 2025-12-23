@@ -83,7 +83,7 @@ function CameraReliabilityTest {
     ToggleAIEffectsInSettingsApp -AFVal "On" `
                                  -PLVal "On" `
                                  -BBVal "On" -BSVal "False" -BPVal "True" `
-                                 -ECVal "On" -ECSVal "False" -ECTVAL "True" `
+                                 -ECVal "On" -ECSVal "False" -ECTVal "True" `
                                  -VFVal "Off" `
                                  -CF "On" -CFI "False" -CFA "True" -CFW "False"
 
@@ -112,7 +112,7 @@ function CameraReliabilityTest {
     ToggleAIEffectsInSettingsApp -AFVal "Off" `
                                  -PLVal "Off" `
                                  -BBVal "Off" -BSVal "False" -BPVal "False" `
-                                 -ECVal "Off" -ECSVal "False" -ECTVAL "False" `
+                                 -ECVal "Off" -ECSVal "False" -ECTVal "False" `
                                  -VFVal "Off" `
                                  -CF "Off" -CFI "False" -CFA "False" -CFW "False"
 }

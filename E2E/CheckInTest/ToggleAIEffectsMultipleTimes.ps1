@@ -97,7 +97,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
 
         # Change AI toggle in camera App UI (We will have change once the effects are available in camera App UI)
         ToggleAiEffectsInCameraApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                   -ECVal "On" -ECSVal "False" -ECTVAL "True" `
+                                   -ECVal "On" -ECSVal "False" -ECTVal "True" `
                                    -CF "On" -CFI "False" -CFA "False" -CFW "True" 
 
         # Open settings app and obtain UI automation from it
@@ -127,7 +127,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
                      
         # Change AI toggle in camera App UI (We will have change once the effects are available in camera App UI)
         ToggleAiEffectsInCameraApp -AFVal "Off" -PLVal "Off" -BBVal "On" -BSVal "True" -BPVal "False" `
-                                     -ECVal "On" -ECSVal "True" -ECTVAL "False" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" `
                                      -CF "On" -CFI "True" -CFA "False" -CFW "False" 
 
         # Open settings app and obtain UI automation from it
@@ -156,7 +156,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
                
         #Change AI toggle in camera App UI
         ToggleAiEffectsInCameraApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECTVAL "True" `
+                                     -ECVal "On" -ECSVal "False" -ECTVal "True" `
                                      -CF "On" -CFI "False" -CFA "True" -CFW "False" `
         
         
@@ -164,7 +164,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         #Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECTVAL "True" -VFVal "On" `
+                                     -ECVal "On" -ECSVal "False" -ECTVal "True" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
         Start-Sleep -s 2       
 
