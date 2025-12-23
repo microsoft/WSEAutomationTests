@@ -47,7 +47,7 @@ function Teamse2eTesting
            # Toggling All effects on
            Write-Output "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On"
            ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                        -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
+                                        -ECVal "On" -ECSVal "False" -ECTVal "True" -VFVal "On" `
                                         -CF "On" -CFI "False" -CFA "False" -CFW "True"        
          
            
