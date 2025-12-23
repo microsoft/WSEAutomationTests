@@ -1,4 +1,4 @@
-﻿Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Windows.Forms
 
 <#
 DESCRIPTION:
@@ -13,7 +13,7 @@ INPUT PARAMETERS:
     - BPVal [string] :- Value to select Portrait Blur (applicable when Background Effects are On).
     - ECVal [string] :- Value to toggle Eye Contact ("On" or "Off").
     - ECSVal [string] :- Value to select Standard Eye Contact mode (applicable when Eye Contact is On).
-    - ECEVal [string] :- Value to select Teleprompter Eye Contact mode (applicable when Eye Contact is On).
+    - ECTVAL [string] :- Value to select Teleprompter Eye Contact mode (applicable when Eye Contact is On).
     - CF [string] :- Value to toggle Creative Filters ("On" or "Off").
     - CFI [string] :- Value to select Illustrated Filter (applicable when Creative Filters are On).
     - CFA [string] :- Value to select Animated Filter (applicable when Creative Filters are On).
@@ -21,7 +21,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void (Applies changes to camera settings without returning a value.)
 #>
-function ToggleAiEffectsInCameraApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECEVal,$CF,$CFI,$CFA,$CFW)
+function ToggleAiEffectsInCameraApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECTVAL,$CF,$CFI,$CFA,$CFW)
 {   
 
    #Open Camera App
@@ -68,7 +68,7 @@ function ToggleAiEffectsInCameraApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$E
       { 
          Start-Sleep -s 1 
          FindAndSetValue $uiEle  RadioButton "Standard" $ECSVal
-         FindAndSetValue $uiEle  RadioButton "Teleprompter" $ECEVal
+         FindAndSetValue $uiEle  RadioButton "Teleprompter" $ECTVAL
       }
    }
    #Close camera App
