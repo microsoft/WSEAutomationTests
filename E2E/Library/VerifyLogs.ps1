@@ -69,8 +69,8 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
              Measure-Object -Sum).Sum
           } else {
              $numberOfFramesAbove33ms = $frameProcessingDetails[20].Trim()      
-          }
-		  $totalnoOfFrames = $frameProcessingDetails[9].Trim()
+           }
+		   $totalnoOfFrames = $frameProcessingDetails[9].Trim()
           $minProcessingTimePerFrame = [math]::round(($frameProcessingDetails[12]/1000000),2)
           $avgProcessingTimePerFrame = [math]::round(($frameProcessingDetails[11]/1000000),2)
           $maxProcessingTimePerFrame = [math]::round(($frameProcessingDetails[13]/1000000),2)
@@ -357,7 +357,7 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
                  Measure-Object -Sum).Sum
              } else {
                 $numberOfFramesAbove33msforAudioBlur = $frameProcessingDetails[20].Trim()      
-             }
+              }
              $minProcessingTimePerFrameforAudioBlur = [math]::round(($frameProcessingDetails[12]/1000000),2)
              $avgProcessingTimePerFrameforAudioBlur = [math]::round(($frameProcessingDetails[11]/1000000),2)
              $maxProcessingTimePerFrameforAudioBlur = [math]::round(($frameProcessingDetails[13]/1000000),2)
@@ -424,7 +424,7 @@ function CheckMemoryUsage($snarioName)
          #Check memory usage for each PerceptionSessionUsageStats
          $frameProcessingDetails = ($frameProcessingDetailsAll[$i]) -split ","
          $frameProcessingDetailsLength = $frameProcessingDetails.Count
-         if($frameProcessingDetailsLength -gt 43) { # new schema oayload
+         if($frameProcessingDetailsLength -gt 43) { # new schema payload
             $indexDiff = 5 # account for the 5+ added bins
          } else {
             $indexDiff = 0
