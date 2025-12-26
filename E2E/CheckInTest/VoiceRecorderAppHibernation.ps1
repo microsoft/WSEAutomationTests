@@ -42,7 +42,7 @@ function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId)
         # Toggling Voice Focus effect on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle Voice Focus effect on" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
-                                     -ECVal "Off" -ECSVal "False" -ECEVal "False" -VFVal "On" `
+                                     -ECVal "Off" -ECSVal "False" -ECTVAL "False" -VFVal "On" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
                 
         # Checks if frame server is stopped

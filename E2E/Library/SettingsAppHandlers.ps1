@@ -176,7 +176,7 @@ INPUT PARAMETERS:
     - BPVal [string] :- Toggle value for Portrait Blur.
     - ECVal [string] :- Toggle value for Eye Contact.
     - ECSVal [string] :- Toggle value for Standard Eye Contact style.
-    - ECEVal [string] :- Toggle value for Teleprompter Eye Contact style.
+    - ECTVal [string] :- Toggle value for Teleprompter Eye Contact style.
     - VFVal [string] :- Toggle value for Voice Focus.
     - CF [string] :- Toggle value for Creative Filters.
     - CFI [string] :- Toggle value for Illustrated Creative Filter.
@@ -185,7 +185,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void (Performs UI interactions to toggle camera and audio effects without returning a value.)
 #>
-Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECEVal,$VFVal,$CF,$CFI,$CFA,$CFW)
+Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECTVal,$VFVal,$CF,$CFI,$CFA,$CFW)
 {    
      Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function" -IsOutput
      
@@ -225,7 +225,7 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,
         if($ECVal -eq "On")
         { 
            FindAndSetValue $ui RadioButton "Standard" $ECSVal
-           FindAndSetValue $ui RadioButton "Teleprompter" $ECEVal
+           FindAndSetValue $ui RadioButton "Teleprompter" $ECTVal
         }
      }
      

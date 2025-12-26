@@ -10,7 +10,7 @@ param (
 # definition of the scenario name & scenario ID
 Set-Variable -Name "WSE_ALL_CAMERA_EFFECTS_SCENARIO_V1"     -Option ReadOnly -Value "AF+EC+BBP"
 Set-Variable -Name "WSE_ALL_CAMERA_EFFECTS_SCENARIO_ID_V1"  -Option ReadOnly -Value 81968
-Set-Variable -Name "WSE_ALL_CAMERA_EFFECTS_SCENARIO_V2"     -Option ReadOnly -Value "AF+PL+ECE+BBP+CFA"
+Set-Variable -Name "WSE_ALL_CAMERA_EFFECTS_SCENARIO_V2"     -Option ReadOnly -Value "AF+PL+ECT+BBP+CFA"
 Set-Variable -Name "WSE_ALL_CAMERA_EFFECTS_SCENARIO_ID_V2"  -Option ReadOnly -Value 2834432
 
 Set-Variable -Name "VIDEO_RECORDING_DURATION"               -Option ReadOnly -Value 20
@@ -83,7 +83,7 @@ function CameraReliabilityTest {
     ToggleAIEffectsInSettingsApp -AFVal "On" `
                                  -PLVal "On" `
                                  -BBVal "On" -BSVal "False" -BPVal "True" `
-                                 -ECVal "On" -ECSVal "False" -ECEVal "True" `
+                                 -ECVal "On" -ECSVal "False" -ECTVal "True" `
                                  -VFVal "Off" `
                                  -CF "On" -CFI "False" -CFA "True" -CFW "False"
 
@@ -112,7 +112,7 @@ function CameraReliabilityTest {
     ToggleAIEffectsInSettingsApp -AFVal "Off" `
                                  -PLVal "Off" `
                                  -BBVal "Off" -BSVal "False" -BPVal "False" `
-                                 -ECVal "Off" -ECSVal "False" -ECEVal "False" `
+                                 -ECVal "Off" -ECSVal "False" -ECTVal "False" `
                                  -VFVal "Off" `
                                  -CF "Off" -CFI "False" -CFA "False" -CFW "False"
 }
