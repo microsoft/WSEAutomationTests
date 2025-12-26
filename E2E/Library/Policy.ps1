@@ -57,3 +57,15 @@ function Check8380Policy
       return $true  
    }
 } 
+function Check8480Policy
+{
+   $libQnnHtpV81Skel = "C:\Windows\System32\DriverStore\FileRepository\microsofteffectpack_extension.inf*\libQnnHtpV81Skel.so"
+   if(Test-path -Path $libQnnHtpV81Skel)
+   {
+      return $true
+   }
+   else
+   {
+      return $false  
+   }
+}  
