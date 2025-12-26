@@ -89,9 +89,9 @@
 
 .EXAMPLE
     Run with specific AI effects:
-        .\ScenarioTest.ps1 -toggleAIEffects AF+BBS+ECS AF+BBP+ECS
+        .\ScenarioTest.ps1 -toggleAIEffects "AF+BBS+ECS" , "AF+BBP+ECS"
 
-.RETURNVALUE
+.OUTPUTS
     None. This script does not return a value.
 #>
 
@@ -108,7 +108,7 @@ param (
    #CF-I:Creative filter-Illustrated, CF-A:Creative filter-Animated, CF-W:Creative filter-Watercolor
    #You can combine multiple effects using the "+" symbol. Here are some examples: 'AF+CF-I+PL+BBS', 'AF+CF-I+PL+BBP', 'AF+CF-I+ECS+BBS', 'AF+CF-I+ECS+BBP', 'AF+CF-I+ECT+BBS'
 
-   [string[]] $toggleAIEffects = @("AF+BBS+ECS","AF+BBP+ECS") ,  # Default if not provided
+   [string[]] $toggleAIEffects = @("AF+BBS+ECS","AF+BBP+ECS"),  # Default if not provided
    
    [ValidateSet("true" , "false")]
    [string] $initSetUpDone = "false",  # Default if not provided
