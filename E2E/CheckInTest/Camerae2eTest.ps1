@@ -146,7 +146,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
    
         # Restore the default state for AI effects
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to Restore the default state for AI effects" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "True" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
+        ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "False" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
                                      -ECVal "Off" -ECSVal "False" -ECTVal "False" -VFVal "Off" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
              
