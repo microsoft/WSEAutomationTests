@@ -98,37 +98,45 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        Start-Sleep -m 500 
        
        #Setting AI effects for Tests in camera setting page 
-       $scenarioID = $toggleEachAiEffect[13]
+     # Setting up AI effects for tests in camera setting page 
+       $scenarioID = $toggleEachAiEffect[15]
                     
-       #Setting AI effects for Tests in camera setting page 
-       Write-Log -Message "Setting up the camera Ai effects" -IsOutput
+       Write-Log -Message "Setting up the camera Ai effects" -IsOutput      
        
        FindAndSetValue $ui ToggleSwitch "Automatic framing" $toggleEachAiEffect[0]
-       FindAndSetValue $ui ToggleSwitch "Eye contact" $toggleEachAiEffect[5]
+       FindAndSetValue $ui ToggleSwitch "Eye contact" $toggleEachAiEffect[7]
        
-       FindAndSetValue $ui ToggleSwitch "Background effects" $toggleEachAiEffect[2]
-       if($toggleEachAiEffect[2] -eq "On")
-       {
-           FindAndSetValue $ui RadioButton "Standard blur" $toggleEachAiEffect[3]
-           FindAndSetValue $ui RadioButton "Portrait blur" $toggleEachAiEffect[4]
+       FindAndSetValue $ui ToggleSwitch "Background effects" $toggleEachAiEffect[4]
+       if($toggleEachAiEffect[4] -eq "On")
+       { 
+          FindAndSetValue $ui RadioButton "Portrait blur" $toggleEachAiEffect[6]
+          FindAndSetValue $ui RadioButton "Standard blur" $toggleEachAiEffect[5]
        }
-       #check for v2 policy
        $wsev2PolicyState = CheckWSEV2Policy
        if($wsev2PolicyState -eq $true)	  
-       {
-          FindAndSetValue $ui ToggleSwitch "Portrait light" $toggleEachAiEffect[1]
-          if($toggleEachAiEffect[5] -eq "On")
+       {    
+          FindAndSetValue $ui ToggleSwitch "Portrait light" $toggleEachAiEffect[3]
+          if($toggleEachAiEffect[7] -eq "On")
           {
-              FindAndSetValue $ui RadioButton "Standard" $toggleEachAiEffect[6]
-              FindAndSetValue $ui RadioButton "Teleprompter" $toggleEachAiEffect[7]
+             FindAndSetValue $ui RadioButton "Standard" $toggleEachAiEffect[8]
+             FindAndSetValue $ui RadioButton "Teleprompter" $toggleEachAiEffect[9]
           }
-          FindAndSetValue $ui ToggleSwitch "Creative filters" $toggleEachAiEffect[8]
-          if($toggleEachAiEffect[8] -eq "On")
+          FindAndSetValue $ui ToggleSwitch "Creative filters" $toggleEachAiEffect[10]
+          if($toggleEachAiEffect[10] -eq "On")
           {
-             FindAndSetValue $ui RadioButton "Illustrated" $toggleEachAiEffect[9]
-             FindAndSetValue $ui RadioButton "Animated" $toggleEachAiEffect[10]
-             FindAndSetValue $ui RadioButton "Watercolor" $toggleEachAiEffect[11]
+             FindAndSetValue $ui RadioButton "Illustrated" $toggleEachAiEffect[11]
+             FindAndSetValue $ui RadioButton "Animated" $toggleEachAiEffect[12]
+             FindAndSetValue $ui RadioButton "Watercolor" $toggleEachAiEffect[13]
           }
+          $wse8480PolicyState = Check8480Policy
+          if ($wse8480PolicyState -eq $true)
+		    {
+            if($toggleEachAiEffect[0] -eq "On")
+            {
+                FindAndSetValue $ui RadioButton "Standard framing" $toggleEachAiEffect[1]
+                FindAndSetValue $ui RadioButton "Cinematic framing" $toggleEachAiEffect[2]
+            }
+          }  
        }
        CloseApp 'systemsettings'
        

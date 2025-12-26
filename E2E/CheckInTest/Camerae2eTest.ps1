@@ -29,7 +29,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
 		$resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
         #Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
+        ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                      -ECVal "On" -ECSVal "False" -ECTVal "True" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
                  
@@ -146,7 +146,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
    
         # Restore the default state for AI effects
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to Restore the default state for AI effects" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
+        ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "True" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
                                      -ECVal "Off" -ECSVal "False" -ECTVal "False" -VFVal "Off" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
              

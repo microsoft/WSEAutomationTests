@@ -185,7 +185,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void (Performs UI interactions to toggle camera and audio effects without returning a value.)
 #>
-Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECTVal,$VFVal,$CF,$CFI,$CFA,$CFW)
+Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECTVal,$VFVal,$CF,$CFI,$CFA,$CFW)
 {    
      Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function" -IsOutput
      
@@ -227,7 +227,18 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,
            FindAndSetValue $ui RadioButton "Standard" $ECSVal
            FindAndSetValue $ui RadioButton "Teleprompter" $ECTVal
         }
+        $wse8480PolicyState = Check8480Policy
+        if ($wse8480PolicyState -eq $true)
+		{
+           if($AF -eq "On")
+           {   
+              FindAndSetValue $ui RadioButton "Standard framing" $AFS
+              FindAndSetValue $ui RadioButton "Cinematic framing" $AFC
+		   
+           }
+		}
      }
+     
      
      #open microphone effects page and turn all effects off
      VoiceFocusToggleSwitch $VFVal
