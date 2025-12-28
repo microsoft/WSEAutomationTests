@@ -110,12 +110,12 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [str
       FindCameraEffectsPage $ui
       Start-Sleep -s 5
 
-      # Close system setting page
-      CloseApp 'systemsettings'
-
       # Capture Resource Utilization while test is running. Each duration runs for around 10-12 sec
       Monitor-Resources -scenario $scenarioName -duration 2 -executionState "During" -logPath "$scenarioName\ResourceUtilization.txt"
 
+      # Close system setting page
+      CloseApp 'systemsettings'
+      
       # Checks if frame server is stopped
       Write-Log -Message "Entering CheckServiceState function" -IsOutput
       CheckServiceState 'Windows Camera Frame Server'
