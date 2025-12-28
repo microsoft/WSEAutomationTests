@@ -168,14 +168,22 @@ DESCRIPTION:
     This function starts the Camera app, switches to video mode, and records a video for a specified
     duration. It captures the start time in UTC format and returns it for later verification.
 INPUT PARAMETERS:
-    - scnds [int] :- The duration of the video recording in seconds.
+    - duration [int] :- The duration of the video recording in seconds.
+    - snarioName [string] :- Scenario name used for resource logging 
+    - logPath [string] :- Path to write resource utilization logs 
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
-function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder, $resourceUtilizationConsolidated, $executionState)
+function StartVideoRecording
 {  
-     
-     $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
+     param($duration, $snarioName, $logPath)
+
+     #Open Task Manager and set speed to low
+     setTMUpdateSpeedLow
+
+     #Capture Resource Utilization before test starts
+     Monitor-Resources -scenario $snarioName -executionState "Before" -logPath $logPath  -Once "Once"
+     start-sleep -s 1
 
      #Open Camera App
      Write-Log -Message "Open camera App" -IsOutput
@@ -194,38 +202,26 @@ function StartVideoRecording($scnds, $devPowStat, $scenarioLogFolder, $resourceU
      
      #Coverting the string back to date format for time calculation in code later in CheckInitTimeCameraApp function.
      $cameraAppStartTime = [System.DateTime]::ParseExact($cameraAppStartTostring,'yyyy/MM/dd HH:mm:ss:fff',$null)
-
+                                  
      #Switch to video mode if not in video mode
-	 $ui.SetFocus()
-     SwitchModeInCameraApp $ui "Switch to video mode" "Take video"
-
+     SwitchModeInCameraApp $ui "Switch to video mode" "Take video" 
+     Start-Sleep -s 2
+     
      #record video inbetween space presses
-     Write-Log -Message "Start recording a video for $scnds seconds" -IsOutput
+     Write-Log -Message "Start recording a video for $duration seconds" -IsOutput
      [System.Windows.Forms.SendKeys]::SendWait(' ');
-     Start-Sleep -s $scnds
-     # Call python modules for task manager Before starting the test case
-     Start-Process -FilePath "python" -ArgumentList @(
-	 $pythonLibFolder,
-	 "start_resource_monitoring",
-	 $resourceUtilizationFile,
-	 $scenarioLogFolder,
-	 5,
-	 $executionState
-	 ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
-     $ui.SetFocus()
+   
+     #Capture Resource Utilization while test is running
+     Monitor-Resources -Scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
+          
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
-     $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated $executionState
-
-     if ($null -eq $utilizationStats) {
-         Write-Error "Failed to get utilization stats."
-         return
-     }
-     Write-Log -Message "video recording stopped after $scnds seconds" -IsOutput
+     Write-Log -Message "video recording stopped after $duration seconds" -IsOutput
      
      #restores photo mode for the next run(This line will be uncommented once camera issue is fixed)
      #SwitchModeInCameraApp $ui "Switch to photo mode" "Take photo"
      Start-Sleep -s 2
+
      #Close camera App
      CloseApp 'WindowsCamera'
      Start-Sleep -s 1  
@@ -265,15 +261,22 @@ DESCRIPTION:
     It captures the app's start time in UTC format, which can be used later for log and performance analysis.
     After the previewing is complete, the Camera app is closed, and the start time is returned.
 INPUT PARAMETERS:
-    - scnds [int] :- The duration in seconds for which the camera will remain in preview mode.
+    - duration [int] :- The duration in seconds for which the camera will remain in preview mode.
+    - snarioName [string] :- Scenario name used for resource logging.
+    - logPath [string] :- Path to write resource utilization logs.
 RETURN TYPE:
     - [DateTime] (Returns the start time of the Camera app in UTC format for later time calculations.)
 #>
-function CameraPreviewing($scnds, $devPowStat, $scenarioLogFolder, $resourceUtilizationConsolidated, $executionState)
+function CameraPreviewing
 {  
-     $pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
-     $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
+     param($duration, $snarioName, $logPath)
+     #Open Task Manager and set speed to low
+     setTMUpdateSpeedLow
 
+     #Capture Resource Utilization before test starts
+     Monitor-Resources -scenario $snarioName -executionState "Before" -logPath $logPath  -Once "Once"
+     start-sleep -s 1
+     
      #Open Camera App
      Write-Log -Message "Open camera App" -IsOutput
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
@@ -291,28 +294,16 @@ function CameraPreviewing($scnds, $devPowStat, $scenarioLogFolder, $resourceUtil
 
      #Coverting the string back to date format for time calculation in code later CheckInitTimeCameraApp function.
      $cameraAppStartTime = [System.DateTime]::ParseExact($cameraAppStartTostring,'yyyy/MM/dd HH:mm:ss:fff',$null)
-     # Call python modules for task manager Before starting the test case
-     Start-Process -FilePath "python" -ArgumentList @(
-        $pythonLibFolder,
-        "start_resource_monitoring",
-        $resourceUtilizationFile,
-        $scenarioLogFolder,
-        5,
-        $executionState
-	 ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
-     $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated $executionState
-
-     if ($null -eq $utilizationStats) {
-        Write-Error "Failed to get resource utilization stats."
-        return
-     }                     
+                          
      #Switch to video mode and start previewing as few photo resolution does not support MEP feature"
      SwitchModeInCameraApp $ui "Switch to video mode" "Take video" 
-     Start-Sleep -s $scnds
+          
+     #Capture Resource Utilization while test is running
+     Monitor-Resources -Scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
      
      #Close camera App
      CloseApp 'WindowsCamera'
-     Write-Log -Message "Previewing stopped after $scnds seconds" -IsOutput
+     Write-Log -Message "Previewing stopped after $duration seconds" -IsOutput
 
      #Return the value to pass as parameter to CheckInitTimeCameraApp function in camerae2eTest.ps1 and CameraAppTest.ps1
      return , $cameraAppStartTime 

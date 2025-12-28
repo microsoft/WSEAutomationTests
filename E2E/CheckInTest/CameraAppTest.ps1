@@ -28,8 +28,6 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
 	   $vdoResDetails= RetrieveValue($vdoRes)
 	   $ptoResDetails= RetrieveValue($ptoRes)       
        $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
-       $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
-       $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder
@@ -138,56 +136,24 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
                              
        #Strating to collect Traces
        StartTrace $scenarioLogFolder
-       
-       # Open Task Manager
-       Write-Log -Message "Opening Task Manager" -IsOutput
-       $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
-       Start-Sleep -s 1
-       setTMUpdateSpeedLow -uiEle $uitaskmgr
-       # Call python modules for task manager Before starting the test case
-	   Start-Process -FilePath "python" -ArgumentList @(
-		   $pythonLibFolder,
-		   "start_resource_monitoring",
-		   $resourceUtilizationFile,
-		   $scenarioLogFolder,
-		   5,
-		   "Before"
-	   ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
 
-	   # Now process is finished, so call GetResourceUtilizationStats
-	   $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
-	   Write-Log -Message $utilizationStats -IsOutput >> $pathLogsFolder\ConsoleResults.txt
-	   if ($null -eq $utilizationStats) {
-		   Write-Error "Failed to get resource utilization stats."
-		   return
-       }
-       # Start Test Scenario
        Write-Log -Message "Start test for $camsnario" -IsOutput
        if($camsnario -eq "Recording")
        {
            #Start video recording and close the camera app once finished recording 
-           $InitTimeCameraApp = StartVideoRecording "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated "After" #video recording duration can be adjusted depending on the number os scenarios
+           #Start video recording, start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs
+           $InitTimeCameraApp = StartVideoRecording -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
        else
        {   
            #Start Previewing and close the camera app once finished. 
-           $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated "After" #video Previewing duration can be adjusted depending on the number os scenarios
+           #Start Previewing , start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs 
+           $InitTimeCameraApp = CameraPreviewing -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
-
-        # Close Task Manager and take Screenshot of CPU and NPU Usage
-        Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
-        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
-        
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "After"
-
-        if ($null -eq $utilizationStats) {
-            Write-Error "Failed to get resource utilization stats."
-            return
-        }
        #Checks if frame server is stopped
        Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server' 

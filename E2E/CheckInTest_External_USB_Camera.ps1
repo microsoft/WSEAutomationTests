@@ -8,7 +8,6 @@ param (
 )
 
 .".\CheckInTest\Helper-library.ps1"
-ManagePythonSetup -Action install
 InitializeTest 'Checkin-Test' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer -CameraType "External Camera"
 foreach($devPowStat in "Pluggedin", "Unplugged")
 {  
@@ -33,6 +32,3 @@ if (-not [string]::IsNullOrEmpty($token) -and -not [string]::IsNullOrEmpty($SPId
 ConvertTxtFileToExcel "$pathLogsFolder\Report.txt"
 [console]::beep(500,300)
 
-Start-Sleep -s 3
-
-ManagePythonSetup -Action uninstall

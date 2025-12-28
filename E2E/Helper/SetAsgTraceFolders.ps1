@@ -12,7 +12,8 @@ RETURN TYPE:
 #>
 function CreateScenarioLogsFolder ($snario)
 {
-    $scenarioLogsFolder = $pathLogsFolder + "\$snario"
+    $pathLogsFolder = (Resolve-Path $pathLogsFolder).Path
+    $scenarioLogsFolder = Join-Path -Path $pathLogsFolder -ChildPath $snario
     If (!(test-path $scenarioLogsFolder)) {
         New-Item -ItemType Directory -Force -Path $scenarioLogsFolder  | Out-Null
     }
