@@ -48,7 +48,7 @@ function AudioRecording($duration,$snarioName,$logPath)
      $audioRecordingStart = Get-Date
 
      # Capture Resource Utilization while test is running
-     Monitor-Resources -Scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
+     Monitor-Resources -scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
      Start-Sleep -s 1
      
      #Set time zone to UTC as Asg trace logs are using UTC date format

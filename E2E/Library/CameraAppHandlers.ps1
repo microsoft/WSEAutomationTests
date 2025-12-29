@@ -212,7 +212,7 @@ function StartVideoRecording
      [System.Windows.Forms.SendKeys]::SendWait(' ');
    
      #Capture Resource Utilization while test is running
-     Monitor-Resources -Scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
+     Monitor-Resources -scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
           
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
