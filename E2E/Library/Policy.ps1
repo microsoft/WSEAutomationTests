@@ -24,7 +24,7 @@ function CheckVoiceFocusPolicy
 <#
 DESCRIPTION:
     This function checks whether Windows Studio Effects V2 (WSEV2) policy is enabled 
-    on the system. It verifies the existence of the 'libSnpeHtpV73Skel.so' library 
+    on the system. It verifies the existence of the 'libSnpeHtpV73Skel.so' or 'libQnnHtpV81Skel.so' library 
     file in the DriverStore directory, which is required for WSEV2 features.
 INPUT PARAMETERS:
     - None
@@ -45,6 +45,16 @@ function CheckWSEV2Policy
    return $false  
      
 }
+<#
+DESCRIPTION:
+    This function checks whether the 8380 policy is supported on the system.
+    It verifies the existence of the 'libSnpeHtpV73Skel.so' library file in the
+    DriverStore directory, which is required for this policy.
+INPUT PARAMETERS:
+    - None
+RETURN TYPE:
+    - [bool] (Returns $true if the 8380 policy is supported, otherwise returns $false.)
+#>
 function Check8380Policy
 {
    $libSnpeHtpV73Skel = "C:\Windows\System32\DriverStore\FileRepository\microsofteffectpack_extension.inf*\libSnpeHtpV73Skel.so"
@@ -57,15 +67,25 @@ function Check8380Policy
       return $true  
    }
 } 
+<#
+DESCRIPTION:
+    This function checks whether the 8480 policy is supported on the system.
+    It verifies the existence of the 'libQnnHtpV81Skel.so' library file in the
+    DriverStore directory, which is required for this policy.
+INPUT PARAMETERS:
+    - None
+RETURN TYPE:
+    - [bool] (Returns $true if the 8480 policy is supported, otherwise returns $false.)
+#>
 function Check8480Policy
 {
    $libQnnHtpV81Skel = "C:\Windows\System32\DriverStore\FileRepository\microsofteffectpack_extension.inf*\libQnnHtpV81Skel.so"
-   if(Test-path -Path $libQnnHtpV81Skel)
+   if(!(Test-path -Path $libQnnHtpV81Skel))
    {
-      return $true
+      return $false
    }
    else
    {
-      return $false  
+      return $true  
    }
 }  
