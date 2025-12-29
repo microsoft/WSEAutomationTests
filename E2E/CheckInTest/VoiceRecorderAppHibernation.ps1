@@ -59,7 +59,7 @@ function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId)
 
            # Start audio recording and close the sound recorder app once finished recording 
            Write-Log -Message "Entering AudioRecording function" -IsOutput
-           $InitTimeVoiceRecorderApp = AudioRecording "10" 
+           $InitTimeVoiceRecorderApp = AudioRecording -duration 1 -snarioName $scenarioName -logPath "$scenarioName\ResourceUtilization.txt"
            $voiceRecorderAppStartTime = [System.DateTime]$($InitTimeVoiceRecorderApp[-2])
            $audioRecordingStartTime = $InitTimeVoiceRecorderApp[-1]
            Write-Log -Message "Voice Recorder App start time in UTC: ${voiceRecorderAppStartTime}" -IsOutput

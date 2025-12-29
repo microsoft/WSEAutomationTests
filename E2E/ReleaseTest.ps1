@@ -7,7 +7,7 @@
    [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null
 )
 .".\CheckInTest\Helper-library.ps1"
-ManagePythonSetup -Action install
+
 InitializeTest 'ReleaseTest' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
 $deviceData = GetDeviceDetails 
 Write-Log -Message "$deviceData" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
@@ -210,5 +210,3 @@ if($token.Length -ne 0 -and $SPId.Length -ne 0)
 ConvertTxtFileToExcel "$pathLogsFolder\Report.txt"
 
 Start-Sleep -s 3
-
-ManagePythonSetup -Action uninstall

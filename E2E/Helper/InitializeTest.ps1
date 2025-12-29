@@ -18,10 +18,8 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
     New-Item -ItemType Directory -Force -Path $pathLogsFolder  | Out-Null
 
     $Global:SequenceNumber = 0
-    $Global:Results = '' | SELECT ScenarioName,fps,TotalNumberOfFrames,FramesAbove33ms,'AvgProcessingTimePerFrame(In ms)','MaxProcessingTimePerFrame(In ms)','MinProcessingTimePerFrame(In ms)','timetofirstframe(In secs)','CameraAppInItTime(In secs)','VoiceRecorderInItTime(In secs)','timetofirstframeForAudio(In secs)',FramesAbove33msForAudioBlur,'PeakWorkingSetSize(In MB)','AvgWorkingSetSize(In MB)', BeforeMedianCPUUsage, BeforeMedianNPUUsage, BeforeMedianMemoryUsage, BeforePeakCPUUsage, BeforePeakNPUUsage, BeforePeakMemoryUsage, BeforeAverageCPUUsage, BeforeAverageNPUUsage, BeforeAverageMemoryUsage, BeforeMedianMemoryUsageGB, BeforePeakMemoryUsageGB, BeforeAverageMemoryUsageGB, AfterMedianCPUUsage, AfterMedianNPUUsage, AfterMedianMemoryUsage, AfterPeakCPUUsage, AfterPeakNPUUsage, AfterPeakMemoryUsage, AfterAverageCPUUsage, AfterAverageNPUUsage, AfterAverageMemoryUsage, AfterMedianMemoryUsageGB, AfterPeakMemoryUsageGB, AfterAverageMemoryUsageGB, DiffMedianCPUUsage, DiffMedianNPUUsage, DiffMedianMemoryUsage, DiffPeakCPUUsage, DiffPeakNPUUsage, DiffPeakMemoryUsage, DiffAverageCPUUsage, DiffAverageNPUUsage, DiffAverageMemoryUsage, DiffMedianMemoryUsageGB, DiffPeakMemoryUsageGB, DiffAverageMemoryUsageGB, Status, ReasonForNotPass
-
+    $Global:Results = '' | SELECT ScenarioName,fps,TotalNumberOfFrames,FramesAbove33ms,'AvgProcessingTimePerFrame(In ms)','MaxProcessingTimePerFrame(In ms)','MinProcessingTimePerFrame(In ms)','timetofirstframe(In secs)','CameraAppInItTime(In secs)','VoiceRecorderInItTime(In secs)','timetofirstframeForAudio(In secs)',FramesAbove33msForAudioBlur,'PeakWorkingSetSize(In MB)','AvgWorkingSetSize(In MB)','AvgNPUUsage(In %)','AvgCPUUsage(In %)' ,'AvgMemoryUsage(In GB)','BeforeNPUUsage(In %)','BeforeCPUUsage(In %)','BeforeMemoryUsage(In GB)',Status,ReasonForNotPass
     $Global:validatedCameraFriendlyName = ""
-    $Global:pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
 
     if ($CameraType -ieq "External Camera")
 	{
