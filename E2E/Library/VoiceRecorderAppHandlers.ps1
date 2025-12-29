@@ -16,7 +16,7 @@ function AudioRecording($duration,$snarioName,$logPath)
      #Open Task Manager and set speed to low
      setTMUpdateSpeedLow
 
-     #Capture Resource Utilization before test starts
+     #Capture Resource Utilization before test starts.
      Monitor-Resources -scenario $snarioName -executionState "Before" -logPath $logPath -Once "Once"
      
      #open voice recorder App
