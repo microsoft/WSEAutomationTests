@@ -168,7 +168,7 @@ DESCRIPTION:
     This function starts the Camera app, switches to video mode, and records a video for a specified
     duration. It captures the start time in UTC format and returns it for later verification.
 INPUT PARAMETERS:
-    - duration [int] :- The duration of the video recording in seconds.
+    - duration [int] :- The duration is the number of iterations of video recording.
     - snarioName [string] :- Scenario name used for resource logging 
     - logPath [string] :- Path to write resource utilization logs 
 RETURN TYPE:
@@ -261,7 +261,7 @@ DESCRIPTION:
     It captures the app's start time in UTC format, which can be used later for log and performance analysis.
     After the previewing is complete, the Camera app is closed, and the start time is returned.
 INPUT PARAMETERS:
-    - duration [int] :- The duration in seconds for which the camera will remain in preview mode.
+    - duration [int] :- The duration is the number of iterations of video Previewing.
     - snarioName [string] :- Scenario name used for resource logging.
     - logPath [string] :- Path to write resource utilization logs.
 RETURN TYPE:
