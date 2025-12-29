@@ -5,7 +5,7 @@ DESCRIPTION:
     performs the recording for the specified duration, and stops the recording afterward.
     The timestamps are formatted for compatibility with Asg trace logs (in UTC with milliseconds).
 INPUT PARAMETERS:
-    - duration [int] :- The duration (in seconds) for which the audio will be recorded.
+    - duration [int] :- The duration is the number of iterations for which the audio will be recorded.
     - snarioName [string] :- Scenario name used for resource logging.
     - logPath [string] :- Path to write resource utilization logs.
 RETURN TYPE:
