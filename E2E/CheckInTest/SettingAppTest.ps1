@@ -92,10 +92,10 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [str
          $wse8480PolicyState = Check8480Policy
          if ($wse8480PolicyState -eq $true)
 		   {
-            if($toggleEachAiEffect[0] -eq "On")
+            if($testScenario[0] -eq "On")
             {
-                FindAndSetValue $ui RadioButton "Standard framing" $toggleEachAiEffect[1]
-                FindAndSetValue $ui RadioButton "Cinematic framing" $toggleEachAiEffect[2]
+                FindAndSetValue $ui RadioButton "Standard framing" $testScenario[1]
+                FindAndSetValue $ui RadioButton "Cinematic framing" $testScenario[2]
             }
          }   
       }
