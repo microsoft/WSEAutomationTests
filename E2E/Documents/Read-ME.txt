@@ -48,10 +48,12 @@ Set up for Hibernation
 • Runs the same Check-In tests on external USB cameras.
 • Verifies effect toggling, scenario ID generation, and Camera/Voice Recorder end-to-end scenarios for both plugged-in and unplugged states.
  
-Report Metrics: Sample- https://microsoft-my.sharepoint.com/:x:/p/jdugar/ET2SO8WbD19IgubwEp91xXEBuSB6_6gEC5blyvZqzvahFA?e=FIAXIs
+Report Metrics: Sample- https://onedrive.cloud.microsoft/:x:/a@3df3gj9b/S/IQAiYMbRrjkGTLJzLdwgaA2MAThhIXipTqA0wPOZh_WOd0k?e=U0qEA5
 Please see Report.png file under E2E\Documents
  
-• Scenario Details
+• Scenario Details fps
+• fps
+• TotalNumberOfFrames
 • FramesAbove33ms
 • Average processing time per frame.
 • Minimum processing time per frame.
@@ -59,7 +61,8 @@ Please see Report.png file under E2E\Documents
 • PCInItTime (time to first frame for PC)
 • Camera App Init Time (Camera App start time minus PC time to first frame).
 • Voice Recorder App Init Time (Voice Recorder App start time minus PC time to first frame).
-• Video fps
+• timetofirstframeForAudio(In secs)
+• FramesAbove33msForAudioBlur
 • PeakWorkingSetSize
 • AvgWorkingSetSize
 • AvgNPUUsage(In %)

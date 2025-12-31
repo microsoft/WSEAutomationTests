@@ -64,7 +64,7 @@ Test Environment Setup
 Test Scripts
 ============
 ### 1. **CheckInTest.ps1** - Basic Validation
-**Purpose:** Verify basic functionality of each Windows Studio Effect
+**Purpose:** Verify basic functionality of each Windows Studio Effect.
 
 **Features:**
 - Tests individual effect toggles (On/Off)
