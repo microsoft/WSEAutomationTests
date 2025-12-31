@@ -61,6 +61,21 @@ Test Environment Setup
 - ReleaseTest: 1-4 days (V1+V2 features, Recording+Previewing, PluggedIn+Unplugged)
 - StressTest: 3-4 hours
 
+**Coverage and Validation:**
+- Validates the availability and functionality of Windows Studio Effects (camera and audio) toggles, ensuring they can be toggled On/Off.
+- Validates video fps > 29fps.
+- Validates AvgWorkingSetSize < 250MB
+- Validates PeakWorkingSetSize does not increase by more than 1000KB during video recording.
+- Validates tests are conducted across various parameters, including resolutions, power states etc
+- Validates Windows Studio Effects(WSE) is not supported in Photo Mode.
+- Validates the correct scenarioId is generated for both individual and combined effects
+- Verifies the number of frames exceeding 33ms in processing time.
+- Verifies that the PC session is properly initialized and completed, including logs for "Starting Microsoft.ASG.Perception" and "Stopping Microsoft.ASG.Perception."
+- Captures KPIs - time to first frame, camera Init Time, video fps
+- Captures NPU and CPU usage by taking Task Manager screenshots.
+- Captures NPU and CPU and memory usage before test starts
+- Captures NPU and CPU and memory usage while test is running.
+
 Test Scripts
 ============
 ### 1. **CheckInTest.ps1** - Basic Validation
@@ -299,8 +314,7 @@ Logs captured here:
 
 ## Documentation
 For additional guidance, refer to the following documents in `E2E/Documents`:
-- Read-ME.txt
-- WSE E2E Automation Test Usage Guidelines
+-  WSE E2E Automation Test Usage Guidelines
 
 ## References
 **[Test Result Sample](https://github.com/microsoft/WSEAutomationTests/blob/main/E2E/Documents)** - See Output-Sample-For-CheckinTest-and-ReleaseTest.png and Report.png and Report.xlsx under E2E/Documents

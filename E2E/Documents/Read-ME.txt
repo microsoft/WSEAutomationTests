@@ -51,7 +51,7 @@ Set up for Hibernation
 Report Metrics: Sample- https://onedrive.cloud.microsoft/:x:/a@3df3gj9b/S/IQAiYMbRrjkGTLJzLdwgaA2MAThhIXipTqA0wPOZh_WOd0k?e=U0qEA5
 Please see Report.png file under E2E\Documents
  
-• Scenario Details fps
+• Scenario Details 
 • fps
 • TotalNumberOfFrames
 • FramesAbove33ms
