@@ -73,8 +73,7 @@ Test Environment Setup
 - Verifies that the PC session is properly initialized and completed, including logs for "Starting Microsoft.ASG.Perception" and "Stopping Microsoft.ASG.Perception."
 - Captures KPIs - time to first frame, camera Init Time, video fps
 - Captures NPU and CPU usage by taking Task Manager screenshots.
-- Captures NPU and CPU and memory usage before test starts
-- Captures NPU and CPU and memory usage while test is running.
+- Captures NPU and CPU and memory usage before test starts and while tests are running.
 
 Test Scripts
 ============
