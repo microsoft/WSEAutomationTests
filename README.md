@@ -244,10 +244,10 @@ cd C:\WSE\WSEAutomationTests\E2E
 **Features:**
 - Video FPS measurement
 - Frame processing time analysis
-- Frame above > 33ms tracking
+- Frames above 33ms tracking
 - TimeToFirstFrame for PC measurement
 - Results are logged and converted into an Excel report for analysis.
-- Generates a graph for video fps, (min/max/avg) processing time, frame above 33 ms
+- Generates a graph for video fps, (min/max/avg) processing time, frame above 33ms.
 
 #### How to Run Script
 ##### Basic Execution (No Parameters)
@@ -272,12 +272,11 @@ cd C:\WSE\WSEAutomationTests\E2E
 - If Voice Focus policy is not available, the script automatically sets VF to NA.
 - Results are logged and converted into an Excel report for analysis.
 
-**Run:**
+#### How to Run Script
+##### Basic Execution (No Parameters)
 ```powershell
 .\ScenarioTest.ps1
 ```
-
-#### How to Run Script
 ##### With All Parameters
 ```powershell
 .\ScenarioTest.ps1 -token "<SmartPlugToken>" -SPId "<SmartPlugId>" -targetMepCameraVer "<ExpectedCameraMEPVersion>" -targetMepAudioVer "<ExpectedAudioMEPVersion>" `
@@ -303,7 +302,7 @@ Console output format:
 ```
 Example:
 ```
-Pluggedin\AFS: Passed (159.27)
+PluggedIn\AFS: Passed (159.27)
 ```
 Logs captured here:
 - Asgtrace: 2023-12-12-09-26-02-Checkin-Test\Pluggedin\AFS\Asgtrace (Generated for each individual WSE effect (camera and audio) for both plugged in and unplugged).
