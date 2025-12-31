@@ -20,7 +20,7 @@ Getting Started
 ===============
 Installation
 ============
-### 1. Clone/Download the Repository
+### 1. Clone/Fork/Download the Repository
 ```powershell
 # Clone the repository (if using Git)
 git clone <repository-url>
@@ -59,7 +59,7 @@ Test Environment Setup
 **Typical Test Durations:**
 - CheckInTest: 30-60 minutes
 - ReleaseTest: 1-4 days (V1+V2 features, Recording+Previewing, PluggedIn+Unplugged)
-- StressTest: 2-4 hours
+- StressTest: 3-4 hours
 
 Test Scripts
 ============
@@ -77,12 +77,12 @@ Test Scripts
 ##### Basic Execution (No Parameters)
 ```powershell
 cd C:\WSE\WSEAutomationTests\E2E
-./CheckInTest.ps1
+.\CheckInTest.ps1
 ```
 
 ##### With All Parameters
 ```powershell
-./CheckInTest.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0"
+.\CheckInTest.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0"
 ```
 
 ### 2. **ReleaseTest.ps1** - Comprehensive Coverage
@@ -102,42 +102,42 @@ cd C:\WSE\WSEAutomationTests\E2E
 ##### Basic Execution (Plugged-In Only)
 ```powershell
 cd C:\WSE\WSEAutomationTests\E2E
-./ReleaseTest.ps1
+.\ReleaseTest.ps1
 ```
 
 ##### With Parameters
 ###### I. Both PluggedIn and Unplugged Tests
 Run all scenarios by switching between charging states:
 ```powershell
-./ReleaseTest.ps1 -token <your_token> -SPId <your_SPId> -runMode "Both"
+.\ReleaseTest.ps1 -token <your_token> -SPId <your_SPId> -runMode "Both"
 ```
 or simply:
 ```powershell
-./ReleaseTest.ps1 -token <your_token> -SPId <your_SPId>
+.\ReleaseTest.ps1 -token <your_token> -SPId <your_SPId>
 ```
 
 ###### II. Only PluggedIn tests
 ```powershell
-./ReleaseTest.ps1 -token <your_token> -SPId <your_SPId> -runMode "PluggedInOnly"
+.\ReleaseTest.ps1 -token <your_token> -SPId <your_SPId> -runMode "PluggedInOnly"
 ```
 or simply connect charger or smart plug and run
 ```powershell
-./ReleaseTest.ps1 -runMode "PluggedInOnly"
+.\ReleaseTest.ps1 -runMode "PluggedInOnly"
 ```
 or 
 ```powershell
-./ReleaseTest.ps1
+.\ReleaseTest.ps1
 ```
 
 ###### III. Only Unplugged tests
 ```powershell
-./ReleaseTest.ps1 -token <your_token> -SPId <your_SPId> -runMode "UnpluggedOnly"
+.\ReleaseTest.ps1 -token <your_token> -SPId <your_SPId> -runMode "UnpluggedOnly"
 ```
 `Important`: Ensure the device battery is above 20% before starting the tests when running in UnpluggedOnly mode or in Both mode (which includes unplugged scenarios).
 
 ###### IV. All Parameters
 ```powershell
-./ReleaseTest.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0" -runMode "Both"
+.\ReleaseTest.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0" -runMode "Both"
 ```
 
 ### 3. **StressTest.ps1** - Device Stress Testing
@@ -175,12 +175,12 @@ powercfg.exe /hibernate on
 ##### Basic Execution (No Parameters)
 ```powershell
 cd C:\WSE\WSEAutomationTests\E2E
-./StressTest.ps1
+.\StressTest.ps1
 ```
 
 ##### With All Parameters
 ```powershell
-./StressTest.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0"
+.\StressTest.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0"
 ```
 
 ### 4. **MemoryUsage-Set.ps1** - Memory Profiling
@@ -196,12 +196,12 @@ cd C:\WSE\WSEAutomationTests\E2E
 ##### Basic Execution (No Parameters)
 ```powershell
 cd C:\WSE\WSEAutomationTests\E2E
-./MemoryUsage-Set.ps1
+.\MemoryUsage-Set.ps1
 ```
 
 ##### With All Parameters
 ```powershell
-./MemoryUsage-Set.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0"
+.\MemoryUsage-Set.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0"
 ```
 
 ### 5. **CheckInTest_External_USB_Camera.ps1** - External Camera Validation
@@ -216,12 +216,12 @@ cd C:\WSE\WSEAutomationTests\E2E
 ##### Basic Execution (No Parameters)
 ```powershell
 cd C:\WSE\WSEAutomationTests\E2E
-./CheckInTest_External_USB_Camera.ps1
+.\CheckInTest_External_USB_Camera.ps1
 ```
 
 ##### With All Parameters
 ```powershell
-./CheckInTest_External_USB_Camera.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0" -CameraType "External Camera"
+.\CheckInTest_External_USB_Camera.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0" -CameraType "External Camera"
 ```
 
 ### 6. **Framedrop-Fps-Testing.ps1** - Performance Profiling
@@ -239,12 +239,12 @@ cd C:\WSE\WSEAutomationTests\E2E
 ##### Basic Execution (No Parameters)
 ```powershell
 cd C:\WSE\WSEAutomationTests\E2E
-./Framedrop-Fps-Testing.ps1
+.\Framedrop-Fps-Testing.ps1
 ```
 
 ##### With All Parameters
 ```powershell
-./Framedrop-Fps-Testing.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0" -CameraType "External Camera"
+.\Framedrop-Fps-Testing.ps1 -token "your_token" -SPId "your_SPId" -targetMepCameraVer "23.0.1" -targetMepAudioVer "23.0.1" -targetPerceptionCoreVer "1.0.0" -CameraType "External Camera"
 ```
 
 ### 7. **ScenarioTest.ps1** - Scenario-Specific Testing
@@ -260,13 +260,13 @@ cd C:\WSE\WSEAutomationTests\E2E
 
 **Run:**
 ```powershell
-./ScenarioTest.ps1
+.\ScenarioTest.ps1
 ```
 
 #### How to Run Script
 ##### With All Parameters
 ```powershell
-./ScenarioTest.ps1 -token "<SmartPlugToken>" -SPId "<SmartPlugId>" -targetMepCameraVer "<ExpectedCameraMEPVersion>" -targetMepAudioVer "<ExpectedAudioMEPVersion>" `
+.\ScenarioTest.ps1 -token "<SmartPlugToken>" -SPId "<SmartPlugId>" -targetMepCameraVer "<ExpectedCameraMEPVersion>" -targetMepAudioVer "<ExpectedAudioMEPVersion>" `
 -targetPerceptionCoreVer "<ExpectedPCVersion>" -logFile "ScenarioTesting.txt" `
 -toggleAIEffects "AFS+BBS+ECS","AFS+BBP+ECS","AFS+CF-I+PL+BBS" -initSetUpDone "false" `
 -camsnario "Recording" -VF "On" -vdoRes "1080p, 16 by 9 aspect ratio, 30 fps" `
@@ -301,10 +301,10 @@ Logs captured here:
 For additional guidance, refer to the following documents in `E2E/Documents`:
 - Read-ME.txt
 - WSE E2E Automation Test Usage Guidelines
-- Report.xlsx
 
 ## References
-**[Test Result Sample](https://github.com/microsoft/WSEAutomationTests/blob/main/E2E/Documents/Output-Sample-For-CheckinTest-and-ReleaseTest.png)** - See Output-Sample-For-CheckinTest-and-ReleaseTest.png in E2E/Documents
+**[Test Result Sample](https://github.com/microsoft/WSEAutomationTests/blob/main/E2E/Documents)** - See Output-Sample-For-CheckinTest-and-ReleaseTest.png and Report.png and Report.xlsx under E2E/Documents
+
 
 Trademarks
 ----------
