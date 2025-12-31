@@ -36,6 +36,17 @@ Set up for Hibernation
 5. Framedrop-Fps-Testing.ps1:
 •   Captures key performance indicators (KPIs) like video fps, processing time, frame above 33ms, etc., by running the same camera E2E scenario in a loop with the device plugged in and unplugged.
 
+6. CameraReliabilityTest.ps1
+• Executes long-duration reliability testing across multiple iterations and resolution combinations.
+• Helps identify stability and soak-related issues over extended runs.
+
+7. ScenarioTest.ps1
+• Runs individual scenarios in isolation for focused validation.
+• Provides detailed scenario-level logging to assist debugging and repro.
+
+8. CheckInTest_External_USB_Camera.ps1
+• Runs the same Check-In tests on external USB cameras.
+• Verifies effect toggling, scenario ID generation, and Camera/Voice Recorder end-to-end scenarios for both plugged-in and unplugged states.
  
 Report Metrics: Sample- https://microsoft-my.sharepoint.com/:x:/p/jdugar/ET2SO8WbD19IgubwEp91xXEBuSB6_6gEC5blyvZqzvahFA?e=FIAXIs
 Please see Report.png file under E2E\Documents
@@ -51,6 +62,12 @@ Please see Report.png file under E2E\Documents
 • Video fps
 • PeakWorkingSetSize
 • AvgWorkingSetSize
+• AvgNPUUsage(In %)
+• AvgCPUUsage(In %)
+• AvgMemoryUsage(In GB)
+• BeforeNPUUsage(In %)
+• BeforeCPUUsage(In %)
+• BeforeMemoryUsage(In GB)
 • Test Status
 • Test failure Reason 
  
@@ -82,7 +99,6 @@ Output sample for CheckinTest.ps1 and ReleaseTest.ps1: Please see Output-Sample-
 •	Test run logs: 2023-12-12-09-26-02-Checkin-Test\Pluggedin-AF (Generated for each individual WSE effect (camera and audio) effect).
 
 PS:  Smart plugs are used to support Pluggedin and Unplugged Scenarios.
-
 
 Abbreviations:
 WSE: Windows Studio Effects
