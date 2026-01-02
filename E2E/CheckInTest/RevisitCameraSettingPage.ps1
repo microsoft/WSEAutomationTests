@@ -84,7 +84,7 @@ function RevisitCameraSettingPage($devPowStat, $token, $SPId)
                           
         # Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
+        ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                      -ECVal "On" -ECSVal "False" -ECTVal "True" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
 
@@ -94,7 +94,7 @@ function RevisitCameraSettingPage($devPowStat, $token, $SPId)
         RevisitCameraSetting "30"
 
         # Change AI toggle in setting page
-        ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
+        ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "False" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
                                      -ECVal "Off" -ECSVal "False" -ECTVal "False" -VFVal "Off" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
         Start-Sleep -s 2
@@ -103,7 +103,7 @@ function RevisitCameraSettingPage($devPowStat, $token, $SPId)
         RevisitCameraSetting "30"
 
         # Change AI toggle in setting page
-        ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
+        ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                      -ECVal "On" -ECSVal "False" -ECTVal "True" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
         Start-Sleep -s 2

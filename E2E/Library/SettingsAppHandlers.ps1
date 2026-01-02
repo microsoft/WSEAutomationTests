@@ -170,6 +170,8 @@ DESCRIPTION:
     It handles different combinations of settings based on whether WSEV2 is supported.
 INPUT PARAMETERS:
     - AFVal [string] :- Toggle value for Automatic Framing.
+    - AFSVal [string] :- Toggle value for Standard Framing.
+    - AFCVal [string] :- Toggle value for Cinematic Framing.
     - PLVal [string] :- Toggle value for Portrait Light.
     - BBVal [string] :- Toggle value for Background Effects.
     - BSVal [string] :- Toggle value for Standard Blur.
@@ -185,7 +187,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void (Performs UI interactions to toggle camera and audio effects without returning a value.)
 #>
-Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECTVal,$VFVal,$CF,$CFI,$CFA,$CFW)
+Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECTVal,$VFVal,$CF,$CFI,$CFA,$CFW)
 {    
      Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function" -IsOutput
      
@@ -227,7 +229,18 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,
            FindAndSetValue $ui RadioButton "Standard" $ECSVal
            FindAndSetValue $ui RadioButton "Teleprompter" $ECTVal
         }
+        $wse8480PolicyState = Check8480Policy
+        if ($wse8480PolicyState -eq $true)
+		{
+           if($AFVal -eq "On")
+           {   
+              FindAndSetValue $ui RadioButton "Standard framing" $AFSVal
+              FindAndSetValue $ui RadioButton "Cinematic framing" $AFCVal
+		   
+           }
+		}
      }
+     
      
      #open microphone effects page and turn all effects off
      VoiceFocusToggleSwitch $VFVal

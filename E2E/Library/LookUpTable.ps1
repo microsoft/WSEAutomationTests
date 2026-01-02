@@ -19,20 +19,22 @@ function Get-CombinationReturnValues {
     )
 
     # Define the base array (default values)
-    $defaultReturnArray = @("Off","Off","Off","False","False","Off","False","False","Off","False","False","False","","")
+    $defaultReturnArray = @("Off","False","False","Off","Off","False","False","Off","False","False","Off","False","False","False","","")
     $wsev2PolicyState = CheckWSEV2Policy
+    $WSE8480Policy = Check8480Policy
 
     # Define overrides with support check
     $overrides = @{
-        'AF'   = @{ supported = $true;                         data = @{ 0 = 'On';               12 = 'AF';     13 = 65536 } }
-        'ECS'   = @{ supported = $true;                        data = @{ 5 = 'On';  6 = 'True';  12 = 'ECS';    13 = 16 } }
-        'ECT'  = @{ supported = $wsev2PolicyState;             data = @{ 5 = 'On';  7 = 'True';  12 = 'ECT';    13 = 131072 } }
-        'PL'   = @{ supported = $wsev2PolicyState;             data = @{ 1 = 'On';               12 = 'PL';     13 = 524288 } }
-        'CF-I' = @{ supported = $wsev2PolicyState;             data = @{ 8 = 'On';  9 = 'True';  12 = 'CF-I';   13 = 2097152 } }
-        'CF-A' = @{ supported = $wsev2PolicyState;             data = @{ 8 = 'On'; 10 = 'True';  12 = 'CF-A';   13 = 2097152 } }
-        'CF-W' = @{ supported = $wsev2PolicyState;             data = @{ 8 = 'On'; 11 = 'True';  12 = 'CF-W';   13 = 2097152 } }
-        'BBP'  = @{ supported = $true;                         data = @{ 2 = 'On';  4 = 'True';  12 = 'BBP';    13 = if ($wsev2PolicyState) { 16384 } else { 16416 } } }
-        'BBS'  = @{ supported = $true;                         data = @{ 2 = 'On';  3 = 'True';  12 = 'BBS';    13 = if ($wsev2PolicyState) { 64 } else { 96 } } }
+        'AFS'  = @{ supported = $true;                        data = @{ 0 = 'On';  1 = 'True'; 14  = 'AFS';    15 = 65536 } }
+        'AFC'  = @{ supported = $WSE8480Policy;               data = @{ 0 = 'On';  2 = 'True';  14 = 'AFC';    15 = 65536 } }
+        'ECS'  = @{ supported = $true;                        data = @{ 7 = 'On';  8 = 'True';  14 = 'ECS';    15 = 16 } }
+        'ECT'  = @{ supported = $wsev2PolicyState;            data = @{ 7 = 'On';  9 = 'True';  14 = 'ECT';    15 = 131072 } }
+        'PL'   = @{ supported = $wsev2PolicyState;            data = @{ 3 = 'On';               14 = 'PL';     15 = 524288 } }
+        'CF-I' = @{ supported = $wsev2PolicyState;            data = @{ 10 = 'On'; 11 = 'True'; 14 = 'CF-I';   15 = 2097152 } }
+        'CF-A' = @{ supported = $wsev2PolicyState;            data = @{ 10 = 'On'; 12 = 'True'; 14 = 'CF-A';   15 = 2097152 } }
+        'CF-W' = @{ supported = $wsev2PolicyState;            data = @{ 10 = 'On'; 13 = 'True'; 14 = 'CF-W';   15 = 2097152 } }
+        'BBP'  = @{ supported = $true;                        data = @{ 4 = 'On';  6 = 'True';  14 = 'BBP';    15 = if ($wsev2PolicyState) { 16384 } else { 16416 } } }
+        'BBS'  = @{ supported = $true;                        data = @{ 4 = 'On';  5 = 'True';  14 = 'BBS';    15 = if ($wsev2PolicyState) { 64 } else { 96 } } }
     }
 
     $result = $defaultReturnArray.Clone()
@@ -51,9 +53,9 @@ function Get-CombinationReturnValues {
 
             $override = $check.data
             foreach ($key in $override.Keys) {
-                if ($key -eq 12) {
+                if ($key -eq 14) {
                     $scenarioName += $override[$key]
-                } elseif ($key -eq 13) {
+                } elseif ($key -eq 15) {
                     $scenarioID += $override[$key]
                 } else {
                     $result[$key] = $override[$key]
@@ -62,8 +64,9 @@ function Get-CombinationReturnValues {
         }
     }
 
-    $result[12] = ($scenarioName -join "+")
-    $result[13] = "$scenarioID"
+    $result[14] = ($scenarioName -join "+")
+    $result[15] = "$scenarioID"
+
     return ,$result
 }
 <#
