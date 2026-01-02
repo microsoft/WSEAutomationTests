@@ -98,7 +98,6 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        Start-Sleep -m 500 
        
        #Setting AI effects for Tests in camera setting page 
-     # Setting up AI effects for tests in camera setting page 
        $scenarioID = $toggleEachAiEffect[15]
                     
        Write-Log -Message "Setting up the camera Ai effects" -IsOutput      
