@@ -95,7 +95,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
 
         # Change AI toggle in camera App UI (We will have change once the effects are available in camera App UI)
         ToggleAiEffectsInCameraApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                   -ECVal "On" -ECSVal "False" -ECTVal "True" `
+                                   -ECVal "On" -ECSVal "True" -ECTVal "False" `
                                    -CF "On" -CFI "False" -CFA "False" -CFW "True" 
 
         # Open settings app and obtain UI automation from it
@@ -154,7 +154,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
                
         #Change AI toggle in camera App UI
         ToggleAiEffectsInCameraApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECTVal "True" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" `
                                      -CF "On" -CFI "False" -CFA "True" -CFW "False" `
         
         
