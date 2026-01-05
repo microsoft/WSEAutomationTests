@@ -42,8 +42,6 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
     $ErrorActionPreference='Stop'
     $scenarioName = "$devPowStat\ToggleAIEffectsMultipleTimes"
     $logFile = "$devPowStat-ToggleAIEffectsMultipleTimes.txt"
-    $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
-    $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)
     {   
@@ -196,44 +194,11 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         # Starting to collect Traces
         Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName
-        
-        # Open Task Manager
-        Write-Log -Message "Opening Task Manager" -IsOutput
-        $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
-        Start-Sleep -s 1
-        setTMUpdateSpeedLow -uiEle $uitaskmgr
-        # Call python modules for task manager Before starting the test case
-        Start-Process -FilePath "python" -ArgumentList @(
-            $pythonLibFolder,
-            "start_resource_monitoring",
-            $resourceUtilizationFile,
-            $scenarioName,
-            5,
-            "Before"
-        ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
 
-        # Now process is finished, so call GetResourceUtilizationStats
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
-        Write-Log -Message $utilizationStats -IsOutput >> $pathLogsFolder\ConsoleResults.txt
-        if ($null -eq $utilizationStats) {
-            Write-Error "Failed to get resource utilization stats."
-            return
-        }
         # Open camera App
-        $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $logFile $resourceUtilizationConsolidated "After"
+        $InitTimeCameraApp = CameraPreviewing -duration 5 -snarioName $scenarioName -logPath "$scenarioName\ResourceUtilization.txt"
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
-
-        # Close Task Manager and take Screenshot of CPU and NPU Usage
-        Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
-        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioName
-        
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "After"
-
-        if ($null -eq $utilizationStats) {
-            Write-Error "Failed to get resource utilization stats."
-            return
-        }
 
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput

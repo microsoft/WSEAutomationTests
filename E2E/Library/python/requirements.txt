@@ -1,6 +1,0 @@
-pywinauto
-pandas
-openpyxl
-psutil
-numpy
-matplotlib

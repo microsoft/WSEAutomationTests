@@ -5,12 +5,20 @@ DESCRIPTION:
     performs the recording for the specified duration, and stops the recording afterward.
     The timestamps are formatted for compatibility with Asg trace logs (in UTC with milliseconds).
 INPUT PARAMETERS:
-    - scnds [int] :- The duration (in seconds) for which the audio will be recorded.
+    - duration [int] :- The duration is the number of iterations for which the audio will be recorded.
+    - snarioName [string] :- Scenario name used for resource logging.
+    - logPath [string] :- Path to write resource utilization logs.
 RETURN TYPE:
     - array (Returns an array containing the start time of the Voice Recorder app and the start time of the audio recording.)
 #>
-function AudioRecording($scnds)
+function AudioRecording($duration,$snarioName,$logPath)
 {    
+     #Open Task Manager and set speed to low
+     setTMUpdateSpeedLow
+
+     #Capture Resource Utilization before test starts.
+     Monitor-Resources -scenario $snarioName -executionState "Before" -logPath $logPath -Once "Once"
+     
      #open voice recorder App
      Write-Log -Message "Open Voice Recorder App" -IsOutput
      #TODO: Don't use full exe path to open voice recorder. We may have to set the path in the environment variable	
@@ -38,8 +46,10 @@ function AudioRecording($scnds)
 
      #Capture the time record button was pressed. 
      $audioRecordingStart = Get-Date
-    
-     Start-Sleep -s $scnds
+
+     # Capture Resource Utilization while test is running
+     Monitor-Resources -scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
+     Start-Sleep -s 1
      
      #Set time zone to UTC as Asg trace logs are using UTC date format
      $audioRecordingStartinUTC = $audioRecordingStart.ToUniversalTime()
