@@ -28,66 +28,73 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [str
          TestOutputMessage $scenarioName "Skipped" $startTime "Token is empty"
          return
       }
-
       #Create scenario specific folder for collecting logs
       Write-Log -Message "Creating folder for capturing logs" -IsOutput
       CreateScenarioLogsFolder $scenarioName
 
       Write-Log -Message "Starting Test for $scenarioName" -IsOutput
-
-      #Retrieve value for scenario from Get-CombinationReturnValues function
-      $testScenario = Get-CombinationReturnValues -effects $testScenario
-      if ($testScenario.length -eq 0)
-      {
-         TestOutputMessage $scenarioName "Skipped" $startTime "wsev2Policy Not Supported"
-         return
-      }
-
-      # Toggling AI effects as per scenarios
-      # Open system setting page
-      $ui = OpenApp 'ms-settings:' 'Settings'
-      Start-Sleep -m 500
-
-      # Open camera effects page
-      Write-Log -Message "Navigate to camera effects setting page" -IsOutput
-      FindCameraEffectsPage $ui
-      Start-Sleep -s 5
-
-      # Setting up AI effects for tests in camera setting page
-      $scenarioID = $testScenario[13]
-
-      Write-Log -Message "Setting up the camera Ai effects" -IsOutput
+       
+       #Retrieve value for scenario from Get-CombinationReturnValues function
+       $testScenario = Get-CombinationReturnValues -effects $testScenario
+       if($testScenario.length -eq 0)
+       {
+          TestOutputMessage $scenarioName "Skipped" $startTime "wsev2Policy Not Supported"
+          return
+       }
+       
+       # Toggling AI effects as per scenarios
+       # Open system setting page
+       $ui = OpenApp 'ms-settings:' 'Settings'
+       Start-Sleep -m 500
+       
+       # Open camera effects page 
+       Write-Log -Message "Navigate to camera effects setting page" -IsOutput
+       FindCameraEffectsPage $ui
+       Start-Sleep -s 5
+       
+       # Setting up AI effects for tests in camera setting page 
+       $scenarioID = $testScenario[15]
+                    
+       Write-Log -Message "Setting up the camera Ai effects" -IsOutput      
 
       FindAndSetValue $ui ToggleSwitch "Automatic framing" $testScenario[0]
 
-      if ($CameraType -ne "External Camera")
-      {
-         FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[5]
+      if ($CameraType -ne "External Camera") {
+         FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[7]
       }
 
-      FindAndSetValue $ui ToggleSwitch "Background effects" $testScenario[2]
-      if ($testScenario[2] -eq "On")
-      {
-         FindAndSetValue $ui RadioButton "Portrait blur" $testScenario[4]
-         FindAndSetValue $ui RadioButton "Standard blur" $testScenario[3]
+      FindAndSetValue $ui ToggleSwitch "Background effects" $testScenario[4]
+      if($testScenario[4] -eq "On")
+      { 
+         FindAndSetValue $ui RadioButton "Portrait blur" $testScenario[6]
+         FindAndSetValue $ui RadioButton "Standard blur" $testScenario[5]
       }
       $wsev2PolicyState = CheckWSEV2Policy
-      if ($wsev2PolicyState -eq $true)
-      {
-         FindAndSetValue $ui ToggleSwitch "Portrait light" $testScenario[1]
-         if ($testScenario[5] -eq "On")
+      if($wsev2PolicyState -eq $true)	  
+      {    
+         FindAndSetValue $ui ToggleSwitch "Portrait light" $testScenario[3]
+         if($testScenario[7] -eq "On")
          {
-            FindAndSetValue $ui RadioButton "Standard" $testScenario[6]
-            FindAndSetValue $ui RadioButton "Teleprompter" $testScenario[7]
+            FindAndSetValue $ui RadioButton "Standard" $testScenario[8]
+            FindAndSetValue $ui RadioButton "Teleprompter" $testScenario[9]
          }
-         FindAndSetValue $ui ToggleSwitch "Creative filters" $testScenario[8]
-         if ($testScenario[8] -eq "On")
-         {
-            FindAndSetValue $ui RadioButton "Illustrated" $testScenario[9]
-            FindAndSetValue $ui RadioButton "Animated" $testScenario[10]
-            FindAndSetValue $ui RadioButton "Watercolor" $testScenario[11]
+         FindAndSetValue $ui ToggleSwitch "Creative filters" $testScenario[10]
+         if($testScenario[10] -eq "On")
+         { 
+            FindAndSetValue $ui RadioButton "Illustrated" $testScenario[11]
+            FindAndSetValue $ui RadioButton "Animated" $testScenario[12]
+            FindAndSetValue $ui RadioButton "Watercolor" $testScenario[13]
          }
-      }
+         $wse8480PolicyState = Check8480Policy
+          if ($wse8480PolicyState -eq $true) {
+            if($testScenario[0] -eq "On")
+            {
+                FindAndSetValue $ui RadioButton "Standard framing" $testScenario[1]
+                FindAndSetValue $ui RadioButton "Cinematic framing" $testScenario[2]
+            }
+         }
+      }  
+      
       CloseApp 'systemsettings'
 
       # Checks if frame server is stopped
