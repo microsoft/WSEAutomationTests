@@ -199,6 +199,8 @@ function AddToFailedTestsList($failedTests)
    $logFile = $logFolder[1] + ".txt"
    $vdoRes = $splitEachTests[2]
    $ptoRes = $splitEachTests[3]
+   $vdoRes = RetrieveValue($vdoRes)
+   $ptoRes = RetrieveValue($ptoRes) 
    $devPowStat = $splitEachTests[4]
    $VFdetails  = $splitEachTests[5] -split "-"
    $VF = $VFdetails[1]
@@ -207,7 +209,7 @@ function AddToFailedTestsList($failedTests)
    $SPID ="333444"
    if($functionToCall -eq  "CameraAppTest")
    {
-      Write-Output "$functionToCall -logFile $logFile $token $SPId -camsnario $camsnario -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -VF $VF -toggleEachAiEffect $togAiEfft >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
+      Write-Output "$functionToCall -logFile `"$logFile`" $token $SPId -camsnario `"$camsnario`" -vdoRes `"$($vdoRes -join ', ')`" -ptoRes `"$($ptoRes -join ', ')`" -devPowStat `"$devPowStat`" -VF `"$VF`" -toggleEachAiEffect `"$togAiEfft`" >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
       Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
    }
    else
