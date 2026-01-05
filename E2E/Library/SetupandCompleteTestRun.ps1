@@ -19,7 +19,7 @@ function Get-InitialSetUp($scenarioName)
    # Toggling All effects on
    Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
    ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                -ECVal "On" -ECSVal "False" -ECTVal "True" -VFVal "On" `
+                                -ECVal "On" -ECSVal "True" -ECTVal "False" -VFVal "On" `
                                 -CF "On" -CFI "False" -CFA "False" -CFW "True"
 
    # Set photo resolution
@@ -78,7 +78,7 @@ Function Complete-TestRun($scenarioName, $startTime, $token, $SPId)
    if ($wsev2PolicyState -eq $false) {
        $scenarioID = "81968"  # Based on v1 effects
    } else {
-       $scenarioID = "2834432"  # Based on v1+v2 effects, verify if this is correct
+       $scenarioID = "2703376"  # Based on v1+v2 effects, verify if this is correct
    }
    
    # Log the entry to Verifylogs function

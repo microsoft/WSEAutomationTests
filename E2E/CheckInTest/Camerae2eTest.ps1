@@ -27,7 +27,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         #Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECTVal "True" -VFVal "On" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
                  
         #Open Camera App and set default setting to "Use system settings" 
@@ -89,11 +89,11 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         {
            # ScenarioID is based on v1+v2 effects.
            Write-Log -Message "Entering Verifylogs function" -IsOutput
-           Verifylogs $scenarioLogFolder "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
+           Verifylogs $scenarioLogFolder "2703376" $startTime #(Need to change the scenario ID, not sure if this is correct)
         
            # Calculate Time from camera app started until PC trace first frame processed
            Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
-           CheckInitTimeCameraApp $scenarioLogFolder "2834432" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
+           CheckInitTimeCameraApp $scenarioLogFolder "2703376" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
         }
         
         # Get the properties of latest video recording
