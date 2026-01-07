@@ -51,14 +51,19 @@ WSE\WSEAutomationTests\E2E\
 
 Test Environment Setup
 ----------------------
-* Set up the test environment with a stable network and dedicated Wi-Fi (for Smart Plug setup).
-* Configure the smart plug to execute automation tests with the device both plugged in and unplugged.
-* Ensure audio and video recording works, and Camera app and Settings page opens maximized.
+* Set up the test environment with a stable network and dedicated Wi-Fi to configure the smart plug.
+  _(Optional: Test scripts can be executed without smart plug setup)_
+* Ensure audio and video recording works, and Camera app, Settings page and Task manager opens maximized.
 * Arrange posters or mannequins with human faces to activate auto-framing animations.
 
 **Typical Test Durations:**
 - CheckInTest: 30-60 minutes
-- ReleaseTest: 1-4 days (V1+V2 features, Recording+Previewing, PluggedIn+Unplugged)
+- ReleaseTest: 1–4 days
+_(Duration depends on supported features across different SOCs (V1, V2, V3), the number of selected video and photo resolutions, test coverage for both recording and preview, and plugged-in vs. unplugged scenarios)_  
+**Feature coverage by SOCs:**  
+V1: Auto-framing, Blur, Eye Contact (Standard)   
+V2: Eye Contact (Teleprompter), Portrait Light, Creative Filters (Illustrated, Animated, Watercolor)  
+V3: Cinematic Framing
 - StressTest: 3-4 hours
 
 **Coverage and Validation:**
