@@ -26,7 +26,7 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
       #patterns
       $patterns = @(
           "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdInt}\,.*",
-          "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdWithLDC }\,.*"
+          "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdWithLDC}\,.*"
           
       )
       
@@ -56,7 +56,7 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
       
           $patterns = @(
               "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioID}\,.*",
-              "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${mappedScenarioIdWithLDC  }\,.*"
+              "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${mappedScenarioIdWithLDC}\,.*"
           )
       
           #Find Usage line with desired scenario ID
@@ -156,7 +156,7 @@ function PCStartandFirstFrameTime($snarioName, $snarioId)
    #patterns
    $patterns = @(
        "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdInt}\,.*",
-       "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdWithLDC }\,.*"
+       "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdWithLDC}\,.*"
    )
    
    #Find Usage line with desired scenario ID
@@ -185,7 +185,7 @@ function PCStartandFirstFrameTime($snarioName, $snarioId)
    
        $patterns = @(
            "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioID}\,.*",
-           "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${mappedScenarioIdWithLDC  }\,.*"
+           "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${mappedScenarioIdWithLDC}\,.*"
        )
    
        #Find Usage line with desired scenario ID
