@@ -13,6 +13,8 @@ Coverage and Validation:
 • Verifies that the PC session is properly initialized and completed, including logs for "Starting Microsoft.ASG.Perception" and "Stopping Microsoft.ASG.Perception."
 • Captures KPIs - time to first frame, camera Init Time, video fps
 • Captures NPU and CPU usage by taking Task Manager screenshots.
+• Captures NPU and CPU and memory usage before test starts
+• Captures NPU and CPU and memory usage while test is running.
 
 Test Runs Description:
 We have below sets of Test Runs:
@@ -36,11 +38,24 @@ Set up for Hibernation
 5. Framedrop-Fps-Testing.ps1:
 •   Captures key performance indicators (KPIs) like video fps, processing time, frame above 33ms, etc., by running the same camera E2E scenario in a loop with the device plugged in and unplugged.
 
+6. CameraReliabilityTest.ps1
+• Executes long-duration reliability testing across multiple iterations and resolution combinations.
+• Helps identify stability and soak-related issues over extended runs.
+
+7. ScenarioTest.ps1
+• Runs individual scenarios in isolation for focused validation.
+• Provides detailed scenario-level logging to assist debugging and repro.
+
+8. CheckInTest_External_USB_Camera.ps1
+• Runs the same Check-In tests on external USB cameras.
+• Verifies effect toggling, scenario ID generation, and Camera/Voice Recorder end-to-end scenarios for both plugged-in and unplugged states.
  
-Report Metrics: Sample- https://microsoft-my.sharepoint.com/:x:/p/jdugar/ET2SO8WbD19IgubwEp91xXEBuSB6_6gEC5blyvZqzvahFA?e=FIAXIs
+Report Metrics: Sample- https://onedrive.cloud.microsoft/:x:/a@3df3gj9b/S/IQAiYMbRrjkGTLJzLdwgaA2MAThhIXipTqA0wPOZh_WOd0k?e=U0qEA5
 Please see Report.png file under E2E\Documents
  
-• Scenario Details
+• Scenario Details 
+• fps
+• TotalNumberOfFrames
 • FramesAbove33ms
 • Average processing time per frame.
 • Minimum processing time per frame.
@@ -48,9 +63,16 @@ Please see Report.png file under E2E\Documents
 • PCInItTime (time to first frame for PC)
 • Camera App Init Time (Camera App start time minus PC time to first frame).
 • Voice Recorder App Init Time (Voice Recorder App start time minus PC time to first frame).
-• Video fps
+• timetofirstframeForAudio(In secs)
+• FramesAbove33msForAudioBlur
 • PeakWorkingSetSize
 • AvgWorkingSetSize
+• AvgNPUUsage(In %)
+• AvgCPUUsage(In %)
+• AvgMemoryUsage(In GB)
+• BeforeNPUUsage(In %)
+• BeforeCPUUsage(In %)
+• BeforeMemoryUsage(In GB)
 • Test Status
 • Test failure Reason 
  
@@ -82,7 +104,6 @@ Output sample for CheckinTest.ps1 and ReleaseTest.ps1: Please see Output-Sample-
 •	Test run logs: 2023-12-12-09-26-02-Checkin-Test\Pluggedin-AF (Generated for each individual WSE effect (camera and audio) effect).
 
 PS:  Smart plugs are used to support Pluggedin and Unplugged Scenarios.
-
 
 Abbreviations:
 WSE: Windows Studio Effects
