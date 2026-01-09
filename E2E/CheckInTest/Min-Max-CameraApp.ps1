@@ -100,13 +100,13 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
         }
         else
         { 
-           # ScenarioID 737312 is based on v1+v2 effects.   
+           # ScenarioID 2703376 is based on v1+v2 effects.   
            Write-Log -Message "Entering Verifylogs function" -IsOutput
-           Verifylogs $scenarioName "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
+           Verifylogs $scenarioName "2703376" $startTime #(Need to change the scenario ID, not sure if this is correct)
 
            # Calculate Time from camera app started until PC trace first frame processed
            Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
-           CheckInitTimeCameraApp $scenarioName "2834432" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
+           CheckInitTimeCameraApp $scenarioName "2703376" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
         }
 
         #collect data for Reporting

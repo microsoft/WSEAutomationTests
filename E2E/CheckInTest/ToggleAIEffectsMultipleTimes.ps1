@@ -95,7 +95,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
 
         # Change AI toggle in camera App UI (We will have change once the effects are available in camera App UI)
         ToggleAiEffectsInCameraApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                   -ECVal "On" -ECSVal "False" -ECTVal "True" `
+                                   -ECVal "On" -ECSVal "True" -ECTVal "False" `
                                    -CF "On" -CFI "False" -CFA "False" -CFW "True" 
 
         # Open settings app and obtain UI automation from it
@@ -154,7 +154,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
                
         #Change AI toggle in camera App UI
         ToggleAiEffectsInCameraApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECTVal "True" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" `
                                      -CF "On" -CFI "False" -CFA "True" -CFW "False" `
         
         
@@ -162,7 +162,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         #Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECTVal "True" -VFVal "On" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
         Start-Sleep -s 2       
 
@@ -221,13 +221,13 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         }
         else
         { 
-           # ScenarioID 737312 is based on v1+v2 effects.   
+           # ScenarioID 2703376 is based on v1+v2 effects.   
            Write-Log -Message "Entering Verifylogs function" -IsOutput
-           Verifylogs $scenarioName "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
+           Verifylogs $scenarioName "2703376" $startTime #(Need to change the scenario ID, not sure if this is correct)
 
            # Calculate Time from camera app started until PC trace first frame processed
            Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
-           CheckInitTimeCameraApp $scenarioName "2834432" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
+           CheckInitTimeCameraApp $scenarioName "2703376" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
         }
         #collect data for Reporting
         Reporting $Results "$pathLogsFolder\Report.txt"
