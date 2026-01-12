@@ -18,44 +18,53 @@ function VerifyLogs($snarioName, $snarioId, $strtTime)
    {   
       $pathAsgTraceLogs = resolve-path $pathAsgTraceTxt
 
+      #LDC scenario ID is 8388608 and is always running on 8480 WFOV device
+      $LDCScenarioID = 8388608
+      $scenarioIdInt = [int]$snarioId
+      $scenarioIdWithLDC  = $scenarioIdInt + $LDCScenarioID
+
+      #patterns
+      $patterns = @(
+          "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdInt}\,.*",
+          "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdWithLDC}\,.*"
+          
+      )
+      
       #Find Usage line with desired scenario ID
-      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.$snarioId\,.*"
-      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-      if(($frameProcessingDetails.count -eq 0) -and ($snarioId -in @("96", "16416", "65632", "81952", "112", "16432", "65648", "81968")))
-      {
-         switch ($snarioId)
-         {
-            "96"   {
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.64\,.*"
-                   }
-            "16416"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.16384\,.*"
-                   }
-            "65632"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.65600\,.*"
-                   }
-            "81952"{
-                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81920\,.*"
-                   }
-            "112"  {
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.80\,.*"
-                   }
-            "16432"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.16400\,.*"
-                   }
-            "65648"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.65616\,.*"
-                   }
-            "81968"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81936\,.*"
-                   }
-         }
-         $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-      }
-      else 
-      {    
+      foreach ($pattern in $patterns) {
           $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-      }     
+          if ($frameProcessingDetails.Count -gt 0) { break }
+      }
+      
+      #Segmentation meta data not applied
+      $scenarioMap = @{
+          96    = 64
+          16416 = 16384
+          65632 = 65600
+          81952 = 81920
+          112   = 80
+          16432 = 16400
+          65648 = 65616
+          81968 = 81936
+      }
+      
+      #Check for Scenario ID
+      if ($frameProcessingDetails.Count -eq 0 -and $scenarioMap.ContainsKey($scenarioIdInt)) {
+      
+          $scenarioID = $scenarioMap[$scenarioIdInt]
+          $mappedScenarioIdWithLDC    = $scenarioID + $LDCScenarioID
+      
+          $patterns = @(
+              "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioID}\,.*",
+              "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${mappedScenarioIdWithLDC}\,.*"
+          )
+      
+          #Find Usage line with desired scenario ID
+          foreach ($pattern in $patterns) {
+             $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
+             if ($frameProcessingDetails.Count -gt 0) { break }
+          }
+      }
       if ($frameProcessingDetails.Count -gt 20)
       {             
           #Prints Test Passed for specific scenario as proper scenarioID was found.
@@ -139,53 +148,52 @@ function PCStartandFirstFrameTime($snarioName, $snarioId)
    $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"
    $pathAsgTraceLogs = resolve-path $pathAsgTraceTxt
   
-   #Find Usage line with desired scenario ID
-   $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.$snarioId\,.*"
-   $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-          if(($frameProcessingDetails.count -eq 0) -and ($snarioId -eq "96"  -or "16416" -or "65632" -or "81952" -or "112" -or "16432" -or "65648" -or "81968"))
-      {
+   #LDC scenario ID is 8388608 and is always running on 8480 WFOV device
+   $LDCScenarioID = 8388608
+   $scenarioIdInt = [int]$snarioId
+   $scenarioIdWithLDC  = $scenarioIdInt + $LDCScenarioID
 
-         switch ($snarioId)
-         {
-            "96"  {
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.64\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                  }
-            "16416"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.16384\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                   }
-            
-            "65632"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.65600\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                   }
-            "81952"{
-                       $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81920\,.*"
-                       $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                   }
-            "112"  {
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.80\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                   }
-            "16432"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.16400\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                   }
-            "65648"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.65616\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                   }
-            "81968"{
-                      $pattern = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81936\,.*"
-                      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-                   }
-         }
-      }
-   else 
-   {    
+   #patterns
+   $patterns = @(
+       "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdInt}\,.*",
+       "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioIdWithLDC}\,.*"
+   )
+   
+   #Find Usage line with desired scenario ID
+   foreach ($pattern in $patterns) {
        $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-   }     
+       if ($frameProcessingDetails.Count -gt 0) { break }
+   }
+   
+   #Segmentation meta data not applied
+   $scenarioMap = @{
+       96    = 64
+       16416 = 16384
+       65632 = 65600
+       81952 = 81920
+       112   = 80
+       16432 = 16400
+       65648 = 65616
+       81968 = 81936
+   }
+   
+   #Check for Scenario ID
+   if ($frameProcessingDetails.Count -eq 0 -and $scenarioMap.ContainsKey($scenarioIdInt)) {
+   
+       $scenarioID = $scenarioMap[$scenarioIdInt]
+       $mappedScenarioIdWithLDC    = $scenarioID + $LDCScenarioID
+   
+       $patterns = @(
+           "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${scenarioID}\,.*",
+           "::PerceptionSessionUsageStats.*PerceptionCore-.*,.${mappedScenarioIdWithLDC}\,.*"
+       )
+   
+       #Find Usage line with desired scenario ID
+       foreach ($pattern in $patterns) {
+          $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
+          if ($frameProcessingDetails.Count -gt 0) { break }
+       }
+   }
    if($frameProcessingDetails.length -eq 0)
    {
       return $false
