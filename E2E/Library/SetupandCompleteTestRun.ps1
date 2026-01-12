@@ -18,13 +18,8 @@ function Get-InitialSetUp($scenarioName)
    
    # Toggling All effects on
    Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
-<<<<<<< HEAD
    ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                -ECVal "On" -ECSVal "False" -ECTVal "True" -VFVal "On" `
-=======
-   ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                 -ECVal "On" -ECSVal "True" -ECTVal "False" -VFVal "On" `
->>>>>>> origin
                                 -CF "On" -CFI "False" -CFA "False" -CFW "True"
 
    # Set photo resolution
