@@ -68,6 +68,7 @@ V3: Cinematic Framing
 
 **Coverage and Validation:**
 - Validates the availability and functionality of Windows Studio Effects (camera and audio) toggles, ensuring they can be toggled On/Off.
+- Validates video fps > 29fps.
 - Validates PeakWorkingSetSize does not increase by more than 1000KB during video recording.
 - Validates tests are conducted across various parameters, including resolutions, power states etc
 - Validates Windows Studio Effects(WSE) is not supported in Photo Mode.
@@ -77,8 +78,7 @@ V3: Cinematic Framing
 - Captures KPIs - time to first frame, camera Init Time, video fps
 - Captures NPU and CPU usage by taking Task Manager screenshots.
 - Captures NPU and CPU and memory usage before test starts and while tests are running.
-- Validates video fps > 29fps.
-- Validates AvgWorkingSetSize < 250MB . If AvgWorkingSetSize > 250MB , this may indicate a potential memory leak and should be investigated manually using Application Verifier and WinDbg on the Frameserver svchost.exe process with stress testing.(Try minimizing/maximizing camera app multiple times, try revisiting Camera setting page multiple times) 
+- Validates AvgWorkingSetSize < 250MB . If AvgWorkingSetSize > 250MB , this may indicate a potential memory leak and should be manually investigated using Application Verifier and WinDbg on the Frameserver svchost.exe process with stress testing (e.g., repeatedly minimizing/maximizing the Camera app or revisiting the Camera settings page) 
 
 Test Scripts
 ============
