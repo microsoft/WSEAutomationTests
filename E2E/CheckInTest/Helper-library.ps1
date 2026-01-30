@@ -1,4 +1,4 @@
-﻿.".\ Helper\SetAsgTraceFolders.ps1"
+﻿.".\Helper\SetAsgTraceFolders.ps1"
 .".\Helper\InitializeTest.ps1"
 .".\Helper\LoggingHelper.ps1"
 .".\Helper\OpenCloseApp.ps1"

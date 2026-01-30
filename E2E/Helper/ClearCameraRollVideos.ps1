@@ -33,16 +33,8 @@ function Clear-CameraRollVideos
         $videoCount = $videoFiles.Count
         foreach ($video in $videoFiles)
         {
-            try
-            {
-                Remove-Item -Path $video.FullName -Force -ErrorAction Stop
-            }
-            catch
-            {
-                Write-Host "Failed to delete video: $($video.Name). Error: $_"
-            }
+            Remove-Item -Path $video.FullName -Force -ErrorAction SilentlyContinue
         }
- 
     }
     else
     {
