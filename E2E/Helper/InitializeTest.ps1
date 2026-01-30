@@ -17,6 +17,9 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
     $Global:pathLogsFolder = ".\Logs\" + "$((get-date).tostring('yyyy-MM-dd-HH-mm-ss'))" + "-$TstsetNme"
     New-Item -ItemType Directory -Force -Path $pathLogsFolder  | Out-Null
 
+    # Delete all videos from Camera Roll before test starts
+    Clear-CameraRollVideos
+
     $Global:SequenceNumber = 0
     $Global:Results = '' | SELECT ScenarioName,fps,TotalNumberOfFrames,FramesAbove33ms,'AvgProcessingTimePerFrame(In ms)','MaxProcessingTimePerFrame(In ms)','MinProcessingTimePerFrame(In ms)','timetofirstframe(In secs)','CameraAppInItTime(In secs)','VoiceRecorderInItTime(In secs)','timetofirstframeForAudio(In secs)',FramesAbove33msForAudioBlur,'PeakWorkingSetSize(In MB)','AvgWorkingSetSize(In MB)','AvgNPUUsage(In %)','AvgCPUUsage(In %)' ,'AvgMemoryUsage(In GB)','BeforeNPUUsage(In %)','BeforeCPUUsage(In %)','BeforeMemoryUsage(In GB)',Status,ReasonForNotPass
     $Global:validatedCameraFriendlyName = ""
