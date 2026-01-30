@@ -38,6 +38,6 @@ function Clear-CameraRollVideos
     }
     else
     {
-        Write-Host "No videos found in Camera Roll to delete"
+        Write-Log -Message "No videos found in Camera Roll to delete" -IsHost
     }
 }
