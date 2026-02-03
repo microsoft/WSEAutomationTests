@@ -1,8 +1,10 @@
 <#
 DESCRIPTION:
-    This function deletes all video files from the Camera Roll folder. It checks both the local Pictures folder 
-    and OneDrive Pictures folder for Camera Roll location. All .mp4 and .mkv files are removed.
-    This is called during test initialization to ensure a clean state before tests begin.
+    This function deletes video files from the Camera Roll folder that are older than 1 week
+    and whose names start with 'WSE_test'. It checks both the local Pictures folder and the
+    OneDrive Pictures folder for the Camera Roll location. Only .mp4 and .mkv video files
+    matching the criteria are removed.
+    This is called during test initialization to clean up old test-generated videos.
 INPUT PARAMETERS:
     - None
 RETURN TYPE:
@@ -10,7 +12,7 @@ RETURN TYPE:
 #>
 function Clear-CameraRollVideos
 {
-    Write-Host "Deleting all videos from Camera Roll"
+    Write-Host "Deleting WSE_test videos older than 1 week from Camera Roll"
     
     # Determine Camera Roll path
     $cameraRoll = "$env:userprofile\Pictures\Camera Roll"
@@ -24,13 +26,18 @@ function Clear-CameraRollVideos
             return
         }
     }
-    
-    # Get all video files (mp4 and mkv are common video formats from Camera app)
-    $videoFiles = Get-ChildItem -Path $cameraRoll -File -Include *.mp4, *.mkv -Recurse -ErrorAction SilentlyContinue
-    
+    # Cutoff date (1 week ago)
+    $cutoffDate = (Get-Date).AddDays(-7)
+        
+    # Get matching video files
+    $videoFiles = Get-ChildItem -Path $cameraRoll -File -Include *.mp4, *.mkv -Recurse -ErrorAction SilentlyContinue |
+                  Where-Object {
+                      $_.Name -like "WSE_test*" -and
+                      $_.LastWriteTime -lt $cutoffDate
+                  }
     if ($videoFiles -and $videoFiles.Count -gt 0)
     {
-        $videoCount = $videoFiles.Count
+        Write-Host "Found $($videoFiles.Count) video(s) to delete."
         foreach ($video in $videoFiles)
         {
             Remove-Item -Path $video.FullName -Force -ErrorAction SilentlyContinue
@@ -38,6 +45,6 @@ function Clear-CameraRollVideos
     }
     else
     {
-        Write-Log -Message "No videos found in Camera Roll to delete" -IsHost
+        Write-Host "No matching videos found to delete."
     }
 }
