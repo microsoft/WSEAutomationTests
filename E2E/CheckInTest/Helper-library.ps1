@@ -5,6 +5,7 @@
 .".\Helper\CheckFrameServerServiceStateandCloseService.ps1"
 .".\Helper\OutputMessage.ps1"
 .".\Helper\TakeScreenshot.ps1"
+.".\Helper\ClearCameraRollVideos.ps1"
 
 .".\Library\SettingsAppHandlers.ps1"
 .".\Library\CameraAppHandlers.ps1"

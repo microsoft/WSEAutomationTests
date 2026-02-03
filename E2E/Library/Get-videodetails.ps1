@@ -1,7 +1,7 @@
 ﻿<#
 DESCRIPTION:
     This function retrieves details of the most recent video recorded by the Camera app. It validates whether the video 
-    corresponds to the current test scenario based on the modification time. The function extracts and logs metadata such as 
+    corresponds to the current test scenario based on the modification time.Renames the video with specific test scenario details. The function extracts and logs metadata such as 
     frame rate, frame dimensions, and duration. If the frame rate doesn't meet expectations, the video is saved in the logs folder.
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario for organizing logs and validating the recorded video.
@@ -22,25 +22,49 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
         Write-Error " $cameraRoll -Path not found" -ErrorAction Stop 
         }
     }
-    $videoFileName = (Get-ChildItem $cameraRoll -File | Sort-Object LastWriteTime -Descending| Select-Object -First 1).name 
-    $videoPath = "$cameraRoll\$videoFileName"
-    Write-Log -Message "video location: $videoPath" -IsOutput
-
-    #shell objects
-    $shell = New-Object -ComObject Shell.Application
-    $shellfolder = $shell.namespace((Get-Item  $videoPath).DirectoryName)
-    $videoFileDetails = $shellfolder.ParseName($videoFileName)
+    $latestVideo = Get-ChildItem $cameraRoll -File -Include *.mp4, *.mkv -Recurse |
+               Sort-Object LastWriteTime -Descending |
+               Select-Object -First 1
+               
+    if (-not $latestVideo)
+    {
+        Write-Log -Message "No video files found in Camera Roll" -IsHost -ForegroundColor Yellow
+        return
+    }
 
     #Video modified time (Validate video is recorded for current scenario)
-    $VideoModifiedTime = $videoFileDetails.Modifydate 
+    $VideoModifiedTime = $latestVideo.LastWriteTime
     $currentTime = Get-Date
-    $timeDiff = ($currentTime - $VideoModifiedTime).Totalminutes
+    $timeDiff = ($currentTime - $VideoModifiedTime).TotalMinutes
     if($timeDiff -gt 3)
     {
         Write-Log -Message "   No video recorded for current scenario- $snarioName" -IsHost -ForegroundColor Yellow
     }
     else
     {
+       $videoPath      = $latestVideo.FullName
+       $videoExtension = $latestVideo.Extension
+       $sanitizedScenarioName = $snarioName -replace '[\\/:*?"<>|]', '_'
+       $newVideoName   = "WSE_test_$sanitizedScenarioName$videoExtension"
+       try
+       {
+           Rename-Item -Path $videoPath -NewName $newVideoName -Force -ErrorAction Stop
+       }
+       catch
+       {
+           Write-Log -Message "Failed to rename video: $_" -IsHost -ForegroundColor Red
+           return
+       }
+       
+       $newVideoPath = Join-Path $cameraRoll $newVideoName
+       Write-Log -Message "Video renamed from $videoFileName to: $newVideoName" -IsOutput
+       Write-Log -Message "video location: $newVideoPath" -IsOutput
+       
+       #shell objects
+       $shell = New-Object -ComObject Shell.Application
+       $shellfolder = $shell.namespace((Get-Item  $newVideoPath).DirectoryName)
+       $videoFileDetails = $shellfolder.ParseName($newVideoName)
+       
        #Frame rate
        $frameRateValue=$videoFileDetails.ExtendedProperty("System.Video.FrameRate") / 1000.0
        Write-Log -Message "FrameRate: $frameRateValue" -IsOutput
@@ -62,7 +86,7 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
        $patternmatchcheck =$frameRateValue | Select-String -Pattern "29.\d\d|30.\d\d" -Quiet
        if ($patternmatchcheck -ne "True")
        {
-           Copy-Item  $cameraRoll\$videoFileName -Destination $pathLogsFolder\$snarioName
+           Copy-Item  $cameraRoll\$newVideoName -Destination $pathLogsFolder\$snarioName
            Write-Log -Message "   $snarioName-Video Framerate is:$frameRateValue" -IsHost -ForegroundColor Yellow
            Write-Log -Message "$snarioName-Video Framerate is:$frameRateValue" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
            Write-Log -Message "Video saved here: $pathLogsFolder\$snarioName" -IsHost -IsOutput >> $pathLogsFolder\ConsoleResults.txt
