@@ -37,7 +37,7 @@ function Clear-CameraRollVideos
                   }
     if ($videoFiles -and $videoFiles.Count -gt 0)
     {
-        Write-Host "Found $($videoFiles.Count) video(s) to delete."
+        Write-Log -Message "Found $($videoFiles.Count) video(s) to delete." -IsHost
         foreach ($video in $videoFiles)
         {
             Remove-Item -Path $video.FullName -Force -ErrorAction SilentlyContinue
@@ -45,6 +45,6 @@ function Clear-CameraRollVideos
     }
     else
     {
-        Write-Host "No matching videos found to delete."
+        Write-Log -Message "No videos found to delete" -IsHost
     }
 }
