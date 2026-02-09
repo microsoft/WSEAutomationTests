@@ -19,7 +19,10 @@ function FindCameraEffectsPage($uiEle){
     else
     {
         FindAndClick $uiEle Button "Connected enabled camera $Global:validatedCameraFriendlyName"
-    }  
+    }
+    Start-Sleep -s 1
+    [System.Windows.Forms.SendKeys]::SendWait('{END}') 
+    Start-Sleep -s 1   
 }
 
 <#
