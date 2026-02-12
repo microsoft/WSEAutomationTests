@@ -22,6 +22,7 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
         Write-Error " $cameraRoll -Path not found" -ErrorAction Stop 
         }
     }
+
     $latestVideo = Get-ChildItem $cameraRoll -File -Include *.mp4, *.mkv -Recurse |
                Sort-Object LastWriteTime -Descending |
                Select-Object -First 1
@@ -31,7 +32,6 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
         Write-Log -Message "No video files found in Camera Roll" -IsHost -ForegroundColor Yellow
         return
     }
-
     #Video modified time (Validate video is recorded for current scenario)
     $VideoModifiedTime = $latestVideo.LastWriteTime
     $currentTime = Get-Date
@@ -45,7 +45,9 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
        $videoPath      = $latestVideo.FullName
        $videoExtension = $latestVideo.Extension
        $sanitizedScenarioName = $snarioName -replace '[\\/:*?"<>|]', '_'
-       $newVideoName   = "WSE_test_$sanitizedScenarioName$videoExtension"
+       $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+       $newVideoName = "WSE_test_${sanitizedScenarioName}_$timestamp$videoExtension"
+              
        try
        {
            Rename-Item -Path $videoPath -NewName $newVideoName -Force -ErrorAction Stop
@@ -64,7 +66,7 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
        $shell = New-Object -ComObject Shell.Application
        $shellfolder = $shell.namespace((Get-Item  $newVideoPath).DirectoryName)
        $videoFileDetails = $shellfolder.ParseName($newVideoName)
-       
+
        #Frame rate
        $frameRateValue=$videoFileDetails.ExtendedProperty("System.Video.FrameRate") / 1000.0
        Write-Log -Message "FrameRate: $frameRateValue" -IsOutput
