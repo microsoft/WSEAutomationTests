@@ -11,17 +11,22 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - [object] :- Returns the UI element if found, otherwise returns $null.
 #>
-function CheckIfElementExists($uiEle, $clsNme, $proptyNme, $timeoutSeconds = 2) {
-    $classNameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ClassNameProperty, $clsNme)
-    $nameCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::NameProperty, $proptyNme)
-    $jointCondition = New-Object Windows.Automation.AndCondition($classNameCondition, $nameCondition)
-
+function CheckIfElementExists($uiEle, $clsNme, $proptyNme, $timeoutSeconds = 2)
+{
+    
+    $condition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::NameProperty, $proptyNme)
+    if($clsNme -ne $null)
+    {
+       $classCondition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ClassNameProperty, $clsNme)
+       $condition = New-Object Windows.Automation.AndCondition($classCondition, $condition)
+    }
     $elemt = $null
     $endTime = [DateTime]::Now.AddSeconds($timeoutSeconds)
     while ([DateTime]::Now -lt $endTime -and $elemt -eq $null) {
-        $elemt = $uiEle.FindFirst([Windows.Automation.TreeScope]::Descendants, $jointCondition)
+        $elemt = $uiEle.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$condition)
         Start-Sleep -Milliseconds 100  # Check every 100ms
-    }       
+    
+    }
     return $elemt
 }
 
@@ -344,4 +349,11 @@ function FindAndClickList
    {   
       Write-Error "Could not locate element in this list: $($proptyNmeLst -join ', ')" -ErrorAction Stop
    }
+}
+function FindUIElementByProcessID($procID)
+{
+   $root = [Windows.Automation.AutomationElement]::RootElement
+   $condition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ProcessIdProperty, $procID)
+   $uiELe = $root.FindFirst([Windows.Automation.TreeScope]::Children, $condition)
+   return $uiELe
 }
