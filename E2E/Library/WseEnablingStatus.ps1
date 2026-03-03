@@ -144,6 +144,9 @@ function parseOptInCameraInfoFromDxDiagInfo([ValidateSet("Internal Camera","Exte
             $parseResults.mepCameraOptedIn = $videoCaptureDeviceMEPOptedInArray[$nonOptInCameraDeviceIndex]
         }
 
+        # MEP-Audio was only applied to internal sound capture device
+        $Global:validatedSoundCaptureDeviceFriendlyName = getSoundCaptureDeviceName -DxdiagContent $dxdiagContent
+
     }
     elseif ($CameraType -eq "External Camera")
     {
@@ -151,13 +154,13 @@ function parseOptInCameraInfoFromDxDiagInfo([ValidateSet("Internal Camera","Exte
         Write-Host "Parsing External USB Cameras..."
         $selectedIndex = -1
 
-    for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
+        for ($i = 0; $i -lt $videoCaptureDeviceFriendlyNameArray.Count; $i++) {
             if ($videoCaptureDeviceLocationArray[$i] -ieq 'n/a') {
                 Write-Host "External USB Camera: $($videoCaptureDeviceFriendlyNameArray[$i])"
                 Write-Host "Location: $($videoCaptureDeviceLocationArray[$i])"
 
                 # Add to externalUsbCameras list
-        try { $parseResults.externalUsbCameras.Add($videoCaptureDeviceFriendlyNameArray[$i]) } catch { Write-Error "Failed to add external USB camera: $_" }
+                try { $parseResults.externalUsbCameras.Add($videoCaptureDeviceFriendlyNameArray[$i]) } catch { Write-Error "Failed to add external USB camera: $_" }
 
                 # Select the first external USB camera for opt-in checks
                 if ($selectedIndex -eq -1) {
@@ -250,6 +253,96 @@ function displaySystemInfo() {
 	outputMessage "System OS Info: $currentOSProductName ($osBuildNumber)"
 }
 
+<#
+.DESCRIPTION
+    Parses dxdiag output to extract and return the last normalized sound capture device name from the “Sound Capture Devices” section.
+    Input parameters:
+    (Mandatory) $DxdiagContent: The content of Dxdiag file.
+#>
+
+function getSoundCaptureDeviceName {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [object[]] $DxdiagContent
+    )
+
+    # Helper: find the 0-based start/end indices of a named section
+    function GetSectionRange {
+        param(
+            [Parameter(Mandatory)][object[]] $Lines,
+            [Parameter(Mandatory)][string]   $StartHeader,
+            [Parameter(Mandatory)][string]   $NextHeader
+        )
+
+        $startLine = ($Lines | Select-String -SimpleMatch $StartHeader | Select-Object -First 1).LineNumber
+        if (-not $startLine) { return $null }
+
+        # Select-String LineNumber is 1-based; convert to 0-based.
+        # Keep start index at the header line so the slice is stable/obvious.
+        $startIndex = $startLine - 1
+
+        $nextHeaderMatch = $Lines |
+            Select-String -SimpleMatch $NextHeader |
+            Where-Object { $_.LineNumber -gt $startLine } |
+            Select-Object -First 1
+
+        # End index should be the line just BEFORE the next header.
+        $endIndex = if ($nextHeaderMatch) {
+            ($nextHeaderMatch.LineNumber - 2)   # convert to 0-based and step back one line
+        } else {
+            ($Lines.Count - 1)
+        }
+
+        # Guard against weird ordering / truncated files
+        if ($endIndex -lt $startIndex) { return $null }
+
+        return [pscustomobject]@{ Start = $startIndex; End = $endIndex }
+    }
+
+    # Helper: extract Description: values from a section
+    function GetDescriptionsFromSection {
+        param([object[]] $SectionLines)
+
+        foreach ($line in $SectionLines) {
+            if ($line -match '^\s*Description:\s*(.+?)\s*$') {
+                $Matches[1].Trim()
+            }
+        }
+    }
+
+    # Helper: normalize device names by stripping trailing "(...)" suffix
+    function NormalizeDeviceName {
+        param([string] $Name)
+        ($Name -replace '\s*\(.*\)\s*$', '').Trim()
+    }
+
+    # 1) Locate the Sound Capture Devices section
+    # (We assume the capture device(s) are listed b/t 'Sound Capture Devices' and 'Video Capture Devices')
+    $range = GetSectionRange -Lines $DxdiagContent `
+                             -StartHeader 'Sound Capture Devices' `
+                             -NextHeader  'Video Capture Devices'
+
+    if (-not $range) {
+        Write-Log -Message "Failed to retrieve 'Sound Capture Devices' from DxDiag info" -IsHost -ForegroundColor Red
+        return $null
+    }
+
+    # 2) Slice section lines
+    $sectionLines = $DxdiagContent[$range.Start..$range.End]
+
+    # 3) Extract + normalize all Description entries
+    $descriptions = @(GetDescriptionsFromSection -SectionLines $sectionLines)
+    $normalized   = @($descriptions | ForEach-Object { NormalizeDeviceName $_ })
+
+    if ($normalized.Count -eq 0) {
+        Write-Log -Message "There is no Sound Capture device on this device" -IsHost -ForegroundColor Red
+        return $null
+    }
+
+    # return the LAST device name
+    return $normalized[-1].ToString()
+}
 
 <#
 .DESCRIPTION
@@ -282,169 +375,170 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
             return $false
         }
 
-    if ($CameraType -eq "Internal Camera")
-    {
-        # to generate a DxDiag report and extract the relevant MEP-camera information from the output
-        $parseResults = parseOptInCameraInfoFromDxDiagInfo
-        $mepCameraOptedIn = $parseResults.mepCameraOptedIn
-        $optinCameraFriendlyName = $parseResults.optinCameraFriendlyName
-        $optinCameraHardwareID = $parseResults.optinCameraHardwareID
-        $optinCameraDriverVersion = $parseResults.optinCameraDriverVersion
-        $mepDriverVersion = $parseResults.mepDriverVersion
-        $optinCameraMepHighResMode = $parseResults.optinCameraMepHighResMode
+        if ($CameraType -eq "Internal Camera")
+        {
+            # to generate a DxDiag report and extract the relevant MEP-camera information from the output
+            $parseResults = parseOptInCameraInfoFromDxDiagInfo -CameraType "Internal Camera"
+            $mepCameraOptedIn = $parseResults.mepCameraOptedIn
+            $optinCameraFriendlyName = $parseResults.optinCameraFriendlyName
+            $optinCameraHardwareID = $parseResults.optinCameraHardwareID
+            $optinCameraDriverVersion = $parseResults.optinCameraDriverVersion
+            $mepDriverVersion = $parseResults.mepDriverVersion
+            $optinCameraMepHighResMode = $parseResults.optinCameraMepHighResMode
 
-        # check MEP camera opt-in
-        if ($mepCameraOptedIn -ieq "n/a")
-		{
-            Write-Log -Message "can not find Opt-in camera instance" -IsHost -ForegroundColor Red
-            return $false
-        } elseif ($mepCameraOptedIn -ieq "False") {
-            Write-Log -Message "camera opt-in was not set" -IsHost -ForegroundColor Red
-            return $false
+            # check MEP camera opt-in
+            if ($mepCameraOptedIn -ieq "n/a")
+            {
+                Write-Log -Message "can not find Opt-in camera instance" -IsHost -ForegroundColor Red
+                return $false
+            } elseif ($mepCameraOptedIn -ieq "False") {
+                Write-Log -Message "camera opt-in was not set" -IsHost -ForegroundColor Red
+                return $false
+            }
+
+            displaySystemInfo
+            outputMessage "Opt-In Camera Status: $mepCameraOptedIn"
+
+            if ($optinCameraFriendlyName) {
+                outputMessage "Opt-In Camera FriendlyName: $optinCameraFriendlyName"
+                $Global:validatedCameraFriendlyName = $optinCameraFriendlyName
+            } else {
+                Write-Log -Message "Opt-In Camera FriendlyName Info not found" -IsHost
+            }
+
+            if ($optinCameraHardwareID) {
+                outputMessage "Opt-In Camera Hardware ID: $optinCameraHardwareID"
+            } else {
+                Write-Log -Message "Opt-In Camera Hardware Info not found" -IsHost
+            }
+
+            if ($optinCameraDriverVersion){
+                outputMessage "Opt-In Camera Driver: $optInCameraDriverVersion"
+            } else {
+                Write-Log -Message "Opt-In Camera Driver Info not found" -IsHost
+            }
+
+            if ($optinCameraMepHighResMode){
+                outputMessage "Opt-In Camera HighRes Mode: $optinCameraMepHighResMode"
+            } else {
+                Write-Log -Message "Opt-In Camera HighRes Info not found" -IsHost
+            }
+
         }
+        elseif ($CameraType -eq "External Camera")
+        {
+            # to generate a DxDiag report and extract the relevant MEP-camera information from the output
+            $parseResults = parseOptInCameraInfoFromDxDiagInfo -CameraType "External Camera"
+            $optinCameraFriendlyName = $parseResults.optinCameraFriendlyName
+            $optinCameraHardwareID = $parseResults.optinCameraHardwareID
+            $optinCameraDriverVersion = $parseResults.optinCameraDriverVersion
+            $mepDriverVersion = $parseResults.mepDriverVersion
+            $optinCameraMepHighResMode = $parseResults.optinCameraMepHighResMode
 
-        displaySystemInfo
-        outputMessage "Opt-In Camera Status: $mepCameraOptedIn"
+            displaySystemInfo
 
-        if ($optinCameraFriendlyName) {
-            outputMessage "Opt-In Camera FriendlyName: $optinCameraFriendlyName"
-            $Global:validatedCameraFriendlyName = $optinCameraFriendlyName
-        } else {
-            Write-Log -Message "Opt-In Camera FriendlyName Info not found" -IsHost
-        }
+            if ($optinCameraFriendlyName) {
+                outputMessage "Opt-In Camera FriendlyName: $optinCameraFriendlyName"
+                $Global:validatedCameraFriendlyName = $optinCameraFriendlyName
+            } else {
+                Write-Log -Message "Opt-In Camera FriendlyName Info not found" -IsHost
+            }
 
-        if ($optinCameraHardwareID) {
-            outputMessage "Opt-In Camera Hardware ID: $optinCameraHardwareID"
-        } else {
-            Write-Log -Message "Opt-In Camera Hardware Info not found" -IsHost
-        }
+            if ($optinCameraHardwareID) {
+                outputMessage "Opt-In Camera Hardware ID: $optinCameraHardwareID"
+            } else {
+                Write-Log -Message "Opt-In Camera Hardware Info not found" -IsHost
+            }
 
-        if ($optinCameraDriverVersion){
-            outputMessage "Opt-In Camera Driver: $optInCameraDriverVersion"
-        } else {
-            Write-Log -Message "Opt-In Camera Driver Info not found" -IsHost
-        }
+            if ($optinCameraDriverVersion){
+                outputMessage "Opt-In Camera Driver: $optInCameraDriverVersion"
+            } else {
+                Write-Log -Message "Opt-In Camera Driver Info not found" -IsHost
+            }
 
-        if ($optinCameraMepHighResMode){
-            outputMessage "Opt-In Camera HighRes Mode: $optinCameraMepHighResMode"
-        } else {
-            Write-Log -Message "Opt-In Camera HighRes Info not found" -IsHost
-        }
+            if ($optinCameraMepHighResMode){
+                outputMessage "Opt-In Camera HighRes Mode: $optinCameraMepHighResMode"
+            } else {
+                Write-Log -Message "Opt-In Camera HighRes Info not found" -IsHost
+            }
 
-    }
-    elseif ($CameraType -eq "External Camera")
-    {
-        # to generate a DxDiag report and extract the relevant MEP-camera information from the output
-        $parseResults = parseOptInCameraInfoFromDxDiagInfo -CameraType "External Camera"
-        $optinCameraFriendlyName = $parseResults.optinCameraFriendlyName
-        $optinCameraHardwareID = $parseResults.optinCameraHardwareID
-        $optinCameraDriverVersion = $parseResults.optinCameraDriverVersion
-        $mepDriverVersion = $parseResults.mepDriverVersion
-        $optinCameraMepHighResMode = $parseResults.optinCameraMepHighResMode
+            $ui = OpenApp 'ms-settings:' 'Settings'
+            Start-Sleep -Milliseconds 500
+            FindCameraEffectsPage $ui
+            Start-Sleep -Seconds 5
 
-        displaySystemInfo
-
-        if ($optinCameraFriendlyName) {
-            outputMessage "Opt-In Camera FriendlyName: $optinCameraFriendlyName"
-            $Global:validatedCameraFriendlyName = $optinCameraFriendlyName
-        } else {
-            Write-Log -Message "Opt-In Camera FriendlyName Info not found" -IsHost
-        }
-
-        if ($optinCameraHardwareID) {
-            outputMessage "Opt-In Camera Hardware ID: $optinCameraHardwareID"
-        } else {
-            Write-Log -Message "Opt-In Camera Hardware Info not found" -IsHost
-        }
-
-        if ($optinCameraDriverVersion){
-            outputMessage "Opt-In Camera Driver: $optInCameraDriverVersion"
-        } else {
-            Write-Log -Message "Opt-In Camera Driver Info not found" -IsHost
-        }
-
-        if ($optinCameraMepHighResMode){
-            outputMessage "Opt-In Camera HighRes Mode: $optinCameraMepHighResMode"
-        } else {
-            Write-Log -Message "Opt-In Camera HighRes Info not found" -IsHost
-        }
-
-        $ui = OpenApp 'ms-settings:' 'Settings'
-        Start-Sleep -Milliseconds 500
-        FindCameraEffectsPage $ui
-        Start-Sleep -Seconds 5
-
-        # Check if the external camera is opted-in or not.
-        $exists = CheckIfElementExists $ui Button Open
-        if ($exists) {
-            Write-Host "External camera not opted-in. Opting-in now."
-            FindAndClick $ui Button "Open" -autoId "SystemSettings_Camera_InfoBarDiscoverWSEOptInAction_Button"
-            Start-Sleep -Seconds 2
-            FindAndClick $ui Button "Use Windows Studio Effects" -autoId "SystemSettings_Camera_AdvancedConfigItem_WSEOptIn_ToggleSwitch"
-            Start-Sleep -Seconds 2
-            FindAndClick $ui Button "Apply" -autoId "PrimaryButton"
-            Start-Sleep -Seconds 20
-            Write-Host "Successfully opted-in external camera. Continuing for MEP feature validation..."
-            return
-        } else {
-            Write-Host "External camera already opted-in. Continuing for MEP feature validation..."
-            return
-        }
-    }
-
-    # output WSE camera driver info if exists
-    if ($wseCameraDriverInstance) {
-        outputDriverInfoByFriendlyName $wseCameraDriverInstance
-        if ($targetMepCameraVer -and ($targetMepCameraVer -ne $wseCameraDriverInstance.driverVersion)) {
-            Write-Log -Message "User input MEP-camera version: $targetMepCameraVer" -IsHost
-            return $false
-        }
-    }
-
-    # output WSE audio driver info if exists
-    $wseAudioDriverInstance = getWseAudioDriverInstance
-    if ($wseAudioDriverInstance) {
-        outputDriverInfoByFriendlyName $wseAudioDriverInstance
-        if ($targetMepAudioVer -and ($targetMepAudioVer -ne $wseAudioDriverInstance.driverVersion)) {
-            Write-Log -Message "User input MEP-audio version: $targetMepAudioVer" -IsHost
-            return $false
-        }
-    }
-
-    # output PerceptionCore.dll version info if exists
-    $perceptionCoreInfo = getPerceptionCoreInfo
-    if ($perceptionCoreInfo) {
-        # to verify whether the specified target perceptionCore version exists on the system.
-        # if $targetPerceptionCoreVer was provided, set the value to false.
-        $isPerceptionCoreVersionMatched = $true
-        if ($targetPerceptionCoreVer) {
-            $isPerceptionCoreVersionMatched = $false
-        }
-
-        foreach ($pcInfo in $perceptionCoreInfo) {
-            $versionInfo = $pcInfo | Get-ItemProperty | Select-Object -ExpandProperty VersionInfo
-            $pcProductVersion = $versionInfo.ProductVersion
-            outputMessage "PerceptionCore.dll: $pcProductVersion [Path: $($pcInfo.FullName)]"
-            if ($targetPerceptionCoreVer -and ($pcProductVersion -match $targetPerceptionCoreVer)) {
-                $isPerceptionCoreVersionMatched = $true
+            # Check if the external camera is opted-in or not.
+            $exists = CheckIfElementExists $ui Button Open
+            if ($exists) {
+                Write-Host "External camera not opted-in. Opting-in now."
+                FindAndClick $ui Button "Open" -autoId "SystemSettings_Camera_InfoBarDiscoverWSEOptInAction_Button"
+                Start-Sleep -Seconds 2
+                FindAndClick $ui Button "Use Windows Studio Effects" -autoId "SystemSettings_Camera_AdvancedConfigItem_WSEOptIn_ToggleSwitch"
+                Start-Sleep -Seconds 2
+                FindAndClick $ui Button "Apply" -autoId "PrimaryButton"
+                Start-Sleep -Seconds 20
+                Write-Host "Successfully opted-in external camera. Continuing for MEP feature validation..."
+                return
+            } else {
+                Write-Host "External camera already opted-in. Continuing for MEP feature validation..."
+                return
             }
         }
-        if (!($isPerceptionCoreVersionMatched)) {
-            Write-Log -Message "User input PerceptionCore version: $targetPerceptionCoreVer" -IsHost
+
+        # output WSE camera driver info if exists
+        if ($wseCameraDriverInstance) {
+            outputDriverInfoByFriendlyName $wseCameraDriverInstance
+            if ($targetMepCameraVer -and ($targetMepCameraVer -ne $wseCameraDriverInstance.driverVersion)) {
+                Write-Log -Message "User input MEP-camera version: $targetMepCameraVer" -IsHost
+                return $false
+            }
+        }
+
+        # output WSE audio driver info if exists
+        $wseAudioDriverInstance = getWseAudioDriverInstance
+        if ($wseAudioDriverInstance) {
+            outputDriverInfoByFriendlyName $wseAudioDriverInstance
+            if ($targetMepAudioVer -and ($targetMepAudioVer -ne $wseAudioDriverInstance.driverVersion)) {
+                Write-Log -Message "User input MEP-audio version: $targetMepAudioVer" -IsHost
+                return $false
+            }
+            outputMessage "Sound Capture Device FriendlyName: $Global:validatedSoundCaptureDeviceFriendlyName"
+        }
+
+        # output PerceptionCore.dll version info if exists
+        $perceptionCoreInfo = getPerceptionCoreInfo
+        if ($perceptionCoreInfo) {
+            # to verify whether the specified target perceptionCore version exists on the system.
+            # if $targetPerceptionCoreVer was provided, set the value to false.
+            $isPerceptionCoreVersionMatched = $true
+            if ($targetPerceptionCoreVer) {
+                $isPerceptionCoreVersionMatched = $false
+            }
+
+            foreach ($pcInfo in $perceptionCoreInfo) {
+                $versionInfo = $pcInfo | Get-ItemProperty | Select-Object -ExpandProperty VersionInfo
+                $pcProductVersion = $versionInfo.ProductVersion
+                outputMessage "PerceptionCore.dll: $pcProductVersion [Path: $($pcInfo.FullName)]"
+                if ($targetPerceptionCoreVer -and ($pcProductVersion -match $targetPerceptionCoreVer)) {
+                    $isPerceptionCoreVersionMatched = $true
+                }
+            }
+            if (!($isPerceptionCoreVersionMatched)) {
+                Write-Log -Message "User input PerceptionCore version: $targetPerceptionCoreVer" -IsHost
+                return $false
+            }
+        } else {
+            Write-Log -Message "PerceptionCore.dll not found" -IsHost
             return $false
         }
-    } else {
-        Write-Log -Message "PerceptionCore.dll not found" -IsHost
-        return $false
-    }
 
-    # output Camera UWP version
-    $camerAppVersion = Get-AppXPackage -Name "Microsoft.WindowsCamera"  | Select-Object -ExpandProperty Version
-    if ($camerAppVersion) {
-        outputMessage "CameraApp(UWP): $camerAppVersion"
-    }
+        # output Camera UWP version
+        $camerAppVersion = Get-AppXPackage -Name "Microsoft.WindowsCamera"  | Select-Object -ExpandProperty Version
+        if ($camerAppVersion) {
+            outputMessage "CameraApp(UWP): $camerAppVersion"
+        }
 
-    return $true
+        return $true
     } catch {
         # Log unexpected errors and return failure
         Write-Log -Message "Unexpected error in WseEnablingStatus: $_" -IsHost -ForegroundColor Red

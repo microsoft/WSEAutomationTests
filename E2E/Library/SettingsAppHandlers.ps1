@@ -93,21 +93,15 @@ function FindVoiceFocusPage($uiEle){
            Write-Error " No Sound devices button found is Sound Setting page " -ErrorAction Stop     
         }
     }
-    $i=0
-    $allSoundDevices = @( "Internal Microphone" , "Microphone on SoundWire Device" , "Microphone Array" ,"Internal Microphone Array - Front","Surface Stereo Microphones")
-    $exists = CheckIfElementExists $uiEle Button $allSoundDevices[$i]
-    while($exists.length -eq 0 -and $i -lt 4)
-    {
-      $i++ 
-      $exists = CheckIfElementExists $uiEle Button $allSoundDevices[$i]
-    }
+
+    $exists = CheckIfElementExists $uiEle Button $Global:validatedSoundCaptureDeviceFriendlyName
     if ($exists)
     {
-        FindAndClick $uiEle Button $allSoundDevices[$i]
+        FindAndClick $uiEle Button $Global:validatedSoundCaptureDeviceFriendlyName
     }
     else
     {
-       Write-Error " Microphone Array not found in Sound setting Page " -ErrorAction Stop     
+       Write-Error " $Global:validatedSoundCaptureDeviceFriendlyName not found in Sound setting Page " -ErrorAction Stop
     } 
     FindAndClick $uiEle ComboBox "Audio enhancements"
     Start-Sleep -m 500
