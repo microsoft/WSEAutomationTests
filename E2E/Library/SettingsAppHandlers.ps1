@@ -94,6 +94,10 @@ function FindVoiceFocusPage($uiEle){
         }
     }
 
+    if ([string]::IsNullOrEmpty($Global:validatedSoundCaptureDeviceFriendlyName)) {
+        Write-Error " The sound capture device friendly name was null " -ErrorAction Stop
+    }
+
     $exists = CheckIfElementExists $uiEle Button $Global:validatedSoundCaptureDeviceFriendlyName
     if ($exists)
     {

@@ -107,6 +107,9 @@ function parseOptInCameraInfoFromDxDiagInfo([ValidateSet("Internal Camera","Exte
         $optInCameraDeviceIndex = -1
         $nonOptInCameraDeviceIndex = -1
 
+        # MEP-Audio was only applied to internal sound capture device
+        $Global:validatedSoundCaptureDeviceFriendlyName = getSoundCaptureDeviceName -DxdiagContent $dxdiagContent
+
         # if there is only one object returned from the Select-String results, we can access the element directly
         if (1 -eq $videoCaptureDeviceFriendlyNameArray.Count) {
             # We are only focused on capture devices with the 'Category: Camera' property
@@ -143,9 +146,6 @@ function parseOptInCameraInfoFromDxDiagInfo([ValidateSet("Internal Camera","Exte
         } elseif (-1 -ne $nonOptInCameraDeviceIndex) {
             $parseResults.mepCameraOptedIn = $videoCaptureDeviceMEPOptedInArray[$nonOptInCameraDeviceIndex]
         }
-
-        # MEP-Audio was only applied to internal sound capture device
-        $Global:validatedSoundCaptureDeviceFriendlyName = getSoundCaptureDeviceName -DxdiagContent $dxdiagContent
 
     }
     elseif ($CameraType -eq "External Camera")
@@ -336,7 +336,7 @@ function getSoundCaptureDeviceName {
     $normalized   = @($descriptions | ForEach-Object { NormalizeDeviceName $_ })
 
     if ($normalized.Count -eq 0) {
-        Write-Log -Message "There is no Sound Capture device on this device" -IsHost -ForegroundColor Red
+        Write-Log -Message "No sound capture devices were found on this device" -IsHost -ForegroundColor Red
         return $null
     }
 
