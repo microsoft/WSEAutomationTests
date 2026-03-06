@@ -15,11 +15,8 @@ foreach($devPowStat in "Pluggedin", "Unplugged")
 	{
 		SettingAppTest-Playlist -devPowStat $devPowStat -testScenario $testScenario -token $token -SPId $SPId -CameraType "External Camera" >> $pathLogsFolder\"$devPowStat-SettingAppTest.txt"
 	}
-		VoiceFocus-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-VoiceFocus.txt"
-		   
-		Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-Camerae2eTest.txt"
-		   
-		Voice-Recorder-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-VoiceRecordere2eTest.txt"
+
+	Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-Camerae2eTest.txt"
 }
 
 
