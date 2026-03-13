@@ -134,13 +134,15 @@ function CheckDevicePowerState($devPowStat, $token, $SPId)
       else
       {  
          $chargingState = Get-ChargingState 
-         if($chargingState -ne "Charging")
+         if($chargingState -ne "Discharging")
          {
-            return $true
+            Write-host "Requested Power state:$devPowStat -Either smartplug details are missing or device is in charging state" -ForegroundColor Yellow
+            return $false
+            
          }
          else
          { 
-            return $false
+            return $true
          }
       }
    }
@@ -155,7 +157,9 @@ function CheckDevicePowerState($devPowStat, $token, $SPId)
          $chargingState = Get-ChargingState 
          if($chargingState -ne "Charging")
          {
-            Write-Error " $devPowStat Scenario not valid-Currently device is not in charing state " -ErrorAction Stop 
+            # Assumptions by default device is in pluggedIn mode
+            Write-host "$devPowStat Scenario not valid - Currently device is not in charging state" -BackgroundColor Red
+            exit 1
          }
          else
          {
