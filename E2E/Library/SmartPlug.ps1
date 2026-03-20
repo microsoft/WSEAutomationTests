@@ -136,10 +136,8 @@ function CheckDevicePowerState($devPowStat, $token, $SPId)
          $chargingState = Get-ChargingState 
          if($chargingState -ne "Discharging")
          {
-            #Write-host "Requested Power state:$devPowStat -Either smartplug details are missing or device is in charging state" -ForegroundColor Yellow
             Write-host ("Requested Power State: {0}. Unable to change power state because smartplug details (token and SPId) are missing and current charging state is '{1}'" -f $devPowStat, $chargingState) -ForegroundColor yellow
             return $false
-            
          }
          else
          { 
