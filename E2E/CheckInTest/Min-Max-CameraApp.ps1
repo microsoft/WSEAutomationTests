@@ -18,6 +18,7 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
     $ErrorActionPreference='Stop'
     $scenarioName = "$devPowStat\MinMaxCameraApp"
     $logFile = "$devPowStat-MinMaxCameraApp.txt"
+    
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)
     {   
@@ -74,10 +75,10 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
         StartTrace $scenarioName
 
         # Open camera App
-        $InitTimeCameraApp = CameraPreviewing -duration 6 -snarioName $scenarioName -logPath "$scenarioName\ResourceUtilization.txt"
+        $InitTimeCameraApp = CameraPreviewing -duration 5 -snarioName $scenarioName -logPath "$scenarioName\ResourceUtilization.txt"
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
-
+        
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'

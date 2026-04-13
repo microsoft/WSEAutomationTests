@@ -1,4 +1,4 @@
-Add-Type -AssemblyName UIAutomationClient
+﻿Add-Type -AssemblyName UIAutomationClient
 
 <#
 DESCRIPTION:
@@ -26,7 +26,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        $startTime = Get-Date
        $VFdetails= "VF-$VF"
 	   $vdoResDetails= RetrieveValue($vdoRes)
-	   $ptoResDetails= RetrieveValue($ptoRes)       
+	   $ptoResDetails= RetrieveValue($ptoRes)
        $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
@@ -39,17 +39,17 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           TestOutputMessage $scenarioLogFolder "Skipped" $startTime "wsev2Policy Not Supported"
           return
        }
-
+       
        #Set the device Power state
        #if token and SPid is available than run scenarios for both pluggedin and unplugged 
-       Write-Output "Start Tests for $devPowStat scenario" 
+       Write-Log -Message "Start Tests for $devPowStat scenario" -IsOutput
        $devState = CheckDevicePowerState $devPowStat $token $SPId
        if($devState -eq $false)
        {   
           TestOutputMessage  $scenarioLogFolder "Skipped" $startTime "Token is empty"  
           return
        }  
-       
+
        if($initSetUpDone -ne "true")
        {
           # Open Camera App and set default setting to "Use system settings" 
@@ -63,7 +63,10 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           
           #video resolution 
           Write-Log -Message "Setting up the video resolution to $vdoRes" -IsOutput
-           
+          
+          #Retrieve video resolution from hash table
+          Write-Log -Message "Retrieve $vdoRes value from hash table" -IsOutput
+          
           #skip the test if video resolution is not available. 
           $result = SetvideoResolutionInCameraApp $scenarioLogFolder $startTime $vdoRes
           if($result[-1]  -eq $false)
@@ -74,9 +77,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
           
           #photo resolution 
           Write-Log -Message "Setting up the Photo resolution to $ptoRes" -IsOutput
-          
-          #Retrieve photo resolution from hash table
-          Write-Log -Message "Retrieve $ptoRes value from hash table" -IsOutput
+
           #skip the test if photo resolution is not available. 
           $result = SetphotoResolutionInCameraApp $scenarioLogFolder $startTime $ptoRes
           if($result[-1]  -eq $false)
@@ -85,7 +86,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
              return
           }
        
-       }  
+       }
        #Open system setting page
        $ui = OpenApp 'ms-settings:' 'Settings'
        Start-Sleep -m 500
@@ -95,7 +96,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        FindCameraEffectsPage $ui
        Start-Sleep -m 500 
        
-       #Setting AI effects for Tests in camera setting page 
+        # Setting up AI effects for tests in camera setting page 
        $scenarioID = $toggleEachAiEffect[15]
                     
        Write-Log -Message "Setting up the camera Ai effects" -IsOutput      
@@ -140,24 +141,22 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        #Checks if frame server is stopped
        Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server'
-                             
+                       
        #Strating to collect Traces
        StartTrace $scenarioLogFolder
 
        Write-Log -Message "Start test for $camsnario" -IsOutput
        if($camsnario -eq "Recording")
        {
-           #Start video recording and close the camera app once finished recording 
-           #Start video recording, start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs
-           $InitTimeCameraApp = StartVideoRecording -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
+           #Start video recording, start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs 
+           $InitTimeCameraApp = StartVideoRecording -duration 5 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
        else
        {   
-           #Start Previewing and close the camera app once finished. 
-           #Start Previewing , start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs 
-           $InitTimeCameraApp = CameraPreviewing -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
+           #Start Previewing, start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs 
+           $InitTimeCameraApp = CameraPreviewing -duration 5 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }

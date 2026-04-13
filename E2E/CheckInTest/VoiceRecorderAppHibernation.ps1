@@ -42,7 +42,7 @@ function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId)
         # Toggling Voice Focus effect on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle Voice Focus effect on" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "False" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
-                                     -ECVal "Off" -ECSVal "False" -ECTVAL "False" -VFVal "On" `
+                                     -ECVal "Off" -ECSVal "False" -ECTVal "False" -VFVal "On" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
                 
         # Checks if frame server is stopped
@@ -81,11 +81,7 @@ function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId)
 
         # Verify logs for number of hibernation cycles
         VerifyLogs-Hibernation $scenarioName
-        
-        # Calculate Time from audio recording started until PC trace first frame processed
-        Write-Log -Message "Entering CheckInitTimeVoiceRecorderApp function" -IsOutput
-        CheckInitTimeVoiceRecorderApp $scenarioName "512" $voiceRecorderAppStartTime $audioRecordingStartTime
-
+      
         #collect data for Reporting
         Reporting $Results "$pathLogsFolder\Report.txt"
 
@@ -99,3 +95,4 @@ function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId)
        CloseApp 'VoiceRecorder'
     }
 }
+

@@ -3,10 +3,8 @@ DESCRIPTION:
     This function gathers device-specific details related to camera scenarios, video/photo resolutions,
     power states, voice focus, and AI effects. It dynamically checks supported configurations
     and returns them in a structured format.
-
 INPUT PARAMETERS:
     - None
-
 RETURN TYPE:
     - Hashtable: Contains supported configurations for camera scenarios, resolutions, power states,
       voice focus, and AI effects.
@@ -38,7 +36,7 @@ function GetDeviceDetails()
 }
 <#
 DESCRIPTION:
-    Generates all valid combinations of camera features based on WSEV2 policy state
+    Generates all valid combinations of camera features based on WSEV2 policy state.
     Each combination is a '+'-joined string of selected features.
 
 INPUT:
@@ -80,11 +78,11 @@ function Generate-Combinations {
     }
     return $combinations
 }
+
 <#
 DESCRIPTION:
     This function retrieves the list of supported video resolutions from the Camera app settings.
     It opens the Camera app, switches to video mode, and checks the available video quality options.
-
 RETURN TYPE:
     - Array: List of supported video resolutions.
 #>
@@ -93,7 +91,7 @@ Function GetVideoResList()
      #Open Camera App
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
      Start-Sleep -s 1
-
+	 
      #Switch to video mode if not in video mode(Note until we switch to video mode the changes made in video resolution does not persist)
      $return = CheckIfElementExists $ui ToggleButton "Take video" 
      if ($return -eq $null){
@@ -115,7 +113,6 @@ Function GetVideoResList()
 DESCRIPTION:
     This function retrieves the list of supported photo resolutions from the Camera app settings.
     It opens the Camera app and checks the available photo quality options.
-
 RETURN TYPE:
     - Array: List of supported photo resolutions.
 #>
@@ -126,18 +123,16 @@ Function GetPhotoResList()
    Start-Sleep -s 1
 
    #Get photo quality
-   FindAndClick $ui Button "Open Settings Menu" 
+   FindAndClick $ui Button "Open Settings Menu"  
    #Find Photo settings and click
    FindAndClickList -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.Expander -proptyNmeLst @('Photos settings','Photo settings')
    FindAndClick $ui ComboBox "Photo quality"
-   Start-Sleep -s 1
    $ptoRes = FindAllElementsNameWithClassName $ui ComboBoxItem
    $ptoResList = $ptoRes | Where-Object { $_ -match 'aspect' }
    Stop-Process -Name 'WindowsCamera'
    start-sleep -s 1
    return $ptoResList
 }
-
 <#
 DESCRIPTION:
     Filters and selects resolutions based on user input or strategic defaults.

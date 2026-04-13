@@ -12,6 +12,7 @@ Set-Variable -Name "WSE_ALL_CAMERA_EFFECTS_SCENARIO_V1"     -Option ReadOnly -Va
 Set-Variable -Name "WSE_ALL_CAMERA_EFFECTS_SCENARIO_ID_V1"  -Option ReadOnly -Value 81968
 Set-Variable -Name "WSE_ALL_CAMERA_EFFECTS_SCENARIO_V2"     -Option ReadOnly -Value "AFC+PL+ECS+BBP+CFA"
 Set-Variable -Name "WSE_ALL_CAMERA_EFFECTS_SCENARIO_ID_V2"  -Option ReadOnly -Value 2703376
+
 Set-Variable -Name "VIDEO_RECORDING_DURATION"               -Option ReadOnly -Value 20
 Set-Variable -Name "NUMBER_OF_ITERATION"                    -Option ReadOnly -Value 10
 
@@ -108,7 +109,7 @@ function CameraReliabilityTest {
     # Restore the default state for AI effects
     Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to Restore the default state for AI effects" `
               -IsOutput
-    ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "False"`
+    ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "False" `
                                  -PLVal "Off" `
                                  -BBVal "Off" -BSVal "False" -BPVal "False" `
                                  -ECVal "Off" -ECSVal "False" -ECTVal "False" `

@@ -7,7 +7,6 @@
    [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null
 )
 .".\CheckInTest\Helper-library.ps1"
-
 InitializeTest 'ReleaseTest' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
 $deviceData = GetDeviceDetails 
 Write-Log -Message "$deviceData" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
@@ -29,7 +28,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
    foreach ($vdoRes in $filteredVideoResolutions)
    {  
       $initialSetupDone = "true" 
-      $startTime = Get-Date 
+      $startTime = Get-Date
       #Retrieve video resolution from hash table
 	   $vdoResDetails= RetrieveValue($vdoRes)
       $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails" 
@@ -47,7 +46,6 @@ foreach($camsnario in $deviceData["CameraScenario"])
       # Loop through photo resolutions  
       foreach ($ptoRes in  $filteredPhotoResolutions)
       {   
-         #Retrieve photo resolution from hash table 
          $ptoResDetails= RetrieveValue($ptoRes)       
          $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails" 
 
@@ -59,7 +57,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
          {
             write-Error "Expected Photo Res is not found: $ptoRes"
             continue;
-         } 
+         }
 
          foreach($VF in $deviceData["VoiceFocus"])
          {  
@@ -109,7 +107,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                   }
 
                   if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
-                     Write-Host "Completed all AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
+                     Write-Log -Message "Completed all Unplugged AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
                   }
                }
@@ -124,14 +122,14 @@ foreach($camsnario in $deviceData["CameraScenario"])
                elseif ($runMode -eq "UnpluggedOnly") {
 
                   if ($batteryPercentage -lt 20) {
-                     Write-Host "Battery below 20%. Plugging in to charge to 50%..." -ForegroundColor Cyan
+                     Write-Log -Message "Battery below 20%. Plugging in to charge to 50%..." -IsHost -ForegroundColor Cyan
                      SetSmartPlugState $token $SPId 1  # Plug in
                      while ($batteryPercentage -lt 50) {
                          Start-Sleep -Seconds 60
                          $batteryPercentage = Get-BatteryPercentage
-                         Write-Host "Charging... Current battery: $batteryPercentage%" -ForegroundColor Blue
+                         Write-Log -Message "Charging... Current battery: $batteryPercentage%" -IsHost -ForegroundColor Blue
                      }
-                     Write-Host "Battery reached 50%. Unplugging and resuming tests." -ForegroundColor Green
+                     Write-Log -Message "Battery reached 50%. Unplugging and resuming tests." -IsHost -ForegroundColor Green
                      SetSmartPlugState $token $SPId 0  # Unplug
                      Start-Sleep -Seconds 10  # Wait for state to stabilize
                  }
@@ -146,7 +144,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $devPowStat = "Unplugged"
                      CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
-                     Write-Host "Completed all Unplugged AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
+                     Write-Log -Message "All Unplugged scenarios completed. Exiting." -IsHost -ForegroundColor Yellow
                      break
                   }
                }
@@ -166,11 +164,11 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $devPowStat = "PluggedIn"
                      CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
-                     Write-Host "Completed all PluggedIn AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
+                     Write-Log -Message "All PluggedIn scenarios completed. Exiting." -IsHost -ForegroundColor Yellow
                      break
                   } 
                }
-               
+
                <#
                Cases where release tests doesn't run are:
                   1. .\ReleaseTest.ps1 without connecting to any charger.
@@ -178,7 +176,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                   3. .\ReleaseTest.ps1 -token "123456" -SPId "7891011" when device is not connect to any charger.
                #>
                else {
-                  Write-Error "Invalid run mode specified or necessary parameters missing."
+                  Write-Log -Message "Invalid run mode specified or necessary parameters missing." -IsHost
                   return
                }
             }
@@ -190,7 +188,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
 [console]::beep(500,300)
 if (!(test-path "$pathLogsFolder\ReRunFailedTests.ps1")) 
 {
-   Write-host "All Tests Succeeded" -BackgroundColor Green
+   Write-Log -Message "All Tests Succeeded" -IsHost -BackgroundColor Green
 }
 else
 {  
@@ -208,5 +206,3 @@ if($token.Length -ne 0 -and $SPId.Length -ne 0)
 [console]::beep(500,300)
  
 ConvertTxtFileToExcel "$pathLogsFolder\Report.txt"
-
-Start-Sleep -s 3

@@ -6,7 +6,6 @@
    [string] $targetPerceptionCoreVer = $null
 )
 .".\CheckInTest\Helper-library.ps1"
-
 InitializeTest 'Checkin-Test' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
 
 foreach($devPowStat in "Pluggedin", "Unplugged")
@@ -15,11 +14,11 @@ foreach($devPowStat in "Pluggedin", "Unplugged")
    {
       SettingAppTest-Playlist -devPowStat $devPowStat -testScenario $testScenario -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-SettingAppTest.txt"
    }
-   VoiceFocus-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-VoiceFocus.txt"
+  VoiceFocus-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-VoiceFocus.txt"
    
-   Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-Camerae2eTest.txt"
+  Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-Camerae2eTest.txt"
    
-   Voice-Recorder-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-VoiceRecordere2eTest.txt"
+  Voice-Recorder-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-VoiceRecordere2eTest.txt"
 
 }
 #Turn on the smart plug 
@@ -30,5 +29,3 @@ if($token.Length -ne 0 -and $SPId.Length -ne 0)
 
 ConvertTxtFileToExcel "$pathLogsFolder\Report.txt"
 [console]::beep(500,300)
-
-Start-Sleep -s 3

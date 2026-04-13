@@ -1,4 +1,4 @@
-Add-Type -AssemblyName System.Windows.Forms
+﻿Add-Type -AssemblyName System.Windows.Forms
 
 <#
 DESCRIPTION:
@@ -96,7 +96,7 @@ function SetDefaultSettingInCameraApp($uiEle, $selSetting)
      FindAndClick $uiEle Microsoft.UI.Xaml.Controls.Expander "Camera settings"
      FindAndClick $uiEle ComboBox "Default settings - These settings apply to the Camera app at the start of each session"
      FindAndClick $uiEle ComboBoxItem $selSetting
-     FindAndClick $uiEle Button "Back"
+     FindAndClick $uiEle Button "Back"     
 }
 
 <#
@@ -153,7 +153,7 @@ RETURN TYPE:
 function SwitchModeInCameraApp($uiEle, $swtchMde, $chkEle) 
 {
     $return = CheckIfElementExists $uiEle ToggleButton $chkEle
-    if ($return -eq $null){
+    if ($null -eq $return) {
         Write-Log -Message "$swtchMde" -IsOutput
         FindAndClick $uiEle Button $swtchMde
     }
@@ -168,9 +168,7 @@ DESCRIPTION:
     This function starts the Camera app, switches to video mode, and records a video for a specified
     duration. It captures the start time in UTC format and returns it for later verification.
 INPUT PARAMETERS:
-    - duration [int] :- The duration is the number of iterations of video recording.
-    - snarioName [string] :- Scenario name used for resource logging 
-    - logPath [string] :- Path to write resource utilization logs 
+    - scnds [int] :- The duration of the video recording in seconds.
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
@@ -191,8 +189,7 @@ function StartVideoRecording
      Start-Sleep -s 1
 
      #Capture the start time for Camera App
-     $cameraApp = Get-Process -Name WindowsCamera | select starttime
-     $cameraAppStart = $cameraApp.StartTime
+    $cameraAppStart = (Get-Process -Name WindowsCamera).StartTime
 
      #Set time zone to UTC as Asg trace logs are using UTC date format
      $cameraAppStartinUTC = $cameraAppStart.ToUniversalTime()
@@ -208,15 +205,15 @@ function StartVideoRecording
      Start-Sleep -s 2
      
      #record video inbetween space presses
-     Write-Log -Message "Start recording a video" -IsOutput
+     Write-Log -Message "Start recording a video for $scnds seconds" -IsOutput
      [System.Windows.Forms.SendKeys]::SendWait(' ');
    
      #Capture Resource Utilization while test is running
-     Monitor-Resources -scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
+     Monitor-Resources -Scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
           
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
-     Write-Log -Message "video recording stopped" -IsOutput
+     Write-Log -Message "video recording stopped after $scnds seconds" -IsOutput
      
      #restores photo mode for the next run(This line will be uncommented once camera issue is fixed)
      #SwitchModeInCameraApp $ui "Switch to photo mode" "Take photo"
@@ -236,7 +233,7 @@ DESCRIPTION:
 RETURN TYPE:
     - void (Taking a photo in Camera app without returning a value.)
 #>
-function StartPhotoCapturing
+function StartPhotoCapturing 
 {
     # Open Camera App
     $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
@@ -261,9 +258,7 @@ DESCRIPTION:
     It captures the app's start time in UTC format, which can be used later for log and performance analysis.
     After the previewing is complete, the Camera app is closed, and the start time is returned.
 INPUT PARAMETERS:
-    - duration [int] :- The duration is the number of iterations of video Previewing.
-    - snarioName [string] :- Scenario name used for resource logging.
-    - logPath [string] :- Path to write resource utilization logs.
+    - scnds [int] :- The duration in seconds for which the camera will remain in preview mode.
 RETURN TYPE:
     - [DateTime] (Returns the start time of the Camera app in UTC format for later time calculations.)
 #>
@@ -283,8 +278,7 @@ function CameraPreviewing
      Start-Sleep -s 1
 
      #Capture the start time for Camera App
-     $cameraApp = Get-Process -Name WindowsCamera | select starttime
-     $cameraAppStart = $cameraApp.StartTime
+    $cameraAppStart = (Get-Process -Name WindowsCamera).StartTime
 
      #Set time zone to UTC as Asg trace logs are using UTC date format
      $cameraAppStartinUTC = $cameraAppStart.ToUniversalTime()
@@ -297,13 +291,14 @@ function CameraPreviewing
                           
      #Switch to video mode and start previewing as few photo resolution does not support MEP feature"
      SwitchModeInCameraApp $ui "Switch to video mode" "Take video" 
-          
+     #Start-Sleep -s $scnds
+     
      #Capture Resource Utilization while test is running
      Monitor-Resources -Scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
      
      #Close camera App
      CloseApp 'WindowsCamera'
-     Write-Log -Message "Previewing stopped " -IsOutput
+     Write-Log -Message "Previewing stopped after $scnds seconds" -IsOutput
 
      #Return the value to pass as parameter to CheckInitTimeCameraApp function in camerae2eTest.ps1 and CameraAppTest.ps1
      return , $cameraAppStartTime 
@@ -330,6 +325,7 @@ function SetHighestVideoResolutionInCameraApp{
      $videoResName = FindFirstElementsNameWithClassName $ui ComboBoxItem
      FindAndClick $ui ComboBoxItem $videoResName
      Write-Log -Message "Set video resolution to $videoResName in camera app" -IsOutput
+
      FindAndClick $ui Button "Back"
      
      #Close Camera App
@@ -350,7 +346,7 @@ function SetHighestPhotoResolutionInCameraApp{
      #Open Camera App and set default setting to "Use system settings"
      $ui = OpenApp 'microsoft.windows.camera:' 'Camera'
      Start-Sleep -s 1
-     
+ 
      #Set Default setting to "Use System settings"
      FindAndClick  $ui Button "Open Settings Menu"
      FindAndClickList -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.Expander -proptyNmeLst @('Photos settings','Photo settings')
@@ -359,7 +355,7 @@ function SetHighestPhotoResolutionInCameraApp{
      FindAndClick  $ui ComboBoxItem $photoResName
      Write-Log -Message "Set Photo resolution to $photoResName in camera app" -IsOutput
      FindAndClick  $ui Button "Back"
-         
+ 
      #Close Camera App
      CloseApp 'WindowsCamera'
      return , $photoResName
@@ -388,8 +384,8 @@ function SetvideoResolutionInCameraApp($snarioName, $strtTime, $vdoRes)
      #Switch to video mode if not in video mode(Note until we switch to video mode the changes made in video resolution does not persist)
      SwitchModeInCameraApp $ui "Switch to video mode" "Take video" 
 
-     #set video quality 
-     FindAndClick $ui Button "Open Settings Menu"
+     #set video quality
+     FindAndClick $ui Button "Open Settings Menu" 
      Write-Log -Message "Set video quality to $vdoRes" -IsOutput
 
      #Find video settings and click
@@ -399,7 +395,7 @@ function SetvideoResolutionInCameraApp($snarioName, $strtTime, $vdoRes)
 
      #Select the video resolution if supported
      $return = CheckIfElementExists $ui ComboBoxItem $vdoRes
-     if ($return -eq $null){
+     if ($null -eq $return) {
          TestOutputMessage $snarioName "Skipped" $strtTime  "unsupported resolution" 
          CloseApp 'WindowsCamera'
          return ,$false
@@ -442,15 +438,15 @@ function SetphotoResolutionInCameraApp($snarioName, $strtTime, $photRes)
 
      #Select the photo resolution if supported
      $return = CheckIfElementExists $ui ComboBoxItem $photRes
-     if ($return -eq $null){
+     if ($null -eq $return) {
          TestOutputMessage $snarioName "Skipped" $strtTime  "unsupported resolution" 
          CloseApp 'WindowsCamera'
          return ,$false
      }
      else
      {
-         FindAndClick $ui ComboBoxItem $photRes
-         CloseApp 'WindowsCamera'
+        FindAndClick $ui ComboBoxItem $photRes
+        CloseApp 'WindowsCamera'
          
      } 
 }
@@ -521,22 +517,29 @@ function ValidateWSEInPhotoMode($snarioName)
    StopTrace $scenarioName
  
    #Validate PerceptionSessionUsageStats is not captured in PhotoMode. If PerceptionSessionUsageStats is captured, verify PC Scenario is not initialized 
-   $pathAsgTraceTxt = "$pathLogsFolder\$scenarioName\" + "AsgTrace.txt"  
-   $pattern = "PerceptionSessionUsageStats"
-   $pcUsageStats = (Select-string -path  $pathAsgTraceTxt -Pattern $pattern)
-   if($pcUsageStats.Length -eq 0)
+    if (-not (Get-Command Get-TraceFmtJsonFromLine -ErrorAction SilentlyContinue))
+    {
+        $traceFmtLib = Join-Path $PSScriptRoot 'TraceFmtParsing.ps1'
+        if (Test-Path -LiteralPath $traceFmtLib) { . $traceFmtLib }
+    }
+
+    $pathAsgTraceFmtTxt = "$pathLogsFolder\$scenarioName\" + "AsgTraceFmt.txt"  
+    $pattern = "PerceptionSessionUsageStats"
+    $pcUsageStats = @(Select-string -path  $pathAsgTraceFmtTxt -Pattern $pattern)
+    if($pcUsageStats.Count -eq 0)
    { 
       Write-Log -Message "No PerceptionSessionUsageStats captured in Asgtrace while in PhotoMode" -IsOutput
    }
    else
    {
       Write-Log -Message "PerceptionSessionUsageStats captured in Asgtrace while in PhotoMode "  -IsOutput
-      $frameProcessingDetails = (Select-string -path $pathAsgTraceTxt -Pattern $pattern | Select-Object -Last 1) -split ","
-            
-      #Reading log file to verify PC Scenario is not initialized 
-      $scenarioID = $frameProcessingDetails[8].Trim()
+        $lastLine = ($pcUsageStats | Select-Object -Last 1).Line
+        $j = $null
+        try { $j = Get-TraceFmtJsonFromLine -Line $lastLine } catch { $j = $null }
+        $scenarioID = $null
+        try { if ($j -and ($j.PSObject.Properties.Name -contains 'PerceptionScenario')) { $scenarioID = [int64]$j.PerceptionScenario } } catch { $scenarioID = $null }
 
-      if($scenarioID -eq 0)
+        if($null -eq $scenarioID -or $scenarioID -eq 0)
       {
          Write-Log -Message "No PerceptionCore Scenrio is initialized" -IsOutput
       }   

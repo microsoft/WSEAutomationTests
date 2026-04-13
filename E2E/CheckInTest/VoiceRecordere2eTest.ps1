@@ -39,7 +39,7 @@ function Voice-Recorder-Playlist($devPowStat, $token, $SPId)
     }
     try
 	{  
-        #Create scenario specific folder for collecting logs
+        # Create scenario specific folder for collecting logs
         Write-Log -Message "Creating folder for capturing logs" -IsOutput
         CreateScenarioLogsFolder $scenarioName
         
@@ -52,7 +52,7 @@ function Voice-Recorder-Playlist($devPowStat, $token, $SPId)
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
-                                         
+                                           
         # Starting to collect Traces
         Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName
@@ -89,3 +89,4 @@ function Voice-Recorder-Playlist($devPowStat, $token, $SPId)
        CloseApp 'VoiceRecorder'
     }
 }
+

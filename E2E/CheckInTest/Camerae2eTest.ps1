@@ -21,44 +21,46 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         
     try
 	{  
-        #Create Scenario folder
+        # Create Scenario folder
         $scenarioLogFolder = $scenarioName
         CreateScenarioLogsFolder $scenarioLogFolder
+     
         #Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                      -ECVal "On" -ECSVal "True" -ECTVal "False" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
-                 
-        #Open Camera App and set default setting to "Use system settings" 
+               
+        # Open Camera App and set default setting to "Use system settings" 
         Set-SystemSettingsInCamera
        
-        #Set photo resolution
+        # Set photo resolution
 	    $photoResName = SetHighestPhotoResolutionInCameraApp 
         $phoResNme = RetrieveValue $photoResName[-1]
         
-        #Set video resolution
+        # Set video resolution
         $videoResName = SetHighestVideoResolutionInCameraApp
         $vdoResNme = RetrieveValue $videoResName[-1]
         
         $scenarioLogFolder = "$scenarioName\$phoResNme\$vdoResNme" 
 
         CreateScenarioLogsFolder $scenarioLogFolder
+        
         $powerMode = $devPowStat -replace '^\d+-', ''
         $devState = CheckDevicePowerState $powerMode $token $SPId
         if($devState -eq $false)
         {   
-           TestOutputMessage $scenarioLogFolder "Skipped" $startTime "Token is empty"  
+           TestOutputMessage $scenarioLogFolder "Skipped" $startTime "Token is empty"
            return
         }
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'
-                      
+                          
         # Starting to collect Traces
         Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioLogFolder
-        
+                             
         # Start Recording, start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10 secs
         Write-Log -Message "Entering StartVideoRecording function" -IsOutput
         $InitTimeCameraApp = StartVideoRecording -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\Camerae2eTestResourceUtilization.txt"
@@ -94,6 +96,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
            # Calculate Time from camera app started until PC trace first frame processed
            Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
            CheckInitTimeCameraApp $scenarioLogFolder "2703376" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
+          
         }
         
         # Get the properties of latest video recording
@@ -116,3 +119,4 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
        Error-Exception -snarioName $scenarioLogFolder -strttme $startTime -rslts $Results -logFile $logFile -token $token -SPID $SPID
     }
 }
+

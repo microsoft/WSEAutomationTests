@@ -13,10 +13,10 @@ RETURN TYPE:
 function Clear-CameraRollVideos
 {
     Write-Host "Deleting WSE_test videos older than 1 week from Camera Roll"
-    
+
     # Determine Camera Roll path
     $cameraRoll = "$env:userprofile\Pictures\Camera Roll"
-    
+
     if (!(Test-Path -Path $cameraRoll))
     {
         $cameraRoll = "$env:userprofile\OneDrive\Pictures\Camera Roll"
@@ -26,18 +26,20 @@ function Clear-CameraRollVideos
             return
         }
     }
+
     # Cutoff date (1 week ago)
     $cutoffDate = (Get-Date).AddDays(-7)
-        
+    
     # Get matching video files
     $videoFiles = Get-ChildItem -Path $cameraRoll -File -Include *.mp4, *.mkv -Recurse -ErrorAction SilentlyContinue |
                   Where-Object {
                       $_.Name -like "WSE_test*" -and
                       $_.LastWriteTime -lt $cutoffDate
                   }
+
     if ($videoFiles -and $videoFiles.Count -gt 0)
     {
-        Write-Log -Message "Found $($videoFiles.Count) video(s) to delete." -IsHost
+        Write-Host "Found $($videoFiles.Count) video(s) to delete."
         foreach ($video in $videoFiles)
         {
             Remove-Item -Path $video.FullName -Force -ErrorAction SilentlyContinue
@@ -45,6 +47,8 @@ function Clear-CameraRollVideos
     }
     else
     {
-        Write-Log -Message "No videos found to delete" -IsHost
+        Write-Log -Message "No matching videos found to delete." -IsHost
     }
 }
+
+

@@ -18,7 +18,7 @@ function Get-CombinationReturnValues {
         [string] $effects
     )
 
-    # Define the base array (default values)
+        # Define the base array (default values)
     $defaultReturnArray = @("Off","False","False","Off","Off","False","False","Off","False","False","Off","False","False","False","","")
     $wsev2PolicyState = CheckWSEV2Policy
     $WSE8480Policy = Check8480Policy
@@ -69,6 +69,7 @@ function Get-CombinationReturnValues {
 
     return ,$result
 }
+
 <#
 DESCRIPTION:
     This function retrieves the corresponding value(s) for a given input key from a predefined 

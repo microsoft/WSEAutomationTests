@@ -46,10 +46,10 @@ function VoiceFocus-Playlist($devPowStat, $token, $SPId)
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'    
-
+        
         # Capture Resource Utilization before test starts
         Monitor-Resources -scenario $scenarioName -executionState "Before" -logPath "$scenarioName\ResourceUtilization.txt" -Once "Once"
-                
+                       
         # Start collecting Traces before opening setting page
         Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName

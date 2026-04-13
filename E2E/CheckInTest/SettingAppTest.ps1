@@ -13,35 +13,39 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void
 #>
-function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [string]$CameraType = "Internal Camera")
-{
+function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId) 
+{   
    try
-   {
-      $startTime = Get-Date
-      $ErrorActionPreference = 'Stop'
-      $scenarioName = "$devPowStat\$testScenario"
-      $logFile = "$devPowStat-SettingAppTest.txt"
-      #Check device Power state
-      $devState = CheckDevicePowerState $devPowStat $token $SPId
-      if ($devState -eq $false)
-      {
-         TestOutputMessage $scenarioName "Skipped" $startTime "Token is empty"
-         return
-      }
-      #Create scenario specific folder for collecting logs
-      Write-Log -Message "Creating folder for capturing logs" -IsOutput
-      CreateScenarioLogsFolder $scenarioName
-
-      Write-Log -Message "Starting Test for $scenarioName" -IsOutput
+   { 
+       $startTime = Get-Date    
+       $ErrorActionPreference='Stop'
+       $scenarioName = "$devPowStat\$testScenario"
+       $logFile = "$devPowStat-SettingAppTest.txt"
        
-       #Retrieve value for scenario from Get-CombinationReturnValues function
+       #Check device Power state
+       $devState = CheckDevicePowerState $devPowStat $token $SPId
+       if($devState -eq $false)
+       {   
+          TestOutputMessage $scenarioName "Skipped" $startTime "Token is empty"  
+          return
+       }
+
+       # Create scenario specific folder for collecting logs
+       Write-Log -Message "Creating folder for capturing logs" -IsOutput
+       CreateScenarioLogsFolder $scenarioName
+
+       Write-Log -Message "Starting Test for $scenarioName" -IsOutput
+       
+       # Retrieve value for scenario from Get-CombinationReturnValues function
        $testScenario = Get-CombinationReturnValues -effects $testScenario
        if($testScenario.length -eq 0)
        {
           TestOutputMessage $scenarioName "Skipped" $startTime "wsev2Policy Not Supported"
           return
        }
-       
+       # Open Task Manager and set speed to low
+       setTMUpdateSpeedLow 
+
        # Toggling AI effects as per scenarios
        # Open system setting page
        $ui = OpenApp 'ms-settings:' 'Settings'
@@ -50,7 +54,7 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [str
        # Open camera effects page 
        Write-Log -Message "Navigate to camera effects setting page" -IsOutput
        FindCameraEffectsPage $ui
-       Start-Sleep -s 5
+       Start-Sleep -m 500 
        
        # Setting up AI effects for tests in camera setting page 
        $scenarioID = $testScenario[15]
@@ -58,10 +62,7 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [str
        Write-Log -Message "Setting up the camera Ai effects" -IsOutput      
 
       FindAndSetValue $ui ToggleSwitch "Automatic framing" $testScenario[0]
-
-      if ($CameraType -ne "External Camera") {
-         FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[7]
-      }
+      FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[7]
 
       FindAndSetValue $ui ToggleSwitch "Background effects" $testScenario[4]
       if($testScenario[4] -eq "On")
@@ -80,87 +81,89 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [str
          }
          FindAndSetValue $ui ToggleSwitch "Creative filters" $testScenario[10]
          if($testScenario[10] -eq "On")
-         { 
+         {
             FindAndSetValue $ui RadioButton "Illustrated" $testScenario[11]
             FindAndSetValue $ui RadioButton "Animated" $testScenario[12]
             FindAndSetValue $ui RadioButton "Watercolor" $testScenario[13]
          }
          $wse8480PolicyState = Check8480Policy
-          if ($wse8480PolicyState -eq $true) {
+         if ($wse8480PolicyState -eq $true)
+		   {
             if($testScenario[0] -eq "On")
             {
                 FindAndSetValue $ui RadioButton "Standard framing" $testScenario[1]
                 FindAndSetValue $ui RadioButton "Cinematic framing" $testScenario[2]
             }
-         }
-      }  
-      
-      CloseApp 'systemsettings'
+         }   
+      }
+       CloseApp 'systemsettings'
+       
+       # Checks if frame server is stopped
+       Write-Log -Message "Entering CheckServiceState function" -IsOutput
+       CheckServiceState 'Windows Camera Frame Server'
 
-      # Checks if frame server is stopped
-      Write-Log -Message "Entering CheckServiceState function" -IsOutput
-      CheckServiceState 'Windows Camera Frame Server'
+       # Capture Resource Utilization before test starts
+       Monitor-Resources -scenario $scenarioName -executionState "Before" -logPath "$scenarioName\ResourceUtilization.txt" -Once "Once"
+       
+       # Start collecting Traces before opening setting page
+       Write-Log -Message "Entering StartTrace function" -IsOutput
+       StartTrace $scenarioName
+    
+       Write-Log -Message "Open Setting Page" -IsOutput
+       $ui = OpenApp 'ms-settings:' 'Settings'
+       Start-Sleep -m 500
+       
+       # Open camera system setting page and wait for 5 secs
+       Write-Log -Message "Entering FindCameraEffectsPage function" -IsOutput
+       FindCameraEffectsPage $ui
+       
+       # Capture Resource Utilization while test is running. Each duration runs for around 10-12 sec
+       Monitor-Resources -scenario $scenarioName -duration 2 -executionState "During" -logPath "$scenarioName\ResourceUtilization.txt"
+       Start-Sleep -s 5
+       
+       # Close system setting page 
+       CloseApp 'systemsettings'
+       
+          
+       # Checks if frame server is stopped
+       Write-Log -Message "Entering CheckServiceState function" -IsOutput
+       CheckServiceState 'Windows Camera Frame Server'
+       
+       # Stop collecting trace
+       Write-Log -Message "Entering StopTrace function" -IsOutput
+       StopTrace $scenarioName 
+       
+       # Verify and validate if proper logs are generated or not.
+       Write-Log -Message "Entering Verifylogs function" -IsOutput
+       Verifylogs $scenarioName $scenarioID $startTime
 
-      # Capture Resource Utilization before test starts
-      Monitor-Resources -scenario $scenarioName -executionState "Before" -logPath "$scenarioName\ResourceUtilization.txt" -Once "Once"
-
-      # Start collecting Traces before opening setting page
-      Write-Log -Message "Entering StartTrace function" -IsOutput
-      StartTrace $scenarioName
-
-      Write-Log -Message "Open Setting Page" -IsOutput
-      $ui = OpenApp 'ms-settings:' 'Settings'
-      Start-Sleep -m 500
-
-      # Open camera system setting page and wait for 5 secs
-      Write-Log -Message "Entering FindCameraEffectsPage function" -IsOutput
-      FindCameraEffectsPage $ui
-      Start-Sleep -s 5
-
-      # Capture Resource Utilization while test is running. Each duration runs for around 10-12 sec
-      Monitor-Resources -scenario $scenarioName -duration 2 -executionState "During" -logPath "$scenarioName\ResourceUtilization.txt"
-
-      # Close system setting page
-      CloseApp 'systemsettings'
-      
-      # Checks if frame server is stopped
-      Write-Log -Message "Entering CheckServiceState function" -IsOutput
-      CheckServiceState 'Windows Camera Frame Server'
-
-      # Stop collecting trace
-      Write-Log -Message "Entering StopTrace function" -IsOutput
-      StopTrace $scenarioName
-
-      # Verify and validate if proper logs are generated or not.
-      Write-Log -Message "Entering Verifylogs function" -IsOutput
-      Verifylogs $scenarioName $scenarioID $startTime
-
-      # Copy logs to test scenario specific folder
-      Write-Log -Message "Entering GetContentOfLogFileAndCopyToTestSpecificLogFile function" -IsOutput
-      GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioName
-
-      #collect data for Reporting
-      Reporting $Results "$pathLogsFolder\Report.txt"
-
-   }
-   catch
-   {
-      Take-Screenshot "Error-Exception" $scenarioName
-      Write-Log -Message "Error occurred and entered catch statement" -IsOutput
-      CloseApp 'systemsettings'
-      CloseApp 'WindowsCamera'
-      CloseApp 'Taskmgr'
-      StopTrace $scenarioName
-      CheckServiceState 'Windows Camera Frame Server'
-      Write-Output $_
-      TestOutputMessage $scenarioName "Exception" $startTime $_.Exception.Message
-      Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
-      Reporting $Results "$pathLogsFolder\Report.txt"
-      GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioName
-      $getLogs = Get-Content -Path "$pathLogsFolder\$scenarioName\log.txt" -Raw
-      Write-Log -Message $getLogs -IsHost
-      $logs = resolve-path "$pathLogsFolder\$scenarioName\log.txt"
-      Write-Log -Message "(Logs saved here:$logs)" -IsHost
-      SetSmartPlugState $token $SPID 1
-   }
+       # Copy logs to test scenario specific folder
+       Write-Log -Message "Entering GetContentOfLogFileAndCopyToTestSpecificLogFile function" -IsOutput
+       GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioName
+             
+       #collect data for Reporting
+       Reporting $Results "$pathLogsFolder\Report.txt"
+         
+     }
+     catch
+     {  
+        Take-Screenshot "Error-Exception" $scenarioName
+        Write-Log -Message "Error occurred and entered catch statement" -IsOutput
+        CloseApp 'systemsettings'
+        CloseApp 'WindowsCamera'
+        CloseApp 'Taskmgr'
+        StopTrace $scenarioName
+        CheckServiceState 'Windows Camera Frame Server'
+        Write-Output $_
+        TestOutputMessage $scenarioName "Exception" $startTime $_.Exception.Message
+        Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
+        Reporting $Results "$pathLogsFolder\Report.txt"
+        GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioName
+        $getLogs = Get-Content -Path "$pathLogsFolder\$scenarioName\log.txt" -Raw
+        Write-Log -Message $getLogs -IsHost
+        $logs = resolve-path "$pathLogsFolder\$scenarioName\log.txt"
+        Write-Log -Message "(Logs saved here:$logs)" -IsHost
+        SetSmartPlugState $token $SPID 1
+     }
+                 
 }

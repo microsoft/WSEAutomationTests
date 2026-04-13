@@ -242,7 +242,7 @@ function stopTaskManager($uitaskmgr,$Scenario){
 DESCRIPTION:
     This function sets Task Manager Real time Update speed to Low.
 INPUT PARAMETERS:
-    - None
+    - uiEle [UIElement] :- The UI automation element representing the Task Manager window.
 RETURN TYPE:
     - void (Adjusts Task Manager settings without returning a value.)
 #>
@@ -266,9 +266,9 @@ function setTMUpdateSpeedLow
 
 <#
 DESCRIPTION:
-    This function navigates to CPU and takes a screenshot.
+    This function navigate to CPU and take screenshot.
 INPUT PARAMETERS:
-    - uitaskmgr [UIElement] :- The UI automation element representing the Task Manager window.
+    - uiEle [UIElement] :- The UI automation element representing the Task Manager window.
     - Scenario [string] :- The name of the scenario to be included in the screenshot filename.
 RETURN TYPE:
     - void (Captures a screenshot of CPU performance without returning a value.)
@@ -290,9 +290,9 @@ function captureCPUUsage($uitaskmgr, $Scenario)
 
 <#
 DESCRIPTION:
-    This function navigates to NPU and takes a screenshot.
+    This function navigate to NPU and take screenshot.
 INPUT PARAMETERS:
-    - uitaskmgr [UIElement] :- The UI automation element representing the Task Manager window.
+    - uiEle [UIElement] :- The UI automation element representing the Task Manager window.
     - Scenario [string] :- The name of the scenario to be included in the screenshot filename.
 RETURN TYPE:
     - void (Captures a screenshot of NPU performance without returning a value.)
@@ -311,4 +311,3 @@ function captureNPUUsage($uitaskmgr, $Scenario)
    start-sleep -Seconds 1
 
 }
-

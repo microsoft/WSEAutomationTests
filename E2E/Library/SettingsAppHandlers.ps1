@@ -11,6 +11,7 @@ RETURN TYPE:
 function FindCameraEffectsPage($uiEle){
     FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem "Bluetooth & devices"
     FindAndClick $uiEle ListViewItem Cameras
+
     $exists = CheckIfElementExists $uiEle Button More
     if ($exists)
     {
@@ -22,7 +23,7 @@ function FindCameraEffectsPage($uiEle){
     }
     Start-Sleep -s 1
     [System.Windows.Forms.SendKeys]::SendWait('{END}') 
-    Start-Sleep -s 1   
+    Start-Sleep -s 1 
 }
 
 <#
@@ -52,7 +53,7 @@ function ClickFrontCamera($uiEle, $clsNme, $proptyNme){
        $exists = CheckIfElementExists $uiEle ToggleSwitch "Automatic framing" 
        if (!$exists)
 	   {
-          FindAndClick $uiEle Button Back
+        FindAndCLick $uiEle Button Back
           
        }
        else
@@ -74,6 +75,7 @@ RETURN TYPE:
     - void (Performs UI navigation and clicking without returning a value.)
 #>
 function FindVoiceFocusPage($uiEle){
+
     FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem System
     FindAndClick $uiEle ListViewItem Sound
     $exists = CheckIfElementExists $uiEle Button More
@@ -107,6 +109,7 @@ function FindVoiceFocusPage($uiEle){
     {
        Write-Error " $Global:validatedSoundCaptureDeviceFriendlyName not found in Sound setting Page " -ErrorAction Stop
     } 
+
     FindAndClick $uiEle ComboBox "Audio enhancements"
     Start-Sleep -m 500
     Foreach($audioEnhancementOptions in "Microsoft Windows Studio Voice Focus" , "Windows Studio Effects Voice Clarity")
@@ -116,7 +119,6 @@ function FindVoiceFocusPage($uiEle){
        {
            FindAndClick $uiEle ComboBoxItem $audioEnhancementOptions
        }
-    
     }
 }
 
@@ -160,7 +162,6 @@ Function VoiceFocusToggleSwitch($proptyVal)
         FindAndClick $ui ComboBox "Voice Focus"
         FindAndClick $ui ComboBoxItem $proptyVal
      }
-
      #close settings app
      CloseApp 'systemsettings'
 }
@@ -241,7 +242,6 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
            }
 		}
      }
-     
      
      #open microphone effects page and turn all effects off
      VoiceFocusToggleSwitch $VFVal

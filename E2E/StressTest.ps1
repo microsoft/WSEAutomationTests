@@ -26,3 +26,4 @@ foreach($devPowStat in "Pluggedin" , "Unplugged")
 #Turn on the smart plug 
 SetSmartPlugState $token $SPId 1
 [console]::beep(500,300)
+
