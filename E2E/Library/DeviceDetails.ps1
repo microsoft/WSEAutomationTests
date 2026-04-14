@@ -312,7 +312,23 @@ function GetPowerProfiles
 
     $ui = OpenApp 'ms-settings:' 'Settings'
     Start-Sleep -Seconds 1
-    FindAndClick $ui ListViewItem "Power & battery"
+    
+    # Navigate to System first
+    FindAndClick $ui Microsoft.UI.Xaml.Controls.NavigationViewItem System
+    Start-Sleep -Seconds 2
+
+    # Try "Power & battery" first, fall back to "Power" for desktops without battery
+    try {
+        FindAndClick $ui ListViewItem "Power & battery"
+    } catch {
+        try {
+            FindAndClick $ui ListViewItem "Power"
+        } catch {
+            Write-Log -Message "Power settings page not found. Skipping power profile detection." -IsOutput
+            Stop-Process -Name 'systemsettings' -ErrorAction SilentlyContinue
+            return @("Balanced")
+        }
+    }
     Start-Sleep -Seconds 2
     FindAndClick $ui "ExpanderToggleButton" "Show more settings"
     Start-Sleep -Seconds 2
