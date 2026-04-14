@@ -72,10 +72,9 @@ function MemoryUsage-Playlist($devPowStat, $token, $SPId)
            # Compare the Peakworking set and check if the difference is greater than 1000KB between every $sec secs
            $difference = $pekWorkSetSiz20min - $pekWorkSetSiz
            Write-Log -Message "Difference between PeakWorkingSet after every $sec secs: $difference" -IsOutput
-           # Checking if the value is not negative and greater than 1000KB
-           if(($difference -le 0) -and ($difference -gt 1000))
+           # Checking if the value is greater than 1000KB
+           if($difference -gt 1000) 
            {
-
               # Peakworkingset greater than 1000KB is just an indication that there could be memory leak. Next step would be to enable appvifier and collect dump manually.
               $greaterThan1000KB = $True
               write-host "PeakworkingSet difference is greater than 1000KB for run $i. Difference after every $sec is: $difference = $pekWorkSetSiz20min - $pekWorkSetSiz" -BackgroundColor Red

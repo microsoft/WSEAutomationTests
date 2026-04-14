@@ -19,7 +19,10 @@ function FindCameraEffectsPage($uiEle){
     else
     {
         FindAndClick $uiEle Button "Connected enabled camera $Global:validatedCameraFriendlyName"
-    }  
+    }
+    Start-Sleep -s 1
+    [System.Windows.Forms.SendKeys]::SendWait('{END}') 
+    Start-Sleep -s 1   
 }
 
 <#
@@ -90,26 +93,31 @@ function FindVoiceFocusPage($uiEle){
            Write-Error " No Sound devices button found is Sound Setting page " -ErrorAction Stop     
         }
     }
-    $i=0
-    $allSoundDevices = @( "Internal Microphone" , "Microphone on SoundWire Device" , "Microphone Array" ,"Internal Microphone Array - Front","Surface Stereo Microphones")
-    $exists = CheckIfElementExists $uiEle Button $allSoundDevices[$i]
-    while($exists.length -eq 0 -and $i -lt 4)
-    {
-      $i++ 
-      $exists = CheckIfElementExists $uiEle Button $allSoundDevices[$i]
+
+    if ([string]::IsNullOrEmpty($Global:validatedSoundCaptureDeviceFriendlyName)) {
+        Write-Error " The sound capture device friendly name was null " -ErrorAction Stop
     }
+
+    $exists = CheckIfElementExists $uiEle Button $Global:validatedSoundCaptureDeviceFriendlyName
     if ($exists)
     {
-        FindAndClick $uiEle Button $allSoundDevices[$i]
+        FindAndClick $uiEle Button $Global:validatedSoundCaptureDeviceFriendlyName
     }
     else
     {
-       Write-Error " Microphone Array not found in Sound setting Page " -ErrorAction Stop     
+       Write-Error " $Global:validatedSoundCaptureDeviceFriendlyName not found in Sound setting Page " -ErrorAction Stop
     } 
     FindAndClick $uiEle ComboBox "Audio enhancements"
     Start-Sleep -m 500
-    FindAndClick $uiEle ComboBoxItem "Microsoft Windows Studio Voice Focus"
-  
+    Foreach($audioEnhancementOptions in "Microsoft Windows Studio Voice Focus" , "Windows Studio Effects Voice Clarity")
+    {
+       $exists = CheckIfElementExists $uiEle ComboBoxItem  $audioEnhancementOptions
+       if ($exists)
+       {
+           FindAndClick $uiEle ComboBoxItem $audioEnhancementOptions
+       }
+    
+    }
 }
 
 <#
@@ -163,13 +171,15 @@ DESCRIPTION:
     It handles different combinations of settings based on whether WSEV2 is supported.
 INPUT PARAMETERS:
     - AFVal [string] :- Toggle value for Automatic Framing.
+    - AFSVal [string] :- Toggle value for Standard Framing.
+    - AFCVal [string] :- Toggle value for Cinematic Framing.
     - PLVal [string] :- Toggle value for Portrait Light.
     - BBVal [string] :- Toggle value for Background Effects.
     - BSVal [string] :- Toggle value for Standard Blur.
     - BPVal [string] :- Toggle value for Portrait Blur.
     - ECVal [string] :- Toggle value for Eye Contact.
     - ECSVal [string] :- Toggle value for Standard Eye Contact style.
-    - ECEVal [string] :- Toggle value for Teleprompter Eye Contact style.
+    - ECTVal [string] :- Toggle value for Teleprompter Eye Contact style.
     - VFVal [string] :- Toggle value for Voice Focus.
     - CF [string] :- Toggle value for Creative Filters.
     - CFI [string] :- Toggle value for Illustrated Creative Filter.
@@ -178,7 +188,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void (Performs UI interactions to toggle camera and audio effects without returning a value.)
 #>
-Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECEVal,$VFVal,$CF,$CFI,$CFA,$CFW)
+Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECTVal,$VFVal,$CF,$CFI,$CFA,$CFW)
 {    
      Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function" -IsOutput
      
@@ -218,9 +228,20 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,
         if($ECVal -eq "On")
         { 
            FindAndSetValue $ui RadioButton "Standard" $ECSVal
-           FindAndSetValue $ui RadioButton "Teleprompter" $ECEVal
+           FindAndSetValue $ui RadioButton "Teleprompter" $ECTVal
         }
+        $wse8480PolicyState = Check8480Policy
+        if ($wse8480PolicyState -eq $true)
+		{
+           if($AFVal -eq "On")
+           {   
+              FindAndSetValue $ui RadioButton "Standard framing" $AFSVal
+              FindAndSetValue $ui RadioButton "Cinematic framing" $AFCVal
+		   
+           }
+		}
      }
+     
      
      #open microphone effects page and turn all effects off
      VoiceFocusToggleSwitch $VFVal
@@ -246,28 +267,28 @@ function SetPowerProfileInSettingsPage($ui,$powerProfile)
 
     # Launch Settings App
     FindAndClick $ui Microsoft.UI.Xaml.Controls.NavigationViewItem System
-	Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 2
     
-	# Navigate to 'Power & battery'
+    # Navigate to 'Power & battery'
     FindAndClick $ui "ListViewItem" "Power & battery"
-	Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 2
 
     # Expand "Show more settings"
     FindAndClick $ui "ExpanderToggleButton" "Show more settings"
-	Start-Sleep -Seconds 2
-	
+    Start-Sleep -Seconds 2
+    
     # Click "Plugged in" dropdown
-    Write-Host "powerProfile is: $powerProfile"
+    Write-Log -Message "Setting power profile to: $powerProfile" -IsOutput
     FindAndClick $ui "ComboBox" "Plugged in"
-	Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 2
     FindAndClick $ui "ComboBoxItem" -proptyNme $powerProfile
-	Start-Sleep -Seconds 2
-    Write-Host "Plugged in mode set to $powerProfile"
+    Start-Sleep -Seconds 2
+    Write-Log -Message "Plugged in mode set to $powerProfile" -IsOutput
     FindAndClick $ui "ComboBox" "On battery"
-	Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 2
     FindAndClick $ui "ComboBoxItem" -proptyNme $powerProfile
-	Start-Sleep -Seconds 2
-    Write-Host "On battery mode set to $powerProfile"
+    Start-Sleep -Seconds 2
+    Write-Log -Message "On battery mode set to $powerProfile" -IsOutput
     FindAndClick $ui "ComboBoxLightDismiss" -proptyNme "Close"
-    Write-Host "powerProfile set to $powerProfile"
+    Write-Log -Message "Power profile set to $powerProfile" -IsOutput
 }

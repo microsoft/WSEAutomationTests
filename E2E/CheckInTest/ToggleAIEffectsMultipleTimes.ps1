@@ -42,8 +42,6 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
     $ErrorActionPreference='Stop'
     $scenarioName = "$devPowStat\ToggleAIEffectsMultipleTimes"
     $logFile = "$devPowStat-ToggleAIEffectsMultipleTimes.txt"
-    $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
-    $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)
     {   
@@ -97,7 +95,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
 
         # Change AI toggle in camera App UI (We will have change once the effects are available in camera App UI)
         ToggleAiEffectsInCameraApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                   -ECVal "On" -ECSVal "False" -ECEVal "True" `
+                                   -ECVal "On" -ECSVal "True" -ECTVal "False" `
                                    -CF "On" -CFI "False" -CFA "False" -CFW "True" 
 
         # Open settings app and obtain UI automation from it
@@ -127,7 +125,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
                      
         # Change AI toggle in camera App UI (We will have change once the effects are available in camera App UI)
         ToggleAiEffectsInCameraApp -AFVal "Off" -PLVal "Off" -BBVal "On" -BSVal "True" -BPVal "False" `
-                                     -ECVal "On" -ECSVal "True" -ECEVal "False" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" `
                                      -CF "On" -CFI "True" -CFA "False" -CFW "False" 
 
         # Open settings app and obtain UI automation from it
@@ -156,15 +154,15 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
                
         #Change AI toggle in camera App UI
         ToggleAiEffectsInCameraApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECEVal "True" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" `
                                      -CF "On" -CFI "False" -CFA "True" -CFW "False" `
         
         
         Start-Sleep -s 2
         #Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
+        ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
         Start-Sleep -s 2       
 
@@ -196,44 +194,11 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         # Starting to collect Traces
         Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioName
-        
-        # Open Task Manager
-        Write-Log -Message "Opening Task Manager" -IsOutput
-        $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
-        Start-Sleep -s 1
-        setTMUpdateSpeedLow -uiEle $uitaskmgr
-        # Call python modules for task manager Before starting the test case
-        Start-Process -FilePath "python" -ArgumentList @(
-            $pythonLibFolder,
-            "start_resource_monitoring",
-            $resourceUtilizationFile,
-            $scenarioName,
-            5,
-            "Before"
-        ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
 
-        # Now process is finished, so call GetResourceUtilizationStats
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
-        Write-Log -Message $utilizationStats -IsOutput >> $pathLogsFolder\ConsoleResults.txt
-        if ($null -eq $utilizationStats) {
-            Write-Error "Failed to get resource utilization stats."
-            return
-        }
         # Open camera App
-        $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $logFile $resourceUtilizationConsolidated "After"
+        $InitTimeCameraApp = CameraPreviewing -duration 5 -snarioName $scenarioName -logPath "$scenarioName\ResourceUtilization.txt"
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
-
-        # Close Task Manager and take Screenshot of CPU and NPU Usage
-        Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
-        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioName
-        
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "After"
-
-        if ($null -eq $utilizationStats) {
-            Write-Error "Failed to get resource utilization stats."
-            return
-        }
 
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput
@@ -256,13 +221,13 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
         }
         else
         { 
-           # ScenarioID 737312 is based on v1+v2 effects.   
+           # ScenarioID 2703376 is based on v1+v2 effects.   
            Write-Log -Message "Entering Verifylogs function" -IsOutput
-           Verifylogs $scenarioName "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
+           Verifylogs $scenarioName "2703376" $startTime #(Need to change the scenario ID, not sure if this is correct)
 
            # Calculate Time from camera app started until PC trace first frame processed
            Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
-           CheckInitTimeCameraApp $scenarioName "2834432" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
+           CheckInitTimeCameraApp $scenarioName "2703376" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
         }
         #collect data for Reporting
         Reporting $Results "$pathLogsFolder\Report.txt"

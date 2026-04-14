@@ -34,8 +34,8 @@ function SettingApp-Hibernation($devPowStat, $token, $SPId)
                           
         # Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
+        ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
                 
         # Checks if frame server is stopped

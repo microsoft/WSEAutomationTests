@@ -39,13 +39,16 @@ function VoiceFocus-Playlist($devPowStat, $token, $SPId)
         
         # Toggling Voice Focus effect on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle Voice Focus effect on" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
-                                     -ECVal "Off" -ECSVal "False" -ECEVal "False" -VFVal "On" `
+        ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "False" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
+                                     -ECVal "Off" -ECSVal "False" -ECTVal "False" -VFVal "On" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
                        
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput
         CheckServiceState 'Windows Camera Frame Server'    
+
+        # Capture Resource Utilization before test starts
+        Monitor-Resources -scenario $scenarioName -executionState "Before" -logPath "$scenarioName\ResourceUtilization.txt" -Once "Once"
                 
         # Start collecting Traces before opening setting page
         Write-Log -Message "Entering StartTrace function" -IsOutput
@@ -59,6 +62,9 @@ function VoiceFocus-Playlist($devPowStat, $token, $SPId)
         # Open Audio system setting page
         Write-Log -Message "Entering FindVoiceFocusPage function" -IsOutput
         FindVoiceFocusPage $ui
+
+        # Capture Resource Utilization while test is running. Each duration runs for around 10 secs
+        Monitor-Resources -scenario $scenarioName -duration 2 -executionState "During" -logPath "$scenarioName\ResourceUtilization.txt"  
         Start-Sleep -s 5
         
         # Close system setting page and stop collecting Trace

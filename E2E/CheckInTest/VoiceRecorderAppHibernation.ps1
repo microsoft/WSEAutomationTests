@@ -41,8 +41,8 @@ function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId)
         
         # Toggling Voice Focus effect on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle Voice Focus effect on" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
-                                     -ECVal "Off" -ECSVal "False" -ECEVal "False" -VFVal "On" `
+        ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "False" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
+                                     -ECVal "Off" -ECSVal "False" -ECTVAL "False" -VFVal "On" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
                 
         # Checks if frame server is stopped
@@ -59,7 +59,7 @@ function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId)
 
            # Start audio recording and close the sound recorder app once finished recording 
            Write-Log -Message "Entering AudioRecording function" -IsOutput
-           $InitTimeVoiceRecorderApp = AudioRecording "10" 
+           $InitTimeVoiceRecorderApp = AudioRecording -duration 1 -snarioName $scenarioName -logPath "$scenarioName\ResourceUtilization.txt"
            $voiceRecorderAppStartTime = [System.DateTime]$($InitTimeVoiceRecorderApp[-2])
            $audioRecordingStartTime = $InitTimeVoiceRecorderApp[-1]
            Write-Log -Message "Voice Recorder App start time in UTC: ${voiceRecorderAppStartTime}" -IsOutput

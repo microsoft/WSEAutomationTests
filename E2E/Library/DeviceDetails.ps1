@@ -54,9 +54,10 @@ NOTES:
 #>
 function Generate-Combinations {
     $wsev2PolicyState = CheckWSEV2Policy
+    $WSE8480Policy = Check8480Policy
 
     # Use conditional assignments based on the policy state
-    $AFOptions   = @("", "AF")
+    $AFOptions   = if ($WSE8480Policy) { @("", "AFS", "AFC") } else { @("", "AFS") }
     $PLOptions   = if ($wsev2PolicyState) { @("", "PL") } else { @("") }
     $ECOptions   = if ($wsev2PolicyState) { @("", "ECT", "ECS") } else { @("", "ECS") }
     $BlurOptions = @("", "BBP", "BBS")
@@ -318,9 +319,9 @@ function GetPowerProfiles
     FindAndClick $ui "ComboBox" "Plugged in"
     Start-Sleep -Seconds 1
     $pluggedInProfiles = FindAllElementsNameWithClassName $ui ComboBoxItem
-	Start-Sleep -Seconds 2
-    Write-Host "pluggedInProfiles is $pluggedInProfiles"
+    Start-Sleep -Seconds 2
+    Write-Log -Message "Available power profiles: $pluggedInProfiles" -IsOutput
     Stop-Process -Name 'systemsettings'
-	
+    
     return $pluggedInProfiles
 }

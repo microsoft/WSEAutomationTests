@@ -6,12 +6,12 @@
    [string] $targetPerceptionCoreVer = $null
 )
 .".\CheckInTest\Helper-library.ps1"
-ManagePythonSetup -Action install
+
 InitializeTest 'Checkin-Test' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
 
 foreach($devPowStat in "Pluggedin", "Unplugged")
 {  
-   foreach($testScenario in 'AF', 'BBS', 'BBP', 'ECS', 'ECT', 'PL', 'CF-I', 'CF-A', 'CF-W')
+   foreach($testScenario in 'AFS', 'AFC','BBS', 'BBP', 'ECS', 'ECT', 'PL', 'CF-I', 'CF-A', 'CF-W')
    {
       SettingAppTest-Playlist -devPowStat $devPowStat -testScenario $testScenario -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-SettingAppTest.txt"
    }
@@ -32,5 +32,3 @@ ConvertTxtFileToExcel "$pathLogsFolder\Report.txt"
 [console]::beep(500,300)
 
 Start-Sleep -s 3
-
-ManagePythonSetup -Action uninstall

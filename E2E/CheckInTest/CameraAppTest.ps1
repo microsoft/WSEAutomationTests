@@ -28,12 +28,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
        $VFdetails= "VF-$VF"
 	   $vdoResDetails= RetrieveValue($vdoRes)
 	   $ptoResDetails= RetrieveValue($ptoRes)       
-       $powerProfile = $powerProfile -replace ' ', ''
-        # Updated scenario folder path to include power profile
-       $scenarioLogFolder = "CameraAppTest\$powerProfile\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
-       $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
-       $resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
-        # Enhanced logging with power profile information
+       $powerProfileFolder = $powerProfile -replace ' ', ''
+       $scenarioLogFolder = "CameraAppTest\$powerProfileFolder\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Power Profile: $powerProfile" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
@@ -103,37 +99,44 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
        Start-Sleep -m 500 
        
        #Setting AI effects for Tests in camera setting page 
-       $scenarioID = $toggleEachAiEffect[13]
+       $scenarioID = $toggleEachAiEffect[15]
                     
-       #Setting AI effects for Tests in camera setting page 
-       Write-Log -Message "Setting up the camera Ai effects" -IsOutput
+       Write-Log -Message "Setting up the camera Ai effects" -IsOutput      
        
        FindAndSetValue $ui ToggleSwitch "Automatic framing" $toggleEachAiEffect[0]
-       FindAndSetValue $ui ToggleSwitch "Eye contact" $toggleEachAiEffect[5]
+       FindAndSetValue $ui ToggleSwitch "Eye contact" $toggleEachAiEffect[7]
        
-       FindAndSetValue $ui ToggleSwitch "Background effects" $toggleEachAiEffect[2]
-       if($toggleEachAiEffect[2] -eq "On")
-       {
-           FindAndSetValue $ui RadioButton "Standard blur" $toggleEachAiEffect[3]
-           FindAndSetValue $ui RadioButton "Portrait blur" $toggleEachAiEffect[4]
+       FindAndSetValue $ui ToggleSwitch "Background effects" $toggleEachAiEffect[4]
+       if($toggleEachAiEffect[4] -eq "On")
+       { 
+          FindAndSetValue $ui RadioButton "Portrait blur" $toggleEachAiEffect[6]
+          FindAndSetValue $ui RadioButton "Standard blur" $toggleEachAiEffect[5]
        }
-       #check for v2 policy
        $wsev2PolicyState = CheckWSEV2Policy
        if($wsev2PolicyState -eq $true)	  
-       {
-          FindAndSetValue $ui ToggleSwitch "Portrait light" $toggleEachAiEffect[1]
-          if($toggleEachAiEffect[5] -eq "On")
+       {    
+          FindAndSetValue $ui ToggleSwitch "Portrait light" $toggleEachAiEffect[3]
+          if($toggleEachAiEffect[7] -eq "On")
           {
-              FindAndSetValue $ui RadioButton "Standard" $toggleEachAiEffect[6]
-              FindAndSetValue $ui RadioButton "Teleprompter" $toggleEachAiEffect[7]
+             FindAndSetValue $ui RadioButton "Standard" $toggleEachAiEffect[8]
+             FindAndSetValue $ui RadioButton "Teleprompter" $toggleEachAiEffect[9]
           }
-          FindAndSetValue $ui ToggleSwitch "Creative filters" $toggleEachAiEffect[8]
-          if($toggleEachAiEffect[8] -eq "On")
+          FindAndSetValue $ui ToggleSwitch "Creative filters" $toggleEachAiEffect[10]
+          if($toggleEachAiEffect[10] -eq "On")
           {
-             FindAndSetValue $ui RadioButton "Illustrated" $toggleEachAiEffect[9]
-             FindAndSetValue $ui RadioButton "Animated" $toggleEachAiEffect[10]
-             FindAndSetValue $ui RadioButton "Watercolor" $toggleEachAiEffect[11]
+             FindAndSetValue $ui RadioButton "Illustrated" $toggleEachAiEffect[11]
+             FindAndSetValue $ui RadioButton "Animated" $toggleEachAiEffect[12]
+             FindAndSetValue $ui RadioButton "Watercolor" $toggleEachAiEffect[13]
           }
+          $wse8480PolicyState = Check8480Policy
+          if ($wse8480PolicyState -eq $true)
+		    {
+            if($toggleEachAiEffect[0] -eq "On")
+            {
+                FindAndSetValue $ui RadioButton "Standard framing" $toggleEachAiEffect[1]
+                FindAndSetValue $ui RadioButton "Cinematic framing" $toggleEachAiEffect[2]
+            }
+          }  
        }
        CloseApp 'systemsettings'
        
@@ -143,21 +146,6 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
                              
        #Strating to collect Traces
        StartTrace $scenarioLogFolder
-       
-       # Open Task Manager
-       Write-Log -Message "Opening Task Manager" -IsOutput
-       $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
-       Start-Sleep -s 1
-       setTMUpdateSpeedLow -uiEle $uitaskmgr
-       # Call python modules for task manager Before starting the test case
-	   Start-Process -FilePath "python" -ArgumentList @(
-		   $pythonLibFolder,
-		   "start_resource_monitoring",
-		   $resourceUtilizationFile,
-		   $scenarioLogFolder,
-		   5,
-		   "Before"
-	   ) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
 
 	   # Now process is finished, so call GetResourceUtilizationStats
 	   $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
@@ -167,32 +155,23 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
 		   return
        }
        # Start Test Scenario
-        Write-Log -Message "Start test for $camsnario with power profile: $powerProfile" -IsOutput
+       Write-Log -Message "Start test for $camsnario with power profile: $powerProfile" -IsOutput
        if($camsnario -eq "Recording")
        {
            #Start video recording and close the camera app once finished recording 
-           $InitTimeCameraApp = StartVideoRecording "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated "After" #video recording duration can be adjusted depending on the number os scenarios
+           #Start video recording, start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs
+           $InitTimeCameraApp = StartVideoRecording -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
        else
        {   
            #Start Previewing and close the camera app once finished. 
-           $InitTimeCameraApp = CameraPreviewing "20" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated "After" #video Previewing duration can be adjusted depending on the number os scenarios
+           #Start Previewing , start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs 
+           $InitTimeCameraApp = CameraPreviewing -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
-
-        # Close Task Manager and take Screenshot of CPU and NPU Usage
-        Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
-        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
-        
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "After"
-
-        if ($null -eq $utilizationStats) {
-            Write-Error "Failed to get resource utilization stats."
-            return
-        }
        #Checks if frame server is stopped
        Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server' 
@@ -230,8 +209,6 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
     catch
     {
         Take-Screenshot "Error-Exception" $scenarioLogFolder
-        Write-Log -Message "Error occured and enter catch statement" -IsOutput
-	Take-Screenshot "Error-$powerProfile" $scenarioLogFolder
         Write-Log -Message "Error occurred during test with power profile: $powerProfile" -IsOutput
         CloseApp 'systemsettings'
         CloseApp 'WindowsCamera'
@@ -239,8 +216,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
         StopTrace $scenarioLogFolder
         CheckServiceState 'Windows Camera Frame Server'
         Write-Output $_
-        TestOutputMessage $scenarioLogFolder "Exception" $startTime $_.Exception.Message
-        TestOutputMessage $scenarioLogFolder "Exception" $startTime "Error in power profile '$powerProfile': $_"
+        TestOutputMessage $scenarioLogFolder "Exception" $startTime "Power profile '$powerProfile': $($_.Exception.Message)"
         Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
         Reporting $Results "$pathLogsFolder\Report.txt"
         GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioLogFolder

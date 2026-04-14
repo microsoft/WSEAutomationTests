@@ -18,19 +18,16 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
     $ErrorActionPreference='Stop'
     $scenarioName = "$devPowStat\Camerae2eTest"
     $logFile = "$devPowStat-Camerae2eTest.txt"
-    #$pythonLibFolder = ".\Library\python\npu_cpu_memory_utilization.py"
         
     try
 	{  
         #Create Scenario folder
         $scenarioLogFolder = $scenarioName
         CreateScenarioLogsFolder $scenarioLogFolder
-        $resourceUtilizationFile = "$pathLogsFolder\$devPowStat-resource_utilization.txt"
-		$resourceUtilizationConsolidated = "$pathLogsFolder\$devPowStat-consolidate_stats.txt"
         #Toggling All effects on
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "On" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
-                                     -ECVal "On" -ECSVal "False" -ECEVal "True" -VFVal "On" `
+        ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
+                                     -ECVal "On" -ECSVal "True" -ECTVal "False" -VFVal "On" `
                                      -CF "On" -CFI "False" -CFA "False" -CFW "True"
                  
         #Open Camera App and set default setting to "Use system settings" 
@@ -61,49 +58,12 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         # Starting to collect Traces
         Write-Log -Message "Entering StartTrace function" -IsOutput
         StartTrace $scenarioLogFolder
-
-
-        # Open Task Manager
-        Write-Log -Message "Opening Task Manager" -IsOutput
-        $uitaskmgr = OpenApp 'Taskmgr' 'Task Manager'
-        Start-Sleep -s 1
-        setTMUpdateSpeedLow -uiEle $uitaskmgr
         
-        # Call python modules for task manager Before starting the test case
-        Start-Process -FilePath "python" -ArgumentList @(
-			$pythonLibFolder,
-			"start_resource_monitoring",
-			$resourceUtilizationFile,
-			$scenarioLogFolder,
-			5,
-			"Before"
-		) -NoNewWindow -RedirectStandardOutput $resourceUtilizationConsolidated -Wait
-        
-        # Get the resource utilization stats before starting the video recording
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
-
-        if ($null -eq $utilizationStats) {
-            Write-Error "Failed to get resource utilization stats."
-            return
-        }
-        
-        # Start video recording and close the camera app once finished recording 
+        # Start Recording, start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10 secs
         Write-Log -Message "Entering StartVideoRecording function" -IsOutput
-        $InitTimeCameraApp = StartVideoRecording "60" $devPowStat $scenarioLogFolder $resourceUtilizationConsolidated "After"
+        $InitTimeCameraApp = StartVideoRecording -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\Camerae2eTestResourceUtilization.txt"
         $cameraAppStartTime = $InitTimeCameraApp[-1]
         Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
-
-        # Close Task Manager and take Screenshot of CPU and NPU Usage
-        Write-Log -Message "Entering stopTaskManager function to Close Task Manager and capture CPU and NPU usage Screenshot" -IsOutput
-        stopTaskManager -uitaskmgr $uitaskmgr -Scenario $scenarioLogFolder
-        
-        # Get the resource utilization stats after starting the video recording
-        $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "After"
-
-        if ($null -eq $utilizationStats) {
-            Write-Error "Failed to get resource utilization stats."
-            return
-        }
 
         # Checks if frame server is stopped
         Write-Log -Message "Entering CheckServiceState function" -IsOutput
@@ -129,11 +89,11 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         {
            # ScenarioID is based on v1+v2 effects.
            Write-Log -Message "Entering Verifylogs function" -IsOutput
-           Verifylogs $scenarioLogFolder "2834432" $startTime #(Need to change the scenario ID, not sure if this is correct)
+           Verifylogs $scenarioLogFolder "2703376" $startTime #(Need to change the scenario ID, not sure if this is correct)
         
            # Calculate Time from camera app started until PC trace first frame processed
            Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
-           CheckInitTimeCameraApp $scenarioLogFolder "2834432" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
+           CheckInitTimeCameraApp $scenarioLogFolder "2703376" $cameraAppStartTime #(Need to change the scenario ID, not sure if this is correct)
         }
         
         # Get the properties of latest video recording
@@ -146,8 +106,8 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
    
         # Restore the default state for AI effects
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to Restore the default state for AI effects" -IsOutput
-        ToggleAIEffectsInSettingsApp -AFVal "Off" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
-                                     -ECVal "Off" -ECSVal "False" -ECEVal "False" -VFVal "Off" `
+        ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "False" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
+                                     -ECVal "Off" -ECSVal "False" -ECTVal "False" -VFVal "Off" `
                                      -CF "Off" -CFI "False" -CFA "False" -CFW "False"
              
     }
