@@ -1,10 +1,11 @@
-﻿param ( 
+param ( 
    [string] $token = $null,
    [string] $SPId = $null,
    [string] $targetMepCameraVer = $null,
    [string] $targetMepAudioVer = $null,
    [string] $targetPerceptionCoreVer = $null,
-   [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null
+   [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null,
+   [string] $powerProfile = $null
 )
 .".\CheckInTest\Helper-library.ps1"
 
@@ -21,11 +22,25 @@ $filteredPhotoResolutions = Filter-Resolutions -requestedResolutions @() -availa
 
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
-foreach ($powerProfile in $deviceData["PowerProfiles"])
+
+# Determine power profiles to test: use user-specified profile or all available
+$powerProfilesToTest = if ($powerProfile) {
+   if ($deviceData["PowerProfiles"] -contains $powerProfile) {
+      @($powerProfile)
+   } else {
+      Write-Warning "Specified power profile '$powerProfile' is not available on this device. Available: $($deviceData['PowerProfiles'] -join ', ')"
+      Write-Log -Message "Power profile '$powerProfile' not available. Using all profiles." | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+      $deviceData["PowerProfiles"]
+   }
+} else {
+   $deviceData["PowerProfiles"]
+}
+
+foreach ($currentPowerProfile in $powerProfilesToTest)
 {
-   Write-Log -Message "Setting up Power Profile to $powerProfile" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+   Write-Log -Message "Setting up Power Profile to $currentPowerProfile" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
    $uiEle = OpenApp 'ms-settings:' 'Settings'
-   SetPowerProfileInSettingsPage -ui $uiEle -powerProfile $powerProfile
+   SetPowerProfileInSettingsPage -ui $uiEle -powerProfile $currentPowerProfile
    Stop-Process -Name 'systemsettings'
 
    # Loop through Camera mode
@@ -99,7 +114,7 @@ foreach ($powerProfile in $deviceData["PowerProfiles"])
                         $pluggedInLast++
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
-                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $currentPowerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                         $batteryPercentage = Get-BatteryPercentage
                      }
                   } else {
@@ -112,7 +127,7 @@ foreach ($powerProfile in $deviceData["PowerProfiles"])
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
                      }
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $currentPowerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   }
 
                   if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
@@ -151,7 +166,7 @@ foreach ($powerProfile in $deviceData["PowerProfiles"])
                      $unpluggedLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$unpluggedLast]
                      $devPowStat = "Unplugged"
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $currentPowerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "Completed all Unplugged AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
@@ -171,7 +186,7 @@ foreach ($powerProfile in $deviceData["PowerProfiles"])
                      $pluggedInLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                      $devPowStat = "PluggedIn"
-                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -powerProfile $currentPowerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "Completed all PluggedIn AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
