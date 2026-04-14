@@ -319,7 +319,7 @@ function GetPowerProfiles
     Start-Sleep -Seconds 3
     $pluggedInProfiles = FindAllElementsNameWithClassName $ui ComboBoxItem
     Start-Sleep -Seconds 2
-    Write-Log -Message "Available power profiles: $pluggedInProfiles" -IsOutput
+    Write-Log -Message "Available power profiles: $pluggedInProfiles" -IsOutput | Out-Null
     Stop-Process -Name 'systemsettings'
     
     return $pluggedInProfiles
