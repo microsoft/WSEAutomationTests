@@ -312,11 +312,11 @@ function GetPowerProfiles
 
     # Navigate directly to Power page via URI
     $ui = OpenApp 'ms-settings:powersleep' 'Settings'
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 3
     FindAndClick $ui "ExpanderToggleButton" "Show more settings"
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 3
     FindAndClick $ui "ComboBox" "Plugged in"
-    Start-Sleep -Seconds 1
+    Start-Sleep -Seconds 3
     $pluggedInProfiles = FindAllElementsNameWithClassName $ui ComboBoxItem
     Start-Sleep -Seconds 2
     Write-Log -Message "Available power profiles: $pluggedInProfiles" -IsOutput
