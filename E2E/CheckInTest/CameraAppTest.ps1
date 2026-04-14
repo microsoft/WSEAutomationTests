@@ -147,13 +147,6 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
        #Strating to collect Traces
        StartTrace $scenarioLogFolder
 
-	   # Now process is finished, so call GetResourceUtilizationStats
-	   $utilizationStats = GetResourceUtilizationStats $resourceUtilizationConsolidated "Before"
-	   Write-Log -Message $utilizationStats -IsOutput >> $pathLogsFolder\ConsoleResults.txt
-	   if ($null -eq $utilizationStats) {
-		   Write-Error "Failed to get resource utilization stats."
-		   return
-       }
        # Start Test Scenario
        Write-Log -Message "Start test for $camsnario with power profile: $powerProfile" -IsOutput
        if($camsnario -eq "Recording")
