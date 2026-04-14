@@ -154,8 +154,7 @@ if($voiceFocusExists -eq $false)
 
 # Set up Power Profile
 Write-Log -Message "Setting up Power Profile to $powerProfile" | Out-File -FilePath "$pathLogsFolder\ScenarioTesting.txt" -Append
-$uiEle = OpenApp 'ms-settings:' 'Settings'
-SetPowerProfileInSettingsPage -ui $uiEle -powerProfile $powerProfile
+SetPowerProfileInSettingsPage -powerProfile $powerProfile
 Stop-Process -Name 'systemsettings'
 
 if($toggleAIEffects -eq "All")

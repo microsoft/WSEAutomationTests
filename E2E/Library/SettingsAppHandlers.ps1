@@ -265,21 +265,8 @@ function SetPowerProfileInSettingsPage($ui,$powerProfile)
 {
     Write-Log -Message "Opening Settings Page to set power profile..." -IsOutput
 
-    # Launch Settings App
-    FindAndClick $ui Microsoft.UI.Xaml.Controls.NavigationViewItem System
-    Start-Sleep -Seconds 2
-    
-    # Navigate to 'Power & battery' (or 'Power' on desktops without battery)
-    try {
-        FindAndClick $ui "ListViewItem" "Power & battery"
-    } catch {
-        try {
-            FindAndClick $ui "ListViewItem" "Power"
-        } catch {
-            Write-Log -Message "Power settings page not found. Cannot set power profile." -IsOutput
-            return $false
-        }
-    }
+    # Navigate directly to Power page via URI
+    $ui = OpenApp 'ms-settings:powersleep' 'Settings'
     Start-Sleep -Seconds 2
 
     # Expand "Show more settings"

@@ -39,8 +39,7 @@ $powerProfilesToTest = if ($powerProfile) {
 foreach ($currentPowerProfile in $powerProfilesToTest)
 {
    Write-Log -Message "Setting up Power Profile to $currentPowerProfile" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-   $uiEle = OpenApp 'ms-settings:' 'Settings'
-   SetPowerProfileInSettingsPage -ui $uiEle -powerProfile $currentPowerProfile
+   SetPowerProfileInSettingsPage -powerProfile $currentPowerProfile
    Stop-Process -Name 'systemsettings'
 
    # Loop through Camera mode
