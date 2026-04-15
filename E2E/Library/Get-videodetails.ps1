@@ -46,12 +46,21 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
        $videoExtension = $latestVideo.Extension
        $sanitizedScenarioName = $snarioName -replace '[\\/:*?"<>|]', '_'
        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-       $newVideoName = "WSE_test_${sanitizedScenarioName}_$timestamp$videoExtension"
-              
+       $baseVideoName = "WSE_test_${sanitizedScenarioName}_$timestamp"
+
+       # Build a non-null, unique destination path for the rename/move.
+       $newVideoPath = Join-Path -Path $latestVideo.DirectoryName -ChildPath ($baseVideoName + $videoExtension)
+       $suffix = 1
+       while (Test-Path -LiteralPath $newVideoPath)
+       {
+           $newVideoPath = Join-Path -Path $latestVideo.DirectoryName -ChildPath ("{0}_{1}{2}" -f $baseVideoName, $suffix, $videoExtension)
+           $suffix++
+       }
+
        try
        {
-           # Rename-Item cannot overwrite an existing file; move to a unique destination avoids collisions.
-           Move-Item -LiteralPath $videoPath -Destination $newVideoPath -Force -ErrorAction Stop
+           # Move-Item cannot reliably overwrite an existing file; choose a unique destination instead.
+           Move-Item -LiteralPath $videoPath -Destination $newVideoPath -ErrorAction Stop
            $videoToAnalyzePath = $newVideoPath
        }
        catch
