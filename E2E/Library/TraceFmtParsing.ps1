@@ -210,6 +210,20 @@ function Set-InitTimePCOnlyFromTraceFmt
         [string]$SnarioId
     )
 
+    $resultPropertyName = if ($SnarioId -eq '512') {
+        'timetofirstframeForAudio(In secs)'
+    } else {
+        'timetofirstframe(In secs)'
+    }
+
+    $existingInitTime = $null
+    try { $existingInitTime = $Results.$resultPropertyName } catch { $existingInitTime = $null }
+    if ($null -ne $existingInitTime -and ("$existingInitTime").Trim() -ne '')
+    {
+        Write-Log -Message "PC Time To First Frame: ${existingInitTime}secs" -IsOutput
+        return $true
+    }
+
     $times = Get-TraceFmtPCStartAndFirstFrameTime -SnarioName $SnarioName
     if ($times -eq $false)
     {
@@ -224,11 +238,7 @@ function Set-InitTimePCOnlyFromTraceFmt
     $InitTimePCOnly = [math]::Round((New-TimeSpan -Start $PCStartTime -End $PCFirstFrameTime).TotalSeconds, 4)
     Write-Log -Message "PC Time To First Frame: ${InitTimePCOnly}secs" -IsOutput
 
-    if ($SnarioId -eq '512') {
-        $Results.'timetofirstframeForAudio(In secs)' = $InitTimePCOnly
-    } else {
-        $Results.'timetofirstframe(In secs)' = $InitTimePCOnly
-    }
+    $Results.$resultPropertyName = $InitTimePCOnly
 
     return $true
 }

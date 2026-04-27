@@ -167,43 +167,61 @@ function VerifyAudioBlurLogs($snarioName, $snarioId)
     Write-Log -Message "Validating AsgTraceFmt.txt logs for Audio Blur" -IsOutput
     if (-not (Test-Path $pathAsgTraceTxt)) { return }
 
-    try { [void](PopulateResultsFromTraceFmt $snarioName ([int64]$snarioId)) } catch { return }
+    $mainResults = $Global:Results
+    $audioResults = $mainResults | Select-Object *
+    $audioResults.'timetofirstframeForAudio(In secs)' = $null
+    $audioResults.FramesAbove33msForAudioBlur = $null
 
-    $extractedScenario = $null
-    try { $extractedScenario = [int64]$Results.PerceptionScenarioId } catch { $extractedScenario = $null }
+    try {
+        $Global:Results = $audioResults
+        Set-Variable -Name Results -Scope Global -Value $Global:Results
 
-    if ($extractedScenario -ne [int64]$snarioId)
-    {
-        Write-Log -Message "   [ScenarioID:$snarioId] was not found in extracted Results (PerceptionScenario=$extractedScenario)." -IsHost -ForegroundColor Red
+        [void](PopulateResultsFromTraceFmt $snarioName ([int64]$snarioId))
 
-        if ($Results.Status -eq "Fail") {
-            Write-Output "[ScenarioID:$snarioId] was not found." >> "$pathLogsFolder\ConsoleResults.txt"
-            $Results.ReasonForNotPass = "[ScenarioID:$snarioId] was not found."
+        $extractedScenario = $null
+        try { $extractedScenario = [int64]$Results.PerceptionScenarioId } catch { $extractedScenario = $null }
+
+        if ($extractedScenario -ne [int64]$snarioId)
+        {
+            Write-Log -Message "   [ScenarioID:$snarioId] was not found in extracted Results (PerceptionScenario=$extractedScenario)." -IsHost -ForegroundColor Red
+
+            if ($mainResults.Status -eq "Fail") {
+                Write-Output "[ScenarioID:$snarioId] was not found." >> "$pathLogsFolder\ConsoleResults.txt"
+                $mainResults.ReasonForNotPass = "[ScenarioID:$snarioId] was not found."
+            }
+            elseif ($mainResults.Status -eq "Pass") {
+                Write-Output "[ScenarioID:$snarioId] was not found. Test is marked as Pass as Camera effects ScenarioID was found." >> "$pathLogsFolder\ConsoleResults.txt"
+            }
+            else {
+                Write-Output "[ScenarioID:$snarioId] was not found (Status: $($mainResults.Status))." >> "$pathLogsFolder\ConsoleResults.txt"
+            }
+            return
         }
-        elseif ($Results.Status -eq "Pass") {
-            Write-Output "[ScenarioID:$snarioId] was not found. Test is marked as Pass as Camera effects ScenarioID was found." >> "$pathLogsFolder\ConsoleResults.txt"
-        }
-        else {
-            Write-Output "[ScenarioID:$snarioId] was not found (Status: $($Results.Status))." >> "$pathLogsFolder\ConsoleResults.txt"
-        }
+
+        Write-Log -Message "Audio blur scenarioID - $snarioId found." -IsOutput
+
+        CheckInitTimePCOnly $snarioName $snarioId
+
+        $metrics = Get-PerceptionFrameProcessingMetricsFromResults -ResultsObject $Results
+
+        $n = [int64]$metrics.FramesAbove33ms
+        $min = [double]$metrics.MinMs
+        $avg = [double]$metrics.AvgMs
+        $max = [double]$metrics.MaxMs
+
+        Write-Log -Message "NumberOfFramesAbove33msforAudioBlur: $n, Min:${min}ms, Avg:${avg}ms, Max:${max}ms" -IsOutput
+        $mainResults.'timetofirstframeForAudio(In secs)' = $Results.'timetofirstframeForAudio(In secs)'
+        $mainResults.FramesAbove33msForAudioBlur = $n
+
+        Write-PerceptionFrameProcessingWarningsFromMetrics -Metrics $metrics -TracePath $pathAsgTraceTxt -ConsoleResultsPath "$pathLogsFolder\ConsoleResults.txt" -HostCountLabel "NumberOfFramesAbove33msForAudioBlur" -ConsoleCountLabel "NumberOfFramesAbove33msforAudioBlur" -IncludeTracePathMessage:$false
+    }
+    catch {
         return
     }
-
-    Write-Log -Message "Audio blur scenarioID - $snarioId found." -IsOutput
-
-    CheckInitTimePCOnly $snarioName $snarioId
-
-    $metrics = Get-PerceptionFrameProcessingMetricsFromResults -ResultsObject $Results
-
-    $n = [int64]$metrics.FramesAbove33ms
-    $min = [double]$metrics.MinMs
-    $avg = [double]$metrics.AvgMs
-    $max = [double]$metrics.MaxMs
-
-    Write-Log -Message "NumberOfFramesAbove33msforAudioBlur: $n, Min:${min}ms, Avg:${avg}ms, Max:${max}ms" -IsOutput
-    $Results.FramesAbove33msForAudioBlur = $n
-
-    Write-PerceptionFrameProcessingWarningsFromMetrics -Metrics $metrics -TracePath $pathAsgTraceTxt -ConsoleResultsPath "$pathLogsFolder\ConsoleResults.txt" -HostCountLabel "NumberOfFramesAbove33msForAudioBlur" -ConsoleCountLabel "NumberOfFramesAbove33msforAudioBlur" -IncludeTracePathMessage:$false
+    finally {
+        $Global:Results = $mainResults
+        Set-Variable -Name Results -Scope Global -Value $Global:Results
+    }
 }
 
 <#

@@ -234,6 +234,17 @@ if ($j.PSObject.Properties.Name -contains 'MinimumProcessingTimePerFrameInNanose
         [math]::Round([double]$j.MinimumProcessingTimePerFrameInNanoseconds / 1e6, 2)
 }
 
+if ($j.PSObject.Properties.Name -contains 'TimeToProcessedFrameInNanoseconds') {
+    $timeToFirstFrameSeconds = [math]::Round([double]$j.TimeToProcessedFrameInNanoseconds / 1e9, 4)
+
+    if ($base -eq 512) {
+        $Results.'timetofirstframeForAudio(In secs)' = $timeToFirstFrameSeconds
+    }
+    else {
+        $Results.'timetofirstframe(In secs)' = $timeToFirstFrameSeconds
+    }
+}
+
 if ($j.PSObject.Properties.Name -contains 'MemoryCounters' -and $j.MemoryCounters) {
 
     if ($j.MemoryCounters.PSObject.Properties.Name -contains 'PeakWorkingSetSize') {

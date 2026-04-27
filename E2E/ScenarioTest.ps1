@@ -108,7 +108,7 @@ param (
    #CF-I:Creative filter-Illustrated, CF-A:Creative filter-Animated, CF-W:Creative filter-Watercolor
    #You can combine multiple effects using the "+" symbol. Here are some examples: 'AF+CF-I+PL+BBS', 'AF+CF-I+PL+BBP', 'AF+CF-I+ECS+BBS', 'AF+CF-I+ECS+BBP', 'AF+CF-I+ECT+BBS'
 
-   [string[]] $toggleAIEffects = @("AFS+BBS+ECS","AFC+BBP+ECS") ,  # Default if not provided
+   [string[]] $toggleAIEffects = @('AFS', 'AFC','BBS', 'BBP', 'ECS', 'ECT', 'PL', 'CF-I', 'CF-A', 'CF-W') ,  # Default if not provided
    
    [ValidateSet("true" , "false")]
    [string] $initSetUpDone = "false",  # Default if not provided
@@ -133,7 +133,7 @@ param (
                 "0.2 megapixels, 16 by 9 aspect ratio,  640 by 360 resolution" , "1.2 megapixels, 4 by 3 aspect ratio,  1280 by 960 resolution" ,`
                 "0.08 megapixels, 4 by 3 aspect ratio,  320 by 240 resolution" , "0.02 megapixels, 4 by 3 aspect ratio,  160 by 120 resolution" ,`
                 "0.1 megapixels, 11 by 9 aspect ratio,  352 by 288 resolution" , "0.03 megapixels, 11 by 9 aspect ratio,  176 by 144 resolution")]
-   [string] $ptoRes = "2.1 megapixels, 16 by 9 aspect ratio,  1920 by 1080 resolution",  # Default if not provided
+   [string] $ptoRes ="8.3 megapixels, 16 by 9 aspect ratio,  3840 by 2160 resolution",  # Default if not provided
 
    [ValidateSet("Pluggedin", "Unplugged")]
    [string] $devPowStat = "Pluggedin"  # Default if not provided
