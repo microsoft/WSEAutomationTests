@@ -23,10 +23,6 @@
 .".\Library\LookUpTable.ps1"
 .".\Library\DeviceDetails.ps1"
 .".\Library\SetupandCompleteTestRun"
-.".\Library\Recall.ps1"
-.".\Library\CoCreator.ps1"	
-.".\Library\OpenBrowser"
-.".\Library\TeamsAppHandlers.ps1"
 
 .".\CheckInTest\CameraAppTest.ps1"
 .".\CheckInTest\SettingAppTest.ps1"
@@ -40,5 +36,5 @@
 .".\CheckInTest\RevisitCameraSettingPage.ps1"
 .".\CheckInTest\ToggleAIEffectsMultipleTimes.ps1"
 .".\CheckInTest\MemoryUsage.ps1"
-.".\CheckInTest\InteroperabilityTest"	
+
 
