@@ -240,6 +240,27 @@ RETURN TYPE:
 #>
 function CheckInitTimePCOnly($snarioName, $snarioId)
 {  
+   if (-not (Get-Command Set-InitTimePCOnlyFromTraceFmt -ErrorAction SilentlyContinue))
+   {
+      $traceFmtLib = Join-Path $PSScriptRoot 'TraceFmtParsing.ps1'
+      if (Test-Path -LiteralPath $traceFmtLib) { . $traceFmtLib }
+   }
+
+   if (Get-Command Set-InitTimePCOnlyFromTraceFmt -ErrorAction SilentlyContinue)
+   {
+      try
+      {
+         if (Set-InitTimePCOnlyFromTraceFmt -SnarioName $snarioName -SnarioId $snarioId)
+         {
+            return
+         }
+      }
+      catch
+      {
+         Write-Log -Message "   TraceFmt PC Time To First Frame lookup failed for Scenario $snarioId: $($_.Exception.Message)" -IsHost -ForegroundColor Yellow
+      }
+   }
+
    $PCStartandFirstFrameTime = PCStartandFirstFrameTime $snarioName $snarioId
    if($PCStartandFirstFrameTime -eq $false)
    {
