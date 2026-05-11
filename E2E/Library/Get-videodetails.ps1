@@ -43,22 +43,32 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
     else
     {
        $videoPath      = $latestVideo.FullName
+       $videoFileName  = $latestVideo.Name
        $videoExtension = $latestVideo.Extension
        $sanitizedScenarioName = $snarioName -replace '[\\/:*?"<>|]', '_'
        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-       $newVideoName = "WSE_test_${sanitizedScenarioName}_$timestamp$videoExtension"
+       $baseVideoName = "WSE_test_${sanitizedScenarioName}_$timestamp"
+       $newVideoName = "${baseVideoName}$videoExtension"
+       $newVideoPath = Join-Path $cameraRoll $newVideoName
+       $suffix = 1
+
+       while (Test-Path -LiteralPath $newVideoPath)
+       {
+           $newVideoName = "${baseVideoName}_$suffix$videoExtension"
+           $newVideoPath = Join-Path $cameraRoll $newVideoName
+           $suffix++
+       }
               
        try
        {
-           Rename-Item -Path $videoPath -NewName $newVideoName -Force -ErrorAction Stop
+           Move-Item -Path $videoPath -Destination $newVideoPath -ErrorAction Stop
        }
        catch
        {
            Write-Log -Message "Failed to rename video: $_" -IsHost -ForegroundColor Red
            return
        }
-       
-       $newVideoPath = Join-Path $cameraRoll $newVideoName
+
        Write-Log -Message "Video renamed from $videoFileName to: $newVideoName" -IsOutput
        Write-Log -Message "video location: $newVideoPath" -IsOutput
        
