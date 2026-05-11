@@ -25,7 +25,13 @@ $columnsToCheck = @(
 
 # Filter out rows with null or empty values in any of the key columns
 $data = $data | Where-Object {
-    $columnsToCheck -notcontains $null -and $columnsToCheck -notcontains ""
+    foreach ($col in $columnsToCheck) {
+        $value = $_.PSObject.Properties[$col].Value
+        if ([string]::IsNullOrWhiteSpace("$value")) {
+            return $false
+        }
+    }
+    return $true
 }
 
 # Split data into plugged in and unplugged scenarios
@@ -174,14 +180,25 @@ function Plot-LineGraph {
     $positions = @(5, 50)
 
 
-    # Add series function
+     function Convert-ToChartDoubleOrNaN {
+          param($value)
+          if ($null -eq $value) { return [double]::NaN }
+          $s = "$value"
+          if ([string]::IsNullOrWhiteSpace($s)) { return [double]::NaN }
+          $d = 0.0
+          if ([double]::TryParse($s, [ref]$d)) { return $d }
+          return [double]::NaN
+     }
+
+     # Add series function
     function Add-LineSeries{
        param($namePrefix, $xValues, $yValuesList, $seriesNames, $chartArea, $legendName, $colors)
        for ($i = 0; $i -lt $yValuesList.Count; $i++) {
           $series = New-Object System.Windows.Forms.DataVisualization.Charting.Series
           $series.Name = "$namePrefix-$($seriesNames[$i])"
           $series.ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
-          $series.Points.DataBindXY($xValues, $yValuesList[$i])
+             $y = @($yValuesList[$i] | ForEach-Object { Convert-ToChartDoubleOrNaN $_ })
+             $series.Points.DataBindXY($xValues, $y)
           $series.ChartArea = $chartArea
           $series.Legend = $legendName
           $series.Color = $colors[$i]
@@ -280,10 +297,15 @@ function Plot-BubbleGraph {
        $series.Color = $colors[0]
        $series.Legend = $legendName
 
-       for ($i = 0; $i -lt $xValues.Count; $i++) {
-          $index = $series.Points.AddXY($xValues[$i], $yValues[$i])
-          $series.Points[$index].MarkerSize = [math]::Round($yValues[$i] * 0.5)
-       }
+         for ($i = 0; $i -lt $xValues.Count; $i++) {
+             $raw = $yValues[$i]
+             $s = "$raw"
+             if ([string]::IsNullOrWhiteSpace($s)) { continue }
+             $d = 0.0
+             if (-not [double]::TryParse($s, [ref]$d)) { continue }
+             $index = $series.Points.AddXY($xValues[$i], $d)
+             $series.Points[$index].MarkerSize = [math]::Round($d * 0.5)
+         }
 
         $chart.Series.Add($series)
     }

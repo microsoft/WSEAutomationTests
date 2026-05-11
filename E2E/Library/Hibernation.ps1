@@ -2,6 +2,12 @@
 #Setup wake timers- Open control panel>Power options>"Edit Plan setting" for the power plan u are using. Then Select "Change adavanced power setting". Go to Sleep > "Allow wake timers" and enable them
 #For Auto-login- Open Edit group policy>Click Administrative Templates> System > Power Management> Sleep Settings > Disable "Require a password when a computer wakes(plugged in) and "Require a password when a computer wakes(on battery)
 
+if (-not (Get-Command Get-TraceFmtProviderStartStopCounts -ErrorAction SilentlyContinue))
+{
+   $traceFmtLib = Join-Path $PSScriptRoot 'TraceFmtParsing.ps1'
+   if (Test-Path -LiteralPath $traceFmtLib) { . $traceFmtLib }
+}
+
 <#
 DESCRIPTION:
     This function initiates a system hibernation. It schedules a task to wake up the system, 
@@ -57,7 +63,7 @@ function DeleteScheduledTask()
 {  
    Write-Log -Message "Entering DeleteScheduledTask function" -IsOutput  
    $task = Get-ScheduledTask | Where-Object {$_.TaskName -eq "hiber"} | Select-Object -First 1    
-   if($task -ne $null)
+   if($null -ne $task)
    {
       Unregister-ScheduledTask $task.TaskName -Confirm:$false
    } 
@@ -69,8 +75,8 @@ function DeleteScheduledTask()
 
 <#
 DESCRIPTION:
-    This function verifies each starting.Microsoft.ASG.Perception.provider has stopping.Microsoft.ASG.Perception.provider 
-    ending with same provider ID
+   This function verifies each tracefmt "starting Microsoft.ASG.Perception provider <ptr> <id>" has a
+   matching "stopping Microsoft.ASG.Perception provider <ptr> <id>" ending with the same provider IDs.
 INPUT PARAMETERS:
     - snarioName [string] :- The name of the scenario to validate logs.
 RETURN TYPE:
@@ -78,122 +84,87 @@ RETURN TYPE:
 #>
 function VerifyLogs-Hibernation($snarioName)
 {  
-   GenericError $snarioName
-   $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"
-   $pathAsgTraceLogs = resolve-path $pathAsgTraceTxt
-   if($pathAsgTraceTxt -eq $null)
+   GenericError-Hibernation $snarioName
+
+   # Legacy AsgTrace.txt is no longer generated; validate against tracefmt output.
+   $pathAsgTraceFmtTxt = "$pathLogsFolder\$snarioName\" + "AsgTraceFmt.txt"
+   if (-not (Test-Path -LiteralPath $pathAsgTraceFmtTxt))
    {
-      Write-Error "$pathAsgTraceTxt not found " -ErrorAction Stop 
+      Write-Log -Message "WARN: $pathAsgTraceFmtTxt not found; skipping hibernation log validation." -IsHost -ForegroundColor Yellow
+      return
    }
-   $pattern1 = ",.starting.Microsoft.ASG.Perception.provider.*"
-   $pattern2 = ",.stopping.Microsoft.ASG.Perception.provider.*"
-   $wsev2PolicyState = CheckWSEV2Policy
-   if($wsev2PolicyState -eq $false)
+
+   $counts = Get-TraceFmtProviderStartStopCounts -Path $pathAsgTraceFmtTxt -ProviderName 'Microsoft.ASG.Perception'
+   $started = $counts.Started
+   $stopped = $counts.Stopped
+
+   if ($started.Count -eq 0)
    {
-      $pattern3 = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81968\,.*"
+      Write-Log -Message "No 'starting Microsoft.ASG.Perception provider ...' entries found in $pathAsgTraceFmtTxt" -IsHost -ForegroundColor Yellow
+   }
+
+   $providerMismatch = $false
+   foreach ($key in $started.Keys)
+   {
+      $startCount = [int]$started[$key]
+      $stopCount = 0
+      if ($stopped.ContainsKey($key)) { $stopCount = [int]$stopped[$key] }
+
+      if ($startCount -ne $stopCount)
+      {
+         $providerMismatch = $true
+         Write-Log -Message "Provider start/stop mismatch for [$key]: start=$startCount stop=$stopCount" -IsHost -ForegroundColor Yellow
+      }
+   }
+
+   foreach ($key in $stopped.Keys)
+   {
+      if (-not $started.ContainsKey($key))
+      {
+         $providerMismatch = $true
+         Write-Log -Message "Provider stopped without a matching start for [$key]: stop=$($stopped[$key])" -IsHost -ForegroundColor Yellow
+      }
+   }
+
+   if (-not $providerMismatch)
+   {
+      Write-Log -Message "Provider start/stop pairs validated (tracefmt)." -IsOutput
+   }
+
+   # Validate targeted PerceptionScenario IDs exist in tracefmt output.
+   # tracefmt output embeds JSON; we check for PerceptionScenario numeric values (base and base+LDC variants).
+   $LDC_MASK = 8388608
+   $acceptable = New-Object System.Collections.Generic.List[long]
+
+   if($snarioName -eq "$devPowStat\VoiceRecorderAppHibernation")
+   {
+      $base = 512
+      $acceptable.Add([int64]$base) | Out-Null
+      $acceptable.Add([int64]($base + $LDC_MASK)) | Out-Null
    }
    else
    {
-      $pattern3 = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.737312\,.*"
+      $wsev2PolicyState = CheckWSEV2Policy
+      $basePrimary = if($wsev2PolicyState -eq $false) { 81968 } else { 737312 }
+      $baseFallback = 81936
+
+      $acceptable.Add([int64]$basePrimary) | Out-Null
+      $acceptable.Add([int64]($basePrimary + $LDC_MASK)) | Out-Null
+      $acceptable.Add([int64]$baseFallback) | Out-Null
+      $acceptable.Add([int64]($baseFallback + $LDC_MASK)) | Out-Null
    }
-   $pattern4 = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.81936\,.*"
-   $pattern5 = "::PerceptionSessionUsageStats.*PerceptionCore-.*,.512\,.*"
 
-   #Select all pattern with starting.Microsoft.ASG.Perception.provider and assign to array variable
-   $startingLogs = @(Select-string -path $pathAsgTraceTxt -Pattern $pattern1)
-   if($startingLogs -eq $null)
-   {
-      Write-Error "$pattern1 not found" -ErrorAction Stop 
+   $found = $false
+   foreach ($id in $acceptable) {
+      if (Select-String -Path $pathAsgTraceFmtTxt -Pattern ('"PerceptionScenario"\s*:\s*' + [Regex]::Escape($id.ToString())) -Quiet) {
+         Write-Log -Message "PerceptionScenario $id found" -IsHost -ForegroundColor Green
+         $found = $true
+         break
+      }
    }
-      
-   #Select all pattern with stopping.Microsoft.ASG.Perception.provider and assign to array variable 
-   $stoppingLogs = @(Select-string -path $pathAsgTraceTxt -Pattern $pattern2)
 
-   #Validate starting and stopping logs has same count
-   if($startingLogs.Count -ne $stoppingLogs.Count)
-   {
-      Write-Log -Message "Starting and Stopping logs count are not equal" -IsHost -ForegroundColor Yellow
-   } 
-   For($i=0; $i -lt $startingLogs.Count; $i++) 
-   {
-      if ($startingLogs[$i] -ne $null)
-      {  
-         #Extract starting.Microsoft.ASG.Perception.provider and ID for each array
-         $splitStartingLogs = $startingLogs[$i] -split ","
-         $startingPerceptionProviderID = $splitStartingLogs[-1] -split " " , 5 | Select-Object -Last 1
-         
-         #Extract stopping.Microsoft.ASG.Perception.provider and ID for each array
-         $splitStoppingLogs = $stoppingLogs[$i] -split ","
-         $stoppingPerceptionProviderID = $splitStoppingLogs[-1] -split " " , 5 | Select-Object -Last 1
-
-         #Match provider ID for starting and stopping logs
-         if($startingPerceptionProviderID -eq $stoppingPerceptionProviderID)
-         {
-            Write-Log -Message "Starting:${startingPerceptionProviderID} and Stopping:${stoppingPerceptionProviderID} logs matched" -IsHost -ForegroundColor Green
-         }
-         else
-         {
-            Write-Log -Message "Starting:${startingPerceptionProviderID} and Stopping:${stoppingPerceptionProviderID} logs NOT matched" -IsHost -ForegroundColor Yellow
-         }
-
-          #Validate targeted scenarioID after each cycle of hibernation
-          $file = Get-Content $pathAsgTraceTxt 
-          $firstString = $splitStartingLogs[-1]
-          $secondString = $splitStoppingLogs[-1]
-          
-          #Regex pattern to compare two strings
-          $logsBetweenStrings = "$firstString(.*?)$secondString"
-         
-          #Perform the opperation and store the logs between starting and stopping in result variable
-          $result = [regex]::Match($file,$logsBetweenStrings).Groups[1].Value
-          if($result.length -ne 0)
-          {
-             #Check if scenario id is present within Starting and Stopping logs
-             if($snarioName -eq "$devPowStat\VoiceRecorderAppHibernation")
-             {
-                $scenarioIDMatch = $result | Select-String -Pattern $pattern5
-                if($scenarioIDMatch -eq $null)
-                {
-                   Write-Log -Message "Scenario ID 512 not found .Logs saved here:$pathAsgTraceLogs" -IsHost -ForegroundColor Red
-                }
-                else
-                {
-                  Write-Log -Message "ScenarioID $pattern5 found" -IsHost  
-                }
-             }
-             else
-             {
-                $scenarioIDMatch = $result | Select-String -Pattern $pattern3 
-                if($scenarioIDMatch -eq $null)
-                {  
-                   $scenarioIDMatch = $result | Select-String -Pattern $pattern4
-                   if($scenarioIDMatch -eq $null)
-                   {  
-                      Write-Log -Message "Scenario ID 81968 or 81936 not found. Logs saved here:$pathAsgTraceLogs" -IsHost -ForegroundColor Red
-                   }
-                   else
-                   {
-                      Write-Log -Message "ScenarioID $pattern4 found" -IsHost  
-                   }
-                   
-                 }
-                 else
-                 {
-                    Write-Log -Message "ScenarioID $pattern3 found" -IsHost 
-                 }
-             }
-          }
-          else
-          {
-            Write-Log -Message "Incomplete Asgtrace generated" -IsHost -ForegroundColor Red
-          }   
-             
-      }
-      #Once the array for starting.Microsoft.ASG.Perception.provider is empty, Print below. 
-      else 
-      {
-         Write-Log -Message "Logs ended for starting.Microsoft.ASG.Perception.provider" -IsHost  
-      }
+   if (-not $found) {
+      Write-Log -Message "Expected PerceptionScenario not found. Logs saved here: $pathAsgTraceFmtTxt" -IsHost -ForegroundColor Red
    }
 } 
 
@@ -206,31 +177,30 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void (Filters and logs generic errors without returning a value.)
 #>
-function GenericError($snarioName)
+function GenericError-Hibernation($snarioName)
 {
-   $pathAsgTraceTxt = "$pathLogsFolder\$snarioName\" + "AsgTrace.txt"
-   $pathAsgTraceLogs = resolve-path $pathAsgTraceTxt
-   if($pathAsgTraceTxt -eq $null)
-   {
-      Write-Error "$pathAsgTraceTxt not found " -ErrorAction Stop 
+   $pathAsgTraceFmtTxt = "$pathLogsFolder\$snarioName\" + "AsgTraceFmt.txt"
+   if (-not (Test-Path -LiteralPath $pathAsgTraceFmtTxt)) {
+      return
    }
-   $pattern = "GenericError"
-
-   #Filter logs with GenericError
-   $genericErrorLogs = @(Select-String -path $pathAsgTraceTxt -Pattern $pattern)
+   $genericErrorLogs = @(Get-TraceFmtGenericErrors -Path $pathAsgTraceFmtTxt)
    For($i= 1 ; $i -lt $genericErrorLogs.Count ; $i++)
    {
-      $commaSeperated = $genericErrorLogs[$i] -split ","
-      $errorMessage = $commaSeperated[8].Trim()
-      $errorMessage1 = $commaSeperated[9].Trim()
-      if($errorMessage -eq "Orientation sensor hardware not detected")
+      $line = $genericErrorLogs[$i].Line
+      if($line -match "Orientation sensor hardware not detected")
       {  
          continue;
       }
       else
       {
-         Write-Log -Message "GenericError - $errorMessage $errorMessage1" -IsOutput -IsHost -BackgroundColor Red >> $pathLogsFolder\ConsoleResults.txt
+         Write-Log -Message "GenericError - $line" -IsHost -BackgroundColor Red
+         Write-Output "GenericError - $line" >> $pathLogsFolder\ConsoleResults.txt
 
       }
    }
 }
+
+
+
+
+

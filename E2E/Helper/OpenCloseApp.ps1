@@ -43,7 +43,7 @@ function CloseApp ($appNme)
 	{ 
 		Write-Log -Message "$appNme is open. Closing $appNme app" -IsOutput
 		Stop-Process -Name $appNme
-		Sleep -s 1
+        Sleep -s 1
 	}
 	else
 	{
