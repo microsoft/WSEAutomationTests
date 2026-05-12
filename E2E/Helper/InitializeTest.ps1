@@ -13,11 +13,12 @@ INPUT PARAMETERS:
     - targetMepCameraVer [string] :- The target version of the MEP Camera component to be validated.
     - targetMepAudioVer [string] :- The target version of the MEP Audio component to be validated.
     - targetPerceptionCoreVer [string] :- The target version of the Perception Core component to be validated.
+    - CameraType [string] :- Optional camera type used during WSE validation. Defaults to Internal Camera.
 RETURN TYPE:
     - void
 #>
 
-function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $targetPerceptionCoreVer)
+function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $targetPerceptionCoreVer, [ValidateSet("Internal Camera","External Camera")][string]$CameraType = "Internal Camera")
 {
     # -------------------------------
     # Resolve ScriptRoot robustly
@@ -53,7 +54,7 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
     # Logs folder + globals
     # -------------------------------
     $Global:pathLogsFolder = ".\Logs\" + "$((get-date).tostring('yyyy-MM-dd-HH-mm-ss'))" + "-$TstsetNme"
-    New-Item -ItemType Directory -Force -Path $pathLogsFolder | Out-Null
+    New-Item -ItemType Directory -Force -Path $Global:pathLogsFolder | Out-Null
 
     $Global:SequenceNumber = 0
 
@@ -84,7 +85,7 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
     # -------------------------------
     # Your existing validation gate
     # -------------------------------
-    if ((WseEnablingStatus $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer) -eq $false) {
+    if ((WseEnablingStatus $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer $CameraType) -eq $false) {
         Write-Error "WseEnablingStatus fail!"
         exit
     }

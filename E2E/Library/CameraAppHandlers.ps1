@@ -168,7 +168,7 @@ DESCRIPTION:
     This function starts the Camera app, switches to video mode, and records a video for a specified
     duration. It captures the start time in UTC format and returns it for later verification.
 INPUT PARAMETERS:
-    - scnds [int] :- The duration of the video recording in seconds.
+    - duration [int] :- The duration of the video recording in seconds.
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
@@ -205,7 +205,7 @@ function StartVideoRecording
      Start-Sleep -s 2
      
      #record video inbetween space presses
-     Write-Log -Message "Start recording a video for $scnds seconds" -IsOutput
+    Write-Log -Message "Start recording a video for $duration seconds" -IsOutput
      [System.Windows.Forms.SendKeys]::SendWait(' ');
    
      #Capture Resource Utilization while test is running
@@ -213,7 +213,7 @@ function StartVideoRecording
           
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
-     Write-Log -Message "video recording stopped after $scnds seconds" -IsOutput
+        Write-Log -Message "video recording stopped after $duration seconds" -IsOutput
      
      #restores photo mode for the next run(This line will be uncommented once camera issue is fixed)
      #SwitchModeInCameraApp $ui "Switch to photo mode" "Take photo"
@@ -258,7 +258,7 @@ DESCRIPTION:
     It captures the app's start time in UTC format, which can be used later for log and performance analysis.
     After the previewing is complete, the Camera app is closed, and the start time is returned.
 INPUT PARAMETERS:
-    - scnds [int] :- The duration in seconds for which the camera will remain in preview mode.
+    - duration [int] :- The duration in seconds for which the camera will remain in preview mode.
 RETURN TYPE:
     - [DateTime] (Returns the start time of the Camera app in UTC format for later time calculations.)
 #>
@@ -291,14 +291,14 @@ function CameraPreviewing
                           
      #Switch to video mode and start previewing as few photo resolution does not support MEP feature"
      SwitchModeInCameraApp $ui "Switch to video mode" "Take video" 
-     #Start-Sleep -s $scnds
+    #Start-Sleep -s $duration
      
      #Capture Resource Utilization while test is running
      Monitor-Resources -Scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
      
      #Close camera App
      CloseApp 'WindowsCamera'
-     Write-Log -Message "Previewing stopped after $scnds seconds" -IsOutput
+    Write-Log -Message "Previewing stopped after $duration seconds" -IsOutput
 
      #Return the value to pass as parameter to CheckInitTimeCameraApp function in camerae2eTest.ps1 and CameraAppTest.ps1
      return , $cameraAppStartTime 
