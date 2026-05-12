@@ -67,6 +67,7 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
         'BeforeNPUUsage(In %)','BeforeCPUUsage(In %)','BeforeMemoryUsage(In GB)',
         Status,ReasonForNotPass
 
+    # Delete all videos from Camera Roll before test starts
     Clear-CameraRollVideos
     # IMPORTANT: ensure $Results alias exists for other scripts
     Set-Variable -Name Results -Scope Global -Value $Global:Results
@@ -85,9 +86,17 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
     # -------------------------------
     # Your existing validation gate
     # -------------------------------
-    if ((WseEnablingStatus $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer $CameraType) -eq $false) {
-        Write-Error "WseEnablingStatus fail!"
-        exit
+    if ($CameraType -ieq "External Camera")
+    {
+        WseEnablingStatus $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer -CameraType "External Camera"
+        return
+    }
+    else
+    {
+        if ((WseEnablingStatus $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer) -eq $false) {
+            Write-Error "WseEnablingStatus fail!"
+            exit
+        }
     }
 }
 
