@@ -23,13 +23,13 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
     switch ($tstReslt)
     {
         "Pass" {
-                  Write-Log -Message "$currNum ${snario}: " -IsHost -NoNewline; Write-Log -Message "Passed " -IsHost -ForegroundColor Green -NoNewline; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                  Write-Host -NoNewline "$currNum ${snario}: "; Write-Host -NoNewline "Passed " -ForegroundColor Green; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
                   Write-Output "$currNum ${snario}:Passed (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
                   $Results.Status = "Pass"
                   $Results.ReasonForNotPass = $null
                }
         "Fail" {
-                 Write-Log -Message "$currNum ${snario}: " -IsHost -NoNewline; Write-Log -Message "Failed " -IsHost -ForegroundColor Red -NoNewline; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                 Write-Host -NoNewline "$currNum ${snario}: "; Write-Host -NoNewline "Failed " -ForegroundColor Red; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
                  AddToFailedTestsList "$currNum ${snario}"
                  Write-Output "$currNum ${snario}:Failed (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
                  
@@ -43,7 +43,7 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
 
                
         "Exception" {
-                       Write-Log -Message "$currNum ${snario}: " -IsHost -NoNewline; Write-Log -Message "Failed " -IsHost -ForegroundColor Red -NoNewline; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                       Write-Host -NoNewline "$currNum ${snario}: "; Write-Host -NoNewline "Failed " -ForegroundColor Red; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
                        AddToFailedTestsList "$currNum ${snario}"
                        Write-Output "$currNum ${snario}:Failed(Exception) (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
 
@@ -57,7 +57,7 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
                  
                     
         "Skipped"{
-                    Write-Log -Message "$currNum ${snario}: " -IsHost -NoNewline; Write-Log -Message "Skipped " -IsHost -ForegroundColor Yellow -NoNewline; Write-Log -Message "(${reasonForNotPass}) (${totalExecutionTimeInSeconds}s)" -IsHost
+                    Write-Host -NoNewline "$currNum ${snario}: "; Write-Host -NoNewline "Skipped " -ForegroundColor Yellow; Write-Log -Message "(${reasonForNotPass}) (${totalExecutionTimeInSeconds}s)" -IsHost
                     Write-Output "$currNum ${snario}:Skipped (${reasonForNotPass})(${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
 
                     # Reseting all field values to empty for skipped case scenario exception for Status and ReasonForNotPass

@@ -86,17 +86,9 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
     # -------------------------------
     # Your existing validation gate
     # -------------------------------
-    if ($CameraType -ieq "External Camera")
-    {
-        WseEnablingStatus $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer -CameraType "External Camera"
-        return
-    }
-    else
-    {
-        if ((WseEnablingStatus $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer) -eq $false) {
-            Write-Error "WseEnablingStatus fail!"
-            exit
-        }
+    if ((WseEnablingStatus $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer $CameraType) -eq $false) {
+        Write-Error "WseEnablingStatus fail!"
+        exit
     }
 }
 
