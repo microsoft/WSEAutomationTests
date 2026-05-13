@@ -169,6 +169,8 @@ DESCRIPTION:
     duration. It captures the start time in UTC format and returns it for later verification.
 INPUT PARAMETERS:
     - duration [int] :- The duration of the video recording in seconds.
+    - snarioName [string] :- Scenario name used for resource logging.
+    - logPath [string] :- Path to write resource utilization logs.
 RETURN TYPE:
     - [DateTime] (Returns the start time of the video recording in UTC format.)
 #>
@@ -259,6 +261,8 @@ DESCRIPTION:
     After the previewing is complete, the Camera app is closed, and the start time is returned.
 INPUT PARAMETERS:
     - duration [int] :- The duration in seconds for which the camera will remain in preview mode.
+    - snarioName [string] :- Scenario name used for resource logging.
+    - logPath [string] :- Path to write resource utilization logs.
 RETURN TYPE:
     - [DateTime] (Returns the start time of the Camera app in UTC format for later time calculations.)
 #>
