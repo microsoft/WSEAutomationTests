@@ -23,6 +23,9 @@
 .".\Library\LookUpTable.ps1"
 .".\Library\DeviceDetails.ps1"
 .".\Library\SetupandCompleteTestRun"
+.".\Helper\ScreenCapture.ps1"
+.".\Library\OcrHelper.ps1"
+.".\Library\StudioEffectsHandler.ps1"
 
 .".\CheckInTest\CameraAppTest.ps1"
 .".\CheckInTest\SettingAppTest.ps1"
@@ -36,4 +39,5 @@
 .".\CheckInTest\RevisitCameraSettingPage.ps1"
 .".\CheckInTest\ToggleAIEffectsMultipleTimes.ps1"
 .".\CheckInTest\MemoryUsage.ps1"
+.".\CheckInTest\CameraAppTestQuickSettings.ps1"
 
