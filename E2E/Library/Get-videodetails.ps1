@@ -43,29 +43,41 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
     else
     {
        $videoPath      = $latestVideo.FullName
+       $videoFileName  = $latestVideo.Name
        $videoExtension = $latestVideo.Extension
        $sanitizedScenarioName = $snarioName -replace '[\\/:*?"<>|]', '_'
        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-       $newVideoName = "WSE_test_${sanitizedScenarioName}_$timestamp$videoExtension"
+       $baseVideoName = "WSE_test_${sanitizedScenarioName}_$timestamp"
+       $newVideoName = "${baseVideoName}$videoExtension"
+       $newVideoPath = Join-Path $cameraRoll $newVideoName
+       $suffix = 1
+
+       while (Test-Path -LiteralPath $newVideoPath)
+       {
+           $newVideoName = "${baseVideoName}_$suffix$videoExtension"
+           $newVideoPath = Join-Path $cameraRoll $newVideoName
+           $suffix++
+       }
               
        try
        {
-           Rename-Item -Path $videoPath -NewName $newVideoName -Force -ErrorAction Stop
+           # Rename-Item cannot overwrite an existing file; move to a unique destination avoids collisions.
+           Move-Item -LiteralPath $videoPath -Destination $newVideoPath -Force -ErrorAction Stop
+           $videoToAnalyzePath = $newVideoPath
        }
        catch
        {
-           Write-Log -Message "Failed to rename video: $_" -IsHost -ForegroundColor Red
-           return
+           # Non-fatal: still attempt to read metadata from the original path.
+           Write-Log -Message ("Failed to rename video (will continue without renaming): {0}" -f $_) -IsHost -ForegroundColor Yellow
+           $videoToAnalyzePath = $videoPath
        }
-       
-       $newVideoPath = Join-Path $cameraRoll $newVideoName
-       Write-Log -Message "Video renamed from $videoFileName to: $newVideoName" -IsOutput
-       Write-Log -Message "video location: $newVideoPath" -IsOutput
+
+       Write-Log -Message ("video location: {0}" -f $videoToAnalyzePath) -IsOutput
        
        #shell objects
        $shell = New-Object -ComObject Shell.Application
-       $shellfolder = $shell.namespace((Get-Item  $newVideoPath).DirectoryName)
-       $videoFileDetails = $shellfolder.ParseName($newVideoName)
+       $shellfolder = $shell.namespace((Get-Item -LiteralPath $videoToAnalyzePath).DirectoryName)
+       $videoFileDetails = $shellfolder.ParseName((Split-Path -Leaf $videoToAnalyzePath))
 
        #Frame rate
        $frameRateValue=$videoFileDetails.ExtendedProperty("System.Video.FrameRate") / 1000.0
@@ -88,7 +100,7 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
        $patternmatchcheck =$frameRateValue | Select-String -Pattern "29.\d\d|30.\d\d" -Quiet
        if ($patternmatchcheck -ne "True")
        {
-           Copy-Item  $cameraRoll\$newVideoName -Destination $pathLogsFolder\$snarioName
+           Copy-Item -LiteralPath $videoToAnalyzePath -Destination $pathLogsFolder\$snarioName
            Write-Log -Message "   $snarioName-Video Framerate is:$frameRateValue" -IsHost -ForegroundColor Yellow
            Write-Log -Message "$snarioName-Video Framerate is:$frameRateValue" -IsOutput >> $pathLogsFolder\ConsoleResults.txt
            Write-Log -Message "Video saved here: $pathLogsFolder\$snarioName" -IsHost -IsOutput >> $pathLogsFolder\ConsoleResults.txt
