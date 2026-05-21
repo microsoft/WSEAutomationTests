@@ -109,14 +109,22 @@ function FindVoiceFocusPage($uiEle){
     } 
     FindAndClick $uiEle ComboBox "Audio enhancements"
     Start-Sleep -m 500
-    Foreach($audioEnhancementOptions in "Microsoft Windows Studio Voice Focus" , "Windows Studio Effects Voice Clarity")
+
+    $getAudioEffectPackResult = GetWseAudioEffectPackFriendlyName
+    if ($getAudioEffectPackResult.Success) {
+        Write-Log -Message " WSE Audio Effect Pack Friendly Name: $($getAudioEffectPackResult.FriendlyName) " -IsOutput
+    } else {
+        Write-Error " WSE Audio Effect Pack friendly name not found " -ErrorAction Stop
+    }
+
+    $exists = CheckIfElementExists $uiEle ComboBoxItem $getAudioEffectPackResult.FriendlyName
+    if ($exists)
     {
-       $exists = CheckIfElementExists $uiEle ComboBoxItem  $audioEnhancementOptions
-       if ($exists)
-       {
-           FindAndClick $uiEle ComboBoxItem $audioEnhancementOptions
-       }
-    
+        FindAndClick $uiEle ComboBoxItem $getAudioEffectPackResult.FriendlyName
+    }
+    else
+    {
+        Write-Error "ComboBoxItem for $($getAudioEffectPackResult.FriendlyName) not found in Audio enhancements" -ErrorAction Stop
     }
 }
 

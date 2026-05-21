@@ -545,3 +545,137 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
         return $false
     }
 }
+
+<#
+.SYNOPSIS
+    Tries to read the friendly name from a specific registry view.
+
+.PARAMETER RegistryView
+    The registry view to use (Registry64 or Registry32).
+
+.OUTPUTS
+    Returns the friendly name string if found; otherwise empty string.
+#>
+function Get-FriendlyNameFromView {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [Microsoft.Win32.RegistryView]$RegistryView
+    )
+
+    # Registry constants
+    $MepAudioClassGuid = "{5989fce8-9cd0-467d-8a6a-5419e31529d4}"
+    $MepAudioClassKeyPath = "SYSTEM\CurrentControlSet\Control\Class\$MepAudioClassGuid"
+    $MepAudioEffectPackGuid = "{D38F837A-9439-4256-8D63-DD5885442FA2}"
+    $MepAudioFriendlyNameValue = "{B725F130-47EF-101A-A5F1-02608C9EEBAC},10"
+
+    try {
+        # Open the base key with the specified view
+        $baseKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey(
+            [Microsoft.Win32.RegistryHive]::LocalMachine,
+            $RegistryView
+        )
+
+        if ($null -eq $baseKey) {
+            return [string]::Empty
+        }
+
+        try {
+            # Open the class key
+            $classKey = $baseKey.OpenSubKey($MepAudioClassKeyPath, $false)
+
+            if ($null -eq $classKey) {
+                return [string]::Empty
+            }
+
+            try {
+                # Iterate subkeys like "0000", "0001", etc. under the class key
+                $subKeyNames = $classKey.GetSubKeyNames()
+
+                foreach ($subName in $subKeyNames) {
+                    $effectRegPath = "$subName\EffectPackRegistration\$MepAudioEffectPackGuid"
+
+                    $effectRegKey = $classKey.OpenSubKey($effectRegPath, $false)
+
+                    if ($null -eq $effectRegKey) {
+                        continue
+                    }
+
+                    try {
+                        # Get the friendly name value
+                        $value = $effectRegKey.GetValue(
+                            $MepAudioFriendlyNameValue,
+                            $null,
+                            [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames
+                        )
+
+                        if (($null -ne $value) -and ($value -is [string]) -and (-not [string]::IsNullOrWhiteSpace($value))) {
+                            return $value
+                        }
+                    }
+                    finally {
+                        $effectRegKey.Close()
+                    }
+                }
+            }
+            finally {
+                $classKey.Close()
+            }
+        }
+        finally {
+            $baseKey.Close()
+        }
+    }
+    catch [UnauthorizedAccessException] {
+        # HKLM read should normally be allowed; if not, return empty gracefully
+        Write-Verbose "UnauthorizedAccessException when accessing registry view $RegistryView"
+        return [string]::Empty
+    }
+    catch {
+        # Swallow non-fatal exceptions and continue
+        Write-Verbose "Exception when accessing registry view $RegistryView : $_"
+        return [string]::Empty
+    }
+
+    return [string]::Empty
+}
+
+<#
+.SYNOPSIS
+    Attempts to read the WSE Audio Effect Pack friendly name from the registry.
+
+.DESCRIPTION
+    Tries both 64-bit and 32-bit registry views to cover WOW64 scenarios.
+
+.OUTPUTS
+    Returns a hashtable with 'Success' (bool) and 'FriendlyName' (string) properties.
+#>
+function GetWseAudioEffectPackFriendlyName {
+    [CmdletBinding()]
+    param()
+
+    # Registry views to probe: 64-bit first, then 32-bit
+    $registryViews = @(
+        [Microsoft.Win32.RegistryView]::Registry64,
+        [Microsoft.Win32.RegistryView]::Registry32
+    )
+
+    $friendlyName = [string]::Empty
+
+    foreach ($view in $registryViews) {
+        $name = Get-FriendlyNameFromView -RegistryView $view
+
+        if (-not [string]::IsNullOrWhiteSpace($name)) {
+            $friendlyName = $name
+            return @{
+                Success = $true
+                FriendlyName = $friendlyName
+            }
+        }
+    }
+
+    return @{
+        Success = $false
+        FriendlyName = [string]::Empty
+    }
+}
