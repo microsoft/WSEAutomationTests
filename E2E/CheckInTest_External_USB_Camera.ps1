@@ -8,15 +8,15 @@ param (
 )
 
 .".\CheckInTest\Helper-library.ps1"
-InitializeTest 'Checkin-Test' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer -CameraType "External Camera"
+InitializeTest 'Checkin-Test-External-Camera' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer -CameraType "External Camera"
 foreach($devPowStat in "Pluggedin", "Unplugged")
 {  
-	foreach($testScenario in 'AF', 'BBS', 'BBP', 'PL', 'CF-I', 'CF-A', 'CF-W')
+	foreach($testScenario in 'AFS', 'AFC' , 'BBS', 'BBP', 'PL', 'CF-I', 'CF-A', 'CF-W')
 	{
 		SettingAppTest-Playlist -devPowStat $devPowStat -testScenario $testScenario -token $token -SPId $SPId -CameraType "External Camera" >> $pathLogsFolder\"$devPowStat-SettingAppTest.txt"
 	}
 
-	Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-Camerae2eTest.txt"
+	Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId -CameraType "External Camera" >> $pathLogsFolder\"$devPowStat-Camerae2eTest.txt"
 }
 
 

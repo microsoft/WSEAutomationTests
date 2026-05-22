@@ -196,7 +196,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void (Performs UI interactions to toggle camera and audio effects without returning a value.)
 #>
-Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECTVal,$VFVal,$CF,$CFI,$CFA,$CFW)
+Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVal,$BPVal,$ECVal,$ECSVal,$ECTVal,$VFVal,$CF,$CFI,$CFA,$CFW,$CameraType)
 {    
      Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function" -IsOutput
      
@@ -211,7 +211,10 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
 
      Write-Log -Message "Toggle camera effects in setting Page" -IsOutput
      FindAndSetValue $ui ToggleSwitch "Automatic framing" $AFVal
-     FindAndSetValue $ui ToggleSwitch "Eye contact" $ECVal
+     if($CameraType -ne "External Camera")
+     {
+        FindAndSetValue $ui ToggleSwitch "Eye contact" $ECVal
+     }
      FindAndSetValue $ui ToggleSwitch "Background effects" $BBVal
 
      if($BBVal -eq "On")
@@ -233,10 +236,13 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
            FindAndSetValue $ui RadioButton "Watercolor" $CFW
 
         }
-        if($ECVal -eq "On")
-        { 
-           FindAndSetValue $ui RadioButton "Standard" $ECSVal
-           FindAndSetValue $ui RadioButton "Teleprompter" $ECTVal
+        if($ECVal -eq "On") 
+        {  
+           if($CameraType -ne "External Camera")
+           {
+              FindAndSetValue $ui RadioButton "Standard" $ECSVal
+              FindAndSetValue $ui RadioButton "Teleprompter" $ECTVal
+           }
         }
         $wse8480PolicyState = Check8480Policy
         if ($wse8480PolicyState -eq $true)
