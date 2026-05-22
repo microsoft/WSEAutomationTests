@@ -9,6 +9,7 @@ INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
+    - CameraType [string] :- The type or identifier of the camera to be tested.
 RETURN TYPE:
     - void
 #>

@@ -193,6 +193,7 @@ INPUT PARAMETERS:
     - CFI [string] :- Toggle value for Illustrated Creative Filter.
     - CFA [string] :- Toggle value for Animated Creative Filter.
     - CFW [string] :- Toggle value for Watercolor Creative Filter.
+    - CameraType [string] :- The type or identifier of the camera to be tested.
 RETURN TYPE:
     - void (Performs UI interactions to toggle camera and audio effects without returning a value.)
 #>
@@ -255,10 +256,12 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
            }
 		}
      }
-     
-     
      #open microphone effects page and turn all effects off
-     VoiceFocusToggleSwitch $VFVal
+     if($CameraType -ne "External Camera")
+     {
+        VoiceFocusToggleSwitch $VFVal
+     }
+     
           
      #close settings app
      CloseApp 'systemsettings'
