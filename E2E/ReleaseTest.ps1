@@ -1,10 +1,11 @@
-﻿param ( 
+param ( 
    [string] $token = $null,
    [string] $SPId = $null,
    [string] $targetMepCameraVer = $null,
    [string] $targetMepAudioVer = $null,
    [string] $targetPerceptionCoreVer = $null,
-   [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null
+   [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null,
+   [string] $powerProfile = $null
 )
 .".\CheckInTest\Helper-library.ps1"
 
@@ -22,17 +23,36 @@ $filteredPhotoResolutions = Filter-Resolutions -requestedResolutions @() -availa
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
 
-# Loop through Camera mode
-foreach($camsnario in $deviceData["CameraScenario"])
-{  
-   # Loop through video resolutions
-   foreach ($vdoRes in $filteredVideoResolutions)
+# Determine power profiles to test: use user-specified profile or all available
+$powerProfilesToTest = if ($powerProfile) {
+   if ($deviceData["PowerProfiles"] -contains $powerProfile) {
+      @($powerProfile)
+   } else {
+      Write-Warning "Specified power profile '$powerProfile' is not available on this device. Available: $($deviceData['PowerProfiles'] -join ', ')"
+      Write-Log -Message "Power profile '$powerProfile' not available. Using all profiles." | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+      $deviceData["PowerProfiles"]
+   }
+} else {
+   $deviceData["PowerProfiles"]
+}
+
+foreach ($currentPowerProfile in $powerProfilesToTest)
+{
+   Write-Log -Message "Setting up Power Profile to $currentPowerProfile" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
+   SetPowerProfileInSettingsPage -powerProfile $currentPowerProfile
+   Stop-Process -Name 'systemsettings'
+
+   # Loop through Camera mode
+   foreach($camsnario in $deviceData["CameraScenario"])
    {  
-      $initialSetupDone = "true" 
-      $startTime = Get-Date 
-      #Retrieve video resolution from hash table
-	   $vdoResDetails= RetrieveValue($vdoRes)
-      $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails" 
+      # Loop through video resolutions
+      foreach ($vdoRes in $filteredVideoResolutions)
+      {
+         $initialSetupDone = "true" 
+         $startTime = Get-Date 
+         #Retrieve video resolution from hash table
+         $vdoResDetails= RetrieveValue($vdoRes)
+         $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails" 
 
       Write-Log -Message "Setting up video Res to $vdoRes" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
       
@@ -72,7 +92,8 @@ foreach($camsnario in $deviceData["CameraScenario"])
             $unpluggedLast = -1
             $pluggedInLast = -1
 
-            while ($true) {
+            while ($true)
+            {
                $batteryPercentage = Get-BatteryPercentage
                $chargingState = Get-ChargingState  # Fetch current charging state
 
@@ -92,7 +113,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                         $pluggedInLast++
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
-                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $currentPowerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                         $batteryPercentage = Get-BatteryPercentage
                      }
                   } else {
@@ -105,7 +126,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
                      }
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $currentPowerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   }
 
                   if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
@@ -144,7 +165,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $unpluggedLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$unpluggedLast]
                      $devPowStat = "Unplugged"
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -powerProfile $currentPowerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "Completed all Unplugged AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
@@ -164,7 +185,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
                      $pluggedInLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                      $devPowStat = "PluggedIn"
-                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -powerProfile $currentPowerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "Completed all PluggedIn AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
@@ -184,6 +205,7 @@ foreach($camsnario in $deviceData["CameraScenario"])
             }
          } 
       }
+   }
    }
 }
 
