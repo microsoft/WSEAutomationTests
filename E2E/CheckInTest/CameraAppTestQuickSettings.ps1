@@ -2,9 +2,13 @@ Add-Type -AssemblyName UIAutomationClient
 
 <#
 DESCRIPTION:
-    This function tests the Camera App by setting video and photo resolutions, adjusting AI effects,
-    toggling power states and power profiles, and validating logs for recording and previewing scenarios.
-    It ensures proper logging, checks service states, and collects trace data.
+    This function tests the Camera App by setting video and photo resolutions, toggling AI effects
+    via the Quick Settings Studio Effects panel (instead of the Settings app), and validating logs
+    for recording and previewing scenarios. This is the Quick Settings variant of CameraAppTest.
+
+    The key difference from CameraAppTest is that AI effects are toggled through the
+    Quick Settings > Studio Effects flyout using OCR-based interaction, since the flyout
+    is not accessible via UI Automation.
 INPUT PARAMETERS:
     - logFile [string] :- Path to the log file where test results will be recorded.
     - token [string] :- Authentication token required to control the smart plug.
@@ -16,26 +20,26 @@ INPUT PARAMETERS:
     - devPowStat [string] :- The device power state (e.g., "PluggedIn", "OnBattery").
     - VF [string] :- Voice Focus setting ("On"/"Off"/"NA").
     - toggleEachAiEffect [array] :- Array containing AI effect toggles for various camera settings.
-    - powerProfile [string] :- The power profile to use for testing (Best Power Efficiency/Balanced/Best Performance/Recommended/Better Performance).
+    - powerProfile [string] :- The power profile to use for testing.
 RETURN TYPE:
     - void 
 #>
-function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsnario,$vdoRes,$ptoRes,$devPowStat,$VF,$toggleEachAiEffect)
+function CameraAppTestQuickSettings($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsnario,$vdoRes,$ptoRes,$devPowStat,$VF,$toggleEachAiEffect)
 {
    try
    {  
        $startTime = Get-Date
        $VFdetails= "VF-$VF"
-	   $vdoResDetails= RetrieveValue($vdoRes)
-	   $ptoResDetails= RetrieveValue($ptoRes)       
+       $vdoResDetails= RetrieveValue($vdoRes)
+       $ptoResDetails= RetrieveValue($ptoRes)       
        $powerProfileFolder = $powerProfile -replace ' ', ''
-       $scenarioLogFolder = "CameraAppTest\$powerProfileFolder\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
-       Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
+       $scenarioLogFolder = "CameraAppTestQS\$powerProfileFolder\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
+       Write-Log -Message "`nStarting Quick Settings Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Power Profile: $powerProfile" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder
 
-       #Retrieve value for scenario from Get-CombinationReturnValues function
+       # Retrieve value for scenario from Get-CombinationReturnValues function
        $toggleEachAiEffect = Get-CombinationReturnValues -effects $toggleEachAiEffect
        if($toggleEachAiEffect.length -eq 0)
        {
@@ -43,9 +47,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
           return
        }
 
-       #Set the device Power state
-       #if token and SPid is available than run scenarios for both pluggedin and unplugged 
-        Write-Output "Start Tests for $devPowStat scenario with $powerProfile profile" 
+       # Set the device Power state
+       Write-Output "Start Tests for $devPowStat scenario with $powerProfile profile (Quick Settings)" 
        $devState = CheckDevicePowerState $devPowStat $token $SPId
        if($devState -eq $false)
        {   
@@ -58,16 +61,16 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
           # Open Camera App and set default setting to "Use system settings" 
           Set-SystemSettingsInCamera
           
-          #Open system setting page and toggle voice focus 
+          # Open system setting page and toggle voice focus (not available in Quick Settings)
           if($VF -ne "NA")
           {
              VoiceFocusToggleSwitch $VF
           }
           
-          #video resolution 
+          # Video resolution 
           Write-Log -Message "Setting up the video resolution to $vdoRes" -IsOutput
            
-          #skip the test if video resolution is not available. 
+          # Skip the test if video resolution is not available
           $result = SetvideoResolutionInCameraApp $scenarioLogFolder $startTime $vdoRes
           if($result[-1]  -eq $false)
           {
@@ -75,12 +78,12 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
              return
           }  
           
-          #photo resolution 
+          # Photo resolution 
           Write-Log -Message "Setting up the Photo resolution to $ptoRes" -IsOutput
           
-          #Retrieve photo resolution from hash table
+          # Retrieve photo resolution from hash table
           Write-Log -Message "Retrieve $ptoRes value from hash table" -IsOutput
-          #skip the test if photo resolution is not available. 
+          # Skip the test if photo resolution is not available
           $result = SetphotoResolutionInCameraApp $scenarioLogFolder $startTime $ptoRes
           if($result[-1]  -eq $false)
           {
@@ -89,94 +92,65 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
           }
        
        }  
-       #Open system setting page
-       $ui = OpenApp 'ms-settings:' 'Settings'
-       Start-Sleep -m 500
-       
-       #open camera effects page and turn all effects off
-       Write-Log -Message "Navigate to camera effects setting page" -IsOutput
-       FindCameraEffectsPage $ui
-       Start-Sleep -m 500 
-       
-       #Setting AI effects for Tests in camera setting page 
+
+       # Toggle AI effects via Quick Settings Studio Effects panel (OCR-based)
        $scenarioID = $toggleEachAiEffect[15]
-                    
-       Write-Log -Message "Setting up the camera Ai effects" -IsOutput      
-       
-       FindAndSetValue $ui ToggleSwitch "Automatic framing" $toggleEachAiEffect[0]
-       FindAndSetValue $ui ToggleSwitch "Eye contact" $toggleEachAiEffect[7]
-       
-       FindAndSetValue $ui ToggleSwitch "Background effects" $toggleEachAiEffect[4]
-       if($toggleEachAiEffect[4] -eq "On")
-       { 
-          FindAndSetValue $ui RadioButton "Portrait blur" $toggleEachAiEffect[6]
-          FindAndSetValue $ui RadioButton "Standard blur" $toggleEachAiEffect[5]
+       Write-Log -Message "Setting up camera AI effects via Quick Settings" -IsOutput
+
+       $qsResult = ToggleAIEffectsInQuickSettings `
+           -AFVal  $toggleEachAiEffect[0]  `
+           -AFSVal $(if($toggleEachAiEffect[1] -eq "True"){"On"}else{"Off"})  `
+           -AFCVal $(if($toggleEachAiEffect[2] -eq "True"){"On"}else{"Off"})  `
+           -PLVal  $toggleEachAiEffect[3]  `
+           -BBVal  $toggleEachAiEffect[4]  `
+           -BSVal  $(if($toggleEachAiEffect[5] -eq "True"){"On"}else{"Off"})  `
+           -BPVal  $(if($toggleEachAiEffect[6] -eq "True"){"On"}else{"Off"})  `
+           -ECVal  $toggleEachAiEffect[7]  `
+           -ECSVal $(if($toggleEachAiEffect[8] -eq "True"){"On"}else{"Off"})  `
+           -ECTVal $(if($toggleEachAiEffect[9] -eq "True"){"On"}else{"Off"})  `
+           -VFVal  "Off"  `
+           -CF     $toggleEachAiEffect[10] `
+           -CFI    $(if($toggleEachAiEffect[11] -eq "True"){"On"}else{"Off"}) `
+           -CFA    $(if($toggleEachAiEffect[12] -eq "True"){"On"}else{"Off"}) `
+           -CFW    $(if($toggleEachAiEffect[13] -eq "True"){"On"}else{"Off"})
+
+       if (-not $qsResult) {
+           Write-Warning "Some AI effects could not be set via Quick Settings. Test may be unreliable."
        }
-       $wsev2PolicyState = CheckWSEV2Policy
-       if($wsev2PolicyState -eq $true)	  
-       {    
-          FindAndSetValue $ui ToggleSwitch "Portrait light" $toggleEachAiEffect[3]
-          if($toggleEachAiEffect[7] -eq "On")
-          {
-             FindAndSetValue $ui RadioButton "Standard" $toggleEachAiEffect[8]
-             FindAndSetValue $ui RadioButton "Teleprompter" $toggleEachAiEffect[9]
-          }
-          FindAndSetValue $ui ToggleSwitch "Creative filters" $toggleEachAiEffect[10]
-          if($toggleEachAiEffect[10] -eq "On")
-          {
-             FindAndSetValue $ui RadioButton "Illustrated" $toggleEachAiEffect[11]
-             FindAndSetValue $ui RadioButton "Animated" $toggleEachAiEffect[12]
-             FindAndSetValue $ui RadioButton "Watercolor" $toggleEachAiEffect[13]
-          }
-          $wse8480PolicyState = Check8480Policy
-          if ($wse8480PolicyState -eq $true)
-		    {
-            if($toggleEachAiEffect[0] -eq "On")
-            {
-                FindAndSetValue $ui RadioButton "Standard framing" $toggleEachAiEffect[1]
-                FindAndSetValue $ui RadioButton "Cinematic framing" $toggleEachAiEffect[2]
-            }
-          }  
-       }
-       CloseApp 'systemsettings'
        
-       #Checks if frame server is stopped
+       # Checks if frame server is stopped
        Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server'
                              
-       #Strating to collect Traces
+       # Starting to collect Traces
        StartTrace $scenarioLogFolder
 
        # Start Test Scenario
-       Write-Log -Message "Start test for $camsnario with power profile: $powerProfile" -IsOutput
+       Write-Log -Message "Start test for $camsnario with power profile: $powerProfile (Quick Settings)" -IsOutput
        if($camsnario -eq "Recording")
        {
-           #Start video recording and close the camera app once finished recording 
-           #Start video recording, start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs
            $InitTimeCameraApp = StartVideoRecording -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
        else
        {   
-           #Start Previewing and close the camera app once finished. 
-           #Start Previewing , start capturing resource utilization and close the camera app once finished recording. Each duration is for around 10-13 secs 
            $InitTimeCameraApp = CameraPreviewing -duration 6 -snarioName $scenarioLogFolder -logPath "$scenarioLogFolder\ResourceUtilization.txt"
            $cameraAppStartTime = $InitTimeCameraApp[-1]
            Write-Log -Message "Camera App start time in UTC: ${cameraAppStartTime}" -IsOutput
        }
-       #Checks if frame server is stopped
+       # Checks if frame server is stopped
        Write-Log -Message "Entering CheckServiceState function" -IsOutput
        CheckServiceState 'Windows Camera Frame Server' 
        
-       #Stop the Trace
+       # Stop the Trace
        Write-Log -Message "Entering StopTrace function" -IsOutput
        StopTrace $scenarioLogFolder
    
-       #Verify and validate if proper logs are generated or not.        
+       # Verify and validate if proper logs are generated or not
        Verifylogs $scenarioLogFolder $scenarioID $startTime
        
-       #calculate Time from camera app started until PC trace first frame processed
+       # Calculate Time from camera app started until PC trace first frame processed
        Write-Log -Message "Entering CheckInitTimeCameraApp function" -IsOutput
        CheckInitTimeCameraApp $scenarioLogFolder $scenarioID $cameraAppStartTime
        
@@ -184,32 +158,33 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$powerProfile,$camsn
        {   
           if($VF -eq "On")
           { 
-             #Verify and validate if proper logs are generated or not for Audio Blur.
+             # Verify and validate audio blur logs
              VerifyAudioBlurLogs $scenarioLogFolder 512 
           } 
            
-           #Get the properties of latest video recording
+           # Get the properties of latest video recording
            GetVideoDetails $scenarioLogFolder $pathLogsFolder
        }
        
        Write-Log -Message "Entering GetContentOfLogFileAndCopyToTestSpecificLogFile function" -IsOutput
        GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioLogFolder
        
-       #collect data for Reporting
+       # Collect data for Reporting
        Reporting $Results "$pathLogsFolder\Report.txt"
    
     }
     catch
     {
         Take-Screenshot "Error-Exception" $scenarioLogFolder
-        Write-Log -Message "Error occurred during test with power profile: $powerProfile" -IsOutput
+        Write-Log -Message "Error occurred during Quick Settings test with power profile: $powerProfile" -IsOutput
+        Close-QuickSettings   # Ensure Quick Settings is closed on error
         CloseApp 'systemsettings'
         CloseApp 'WindowsCamera'
         CloseApp 'Taskmgr'
         StopTrace $scenarioLogFolder
         CheckServiceState 'Windows Camera Frame Server'
         Write-Output $_
-        TestOutputMessage $scenarioLogFolder "Exception" $startTime "Power profile '$powerProfile': $($_.Exception.Message)"
+        TestOutputMessage $scenarioLogFolder "Exception" $startTime "Power profile '$powerProfile' (QS): $($_.Exception.Message)"
         Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
         Reporting $Results "$pathLogsFolder\Report.txt"
         GetContentOfLogFileAndCopyToTestSpecificLogFile $scenarioLogFolder
