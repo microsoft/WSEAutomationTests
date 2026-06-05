@@ -140,6 +140,55 @@ Function GetPhotoResList()
 
 <#
 DESCRIPTION:
+    Calculates a numeric score for a resolution string for sorting purposes.
+#>
+function Get-ResolutionScore {
+    param([string]$s)
+    if (-not $s) { return 0.0 }
+    $t = $s.ToString()
+
+    # 1) megapixels: "12.2 megapixels", "2.1MP"
+    $m = [regex]::Match($t, '(\d+(?:\.\d+)?)\s*(?:MP\b|MPs\b|megapixel\b|megapixels\b)', 'IgnoreCase')
+    if ($m.Success) {
+        return [double]$m.Groups[1].Value * 1e6
+    }
+
+    # 2) real pixel resolution: "4032 by 3024", "3840 x 2160", with optional trailing "resolution"
+    $r = [regex]::Match($t, '(\d+)\s*by\s*(\d+)', 'IgnoreCase')
+    if (-not $r.Success) {
+        $r = [regex]::Match($t, '(\d+)\s*[x×]\s*(\d+)', 'IgnoreCase')
+    }
+    if ($r.Success) {
+        return [double]$r.Groups[1].Value * [double]$r.Groups[2].Value
+    }
+
+    # 3) height-based p-style for video: "1440p", "1080p", "720p", "360p"
+    $p = [regex]::Match($t, '(^|\D)(\d{3,4})p(\D|$)', 'IgnoreCase')
+    if ($p.Success) {
+        return [double]$p.Groups[2].Value * 1000.0
+    }
+
+    return 0.0
+}
+
+<#
+DESCRIPTION:
+    Builds a scored list of resolutions sorted from highest to lowest.
+#>
+function Build-SortedList {
+    param([string[]]$list)
+    $objs = @()
+    foreach ($item in $list) {
+        $score = 0.0
+        try { $score = Get-ResolutionScore $item } catch { $score = 0.0 }
+        $objs += [PSCustomObject]@{ Text = $item; Score = $score }
+    }
+    # Sort by Score desc, then Text asc (stable)
+    return $objs | Sort-Object -Property @{Expression='Score';Descending=$true}, @{Expression='Text';Descending=$false}
+}
+
+<#
+DESCRIPTION:
     Filters and selects resolutions based on user input or strategic defaults.
     Automatically selects highest, middle, and lowest resolutions when no specific resolutions are provided.
 
@@ -160,52 +209,6 @@ function Filter-Resolutions {
 
     if (-not $requestedResolutions) { $requestedResolutions = @() }
     if (-not $availableResolutions) { $availableResolutions = @() }
-
-    # Register reusable helpers once at script scope so they are not recreated on every call.
-    if (-not (Get-Command -Name Get-ResolutionScore -CommandType Function -ErrorAction SilentlyContinue)) {
-        Set-Item -Path Function:\script:Get-ResolutionScore -Value {
-            param([string]$s)
-            if (-not $s) { return 0.0 }
-            $t = $s.ToString()
-
-            # 1) megapixels: "12.2 megapixels", "2.1MP"
-            $m = [regex]::Match($t, '(\d+(?:\.\d+)?)\s*(?:MP\b|MPs\b|megapixel\b|megapixels\b)', 'IgnoreCase')
-            if ($m.Success) {
-                return [double]$m.Groups[1].Value * 1e6
-            }
-
-            # 2) real pixel resolution: "4032 by 3024", "3840 x 2160", with optional trailing "resolution"
-            $r = [regex]::Match($t, '(\d+)\s*by\s*(\d+)', 'IgnoreCase')
-            if (-not $r.Success) {
-                $r = [regex]::Match($t, '(\d+)\s*[x×]\s*(\d+)', 'IgnoreCase')
-            }
-            if ($r.Success) {
-                return [double]$r.Groups[1].Value * [double]$r.Groups[2].Value
-            }
-
-            # 3) height-based p-style for video: "1440p", "1080p", "720p", "360p"
-            $p = [regex]::Match($t, '(^|\D)(\d{3,4})p(\D|$)', 'IgnoreCase')
-            if ($p.Success) {
-                return [double]$p.Groups[2].Value * 1000.0
-            }
-
-            return 0.0
-        }
-    }
-
-    if (-not (Get-Command -Name Build-SortedList -CommandType Function -ErrorAction SilentlyContinue)) {
-        Set-Item -Path Function:\script:Build-SortedList -Value {
-            param([string[]]$list)
-            $objs = @()
-            foreach ($item in $list) {
-                $score = 0.0
-                try { $score = Get-ResolutionScore $item } catch { $score = 0.0 }
-                $objs += [PSCustomObject]@{ Text = $item; Score = $score }
-            }
-            # Sort by Score desc, then Text asc (stable)
-            return $objs | Sort-Object -Property @{Expression='Score';Descending=$true}, @{Expression='Text';Descending=$false}
-        }
-    }
 
     Write-Log -IsHost -Message "`n=== $($resolutionType.ToUpper()) RESOLUTION SELECTION ===" -ForegroundColor Cyan
 
@@ -276,13 +279,9 @@ function Filter-Resolutions {
         }
 
         # Print defaults
-        if ($filtered.Count -eq 0) {
-            Write-Log -IsHost -Message "Selected $resolutionType Resolutions (0): none" -ForegroundColor Yellow
-        } else {
-            Write-Log -IsHost -Message "Selected $resolutionType Resolutions ($($filtered.Count)):" -ForegroundColor Yellow
-            foreach ($r in $filtered) {
-                Write-Log -IsHost -Message "  • $r" -ForegroundColor Green
-            }
+        Write-Log -IsHost -Message "Selected $resolutionType Resolutions ($($filtered.Count)):" -ForegroundColor Yellow
+        foreach ($r in $filtered) {
+            Write-Log -IsHost -Message "  • $r" -ForegroundColor Green
         }
         Write-Log -Message "No $resolutionType resolutions specified. Using strategic defaults: $($filtered -join ', ')" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
         Write-Log -IsHost -Message "==============================`n" -ForegroundColor Cyan
