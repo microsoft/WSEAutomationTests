@@ -161,49 +161,50 @@ function Filter-Resolutions {
     if (-not $requestedResolutions) { $requestedResolutions = @() }
     if (-not $availableResolutions) { $availableResolutions = @() }
 
-    # Robust scoring:
-    # 1) megapixels (photo)
-    # 2) real WxH resolution
-    # 3) 1080p / 1440p / 720p style for video
-    function Get-ResolutionScore {
-        param([string]$s)
-        if (-not $s) { return 0.0 }
-        $t = $s.ToString()
+    # Register reusable helpers once at script scope so they are not recreated on every call.
+    if (-not (Get-Command -Name Get-ResolutionScore -CommandType Function -ErrorAction SilentlyContinue)) {
+        Set-Item -Path Function:\script:Get-ResolutionScore -Value {
+            param([string]$s)
+            if (-not $s) { return 0.0 }
+            $t = $s.ToString()
 
-        # 1) megapixels: "12.2 megapixels", "2.1MP"
-        $m = [regex]::Match($t, '(\d+(?:\.\d+)?)\s*(?:MP\b|MPs\b|megapixel\b|megapixels\b)', 'IgnoreCase')
-        if ($m.Success) {
-            return [double]$m.Groups[1].Value * 1e6
-        }
+            # 1) megapixels: "12.2 megapixels", "2.1MP"
+            $m = [regex]::Match($t, '(\d+(?:\.\d+)?)\s*(?:MP\b|MPs\b|megapixel\b|megapixels\b)', 'IgnoreCase')
+            if ($m.Success) {
+                return [double]$m.Groups[1].Value * 1e6
+            }
 
-        # 2) real pixel resolution: "4032 by 3024", "3840 x 2160", with optional trailing "resolution"
-        $r = [regex]::Match($t, '(\d+)\s*by\s*(\d+)', 'IgnoreCase')
-        if (-not $r.Success) {
-            $r = [regex]::Match($t, '(\d+)\s*[x×]\s*(\d+)', 'IgnoreCase')
-        }
-        if ($r.Success) {
-            return [double]$r.Groups[1].Value * [double]$r.Groups[2].Value
-        }
+            # 2) real pixel resolution: "4032 by 3024", "3840 x 2160", with optional trailing "resolution"
+            $r = [regex]::Match($t, '(\d+)\s*by\s*(\d+)', 'IgnoreCase')
+            if (-not $r.Success) {
+                $r = [regex]::Match($t, '(\d+)\s*[x×]\s*(\d+)', 'IgnoreCase')
+            }
+            if ($r.Success) {
+                return [double]$r.Groups[1].Value * [double]$r.Groups[2].Value
+            }
 
-        # 3) height-based p-style for video: "1440p", "1080p", "720p", "360p"
-        $p = [regex]::Match($t, '(^|\D)(\d{3,4})p(\D|$)', 'IgnoreCase')
-        if ($p.Success) {
-            return [double]$p.Groups[2].Value * 1000.0
-        }
+            # 3) height-based p-style for video: "1440p", "1080p", "720p", "360p"
+            $p = [regex]::Match($t, '(^|\D)(\d{3,4})p(\D|$)', 'IgnoreCase')
+            if ($p.Success) {
+                return [double]$p.Groups[2].Value * 1000.0
+            }
 
-        return 0.0
+            return 0.0
+        }
     }
 
-    function Build-SortedList {
-        param([string[]]$list)
-        $objs = @()
-        foreach ($item in $list) {
-            $score = 0.0
-            try { $score = Get-ResolutionScore $item } catch { $score = 0.0 }
-            $objs += [PSCustomObject]@{ Text = $item; Score = $score }
+    if (-not (Get-Command -Name Build-SortedList -CommandType Function -ErrorAction SilentlyContinue)) {
+        Set-Item -Path Function:\script:Build-SortedList -Value {
+            param([string[]]$list)
+            $objs = @()
+            foreach ($item in $list) {
+                $score = 0.0
+                try { $score = Get-ResolutionScore $item } catch { $score = 0.0 }
+                $objs += [PSCustomObject]@{ Text = $item; Score = $score }
+            }
+            # Sort by Score desc, then Text asc (stable)
+            return $objs | Sort-Object -Property @{Expression='Score';Descending=$true}, @{Expression='Text';Descending=$false}
         }
-        # Sort by Score desc, then Text asc (stable)
-        return $objs | Sort-Object -Property @{Expression='Score';Descending=$true}, @{Expression='Text';Descending=$false}
     }
 
     Write-Host "`n=== $($resolutionType.ToUpper()) RESOLUTION SELECTION ===" -ForegroundColor Cyan
