@@ -268,6 +268,11 @@ function Filter-Resolutions {
                 }
             }
         }
+        else {
+            Write-Warning "Unknown resolution type '$resolutionType'. Expected 'video' or 'photo'."
+            Write-Host "==============================`n" -ForegroundColor Cyan
+            return @()
+        }
 
         # Print defaults
         if ($filtered.Count -eq 0) {
@@ -344,13 +349,9 @@ function Filter-Resolutions {
     $selectedResolutionsText = $filtered.ToArray() -join ', '
     Write-Log -Message "Selected $resolutionType Resolutions: $selectedResolutionsText" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
 
-    if ($filtered.Count -eq 0) {
-        Write-Host "Selected $resolutionType Resolutions (0): none" -ForegroundColor Yellow
-    } else {
-        Write-Host "Selected $resolutionType Resolutions ($($filtered.Count)):" -ForegroundColor Yellow
-        foreach ($r in $filtered) {
-            Write-Host "  • $r" -ForegroundColor Green
-        }
+    Write-Host "Selected $resolutionType Resolutions ($($filtered.Count)):" -ForegroundColor Yellow
+    foreach ($r in $filtered) {
+        Write-Host "  • $r" -ForegroundColor Green
     }
     Write-Host "==============================`n" -ForegroundColor Cyan
 
