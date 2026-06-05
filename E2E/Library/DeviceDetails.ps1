@@ -270,9 +270,9 @@ function Filter-Resolutions {
             }
         }
         else {
-            Write-Warning "Unknown resolution type '$resolutionType'. Expected 'video' or 'photo'."
+            Write-Error "Unknown resolution type '$resolutionType'. Expected 'video' or 'photo'."
             Write-Host "==============================`n" -ForegroundColor Cyan
-            return @()
+            exit 1
         }
 
         # Print defaults
