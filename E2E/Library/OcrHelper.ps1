@@ -11,14 +11,22 @@ DEPENDENCIES:
 #>
 
 # Load WinRT OCR types (guard against duplicate Add-Type calls — experiment 6 fix)
+# Also guard against environments where WinRT OCR is unavailable (e.g., PowerShell 7.6+)
 if (-not ([System.Management.Automation.PSTypeName]'Windows.Media.Ocr.OcrEngine').Type) {
-    Add-Type -AssemblyName 'System.Runtime.WindowsRuntime'
+    try {
+        Add-Type -AssemblyName 'System.Runtime.WindowsRuntime'
 
-    $null = [Windows.Media.Ocr.OcrEngine, Windows.Foundation, ContentType = WindowsRuntime]
-    $null = [Windows.Graphics.Imaging.BitmapDecoder, Windows.Foundation, ContentType = WindowsRuntime]
-    $null = [Windows.Graphics.Imaging.SoftwareBitmap, Windows.Foundation, ContentType = WindowsRuntime]
-    $null = [Windows.Storage.Streams.RandomAccessStream, Windows.Foundation, ContentType = WindowsRuntime]
+        $null = [Windows.Media.Ocr.OcrEngine, Windows.Foundation, ContentType = WindowsRuntime]
+        $null = [Windows.Graphics.Imaging.BitmapDecoder, Windows.Foundation, ContentType = WindowsRuntime]
+        $null = [Windows.Graphics.Imaging.SoftwareBitmap, Windows.Foundation, ContentType = WindowsRuntime]
+        $null = [Windows.Storage.Streams.RandomAccessStream, Windows.Foundation, ContentType = WindowsRuntime]
+    } catch {
+        Write-Warning "OCR WinRT types could not be loaded. Quick Settings OCR automation will not be available. Error: $_"
+        $script:OcrAvailable = $false
+        return
+    }
 }
+$script:OcrAvailable = $true
 
 # Helper to await WinRT async operations from PowerShell using AsTask pattern
 function Await-WinRTAsync {

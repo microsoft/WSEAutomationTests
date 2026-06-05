@@ -12,6 +12,11 @@ param (
 
 InitializeTest 'ReleaseTest' $targetMepCameraVer $targetMepAudioVer $targetPerceptionCoreVer
 
+# Load Quick Settings modules on demand (OCR/WinRT deps may not be available everywhere)
+if ($useQuickSettings) {
+    Import-QuickSettingsModules
+}
+
 # Select the camera test function based on Quick Settings mode
 $CameraTestFunction = if ($useQuickSettings) { 'CameraAppTestQuickSettings' } else { 'CameraAppTest' }
 $logFileName = if ($useQuickSettings) { 'QuickSettingsCameraAppTest.txt' } else { 'CameraAppTest.txt' }

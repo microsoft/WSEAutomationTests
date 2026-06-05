@@ -223,7 +223,7 @@ function Set-StudioEffectState {
         $clickY = $match.ScreenY + [int]($match.Height / 2)
         $toggleOffsets = @(60, 45, 80, 100)  # pixels from right edge to try
 
-        $toggled = $false
+        $toggleSuccess = $false
         foreach ($offset in $toggleOffsets) {
             $clickX = $screenWidth - $offset
             Click-AtPosition -X $clickX -Y $clickY
@@ -241,9 +241,7 @@ function Set-StudioEffectState {
                 Write-Log -Message "'$EffectName' state after click at offset $offset`: $newState (expected $DesiredState)" -IsOutput
             }
         }
-        if (-not $toggled) {
-            Write-Log -Message "'$EffectName' toggle click did not achieve desired state, retrying full attempt..." -IsOutput
-        }
+        Write-Log -Message "'$EffectName' toggle click did not achieve desired state, retrying full attempt..." -IsOutput
     }
 
     Write-Warning "Could not set '$EffectName' to $DesiredState after $MaxRetries attempts."
@@ -374,28 +372,40 @@ function ToggleAIEffectsInQuickSettings {
         }
 
         # Set main effects with state verification
-        if (-not (Set-StudioEffectState -EffectName "Automatic framing" -DesiredState $AFVal)) { $allSuccess = $false }
+        # Only treat as failure if the effect is visible but cannot be toggled.
+        # Effects not found on screen are skipped (device may not support them).
+        $afResult = Set-StudioEffectState -EffectName "Automatic framing" -DesiredState $AFVal
+        if ($afResult -eq $false -and $AFVal -eq "On") { $allSuccess = $false }
         if ($AFVal -eq "On") {
             if ($AFSVal -eq "On" -and -not (Select-StudioEffectOption -OptionName "Standard framing")) { $allSuccess = $false }
             if ($AFCVal -eq "On" -and -not (Select-StudioEffectOption -OptionName "Cinematic framing")) { $allSuccess = $false }
         }
 
-        if (-not (Set-StudioEffectState -EffectName "Background effects" -DesiredState $BBVal)) { $allSuccess = $false }
+        $bbResult = Set-StudioEffectState -EffectName "Background effects" -DesiredState $BBVal
+        if ($bbResult -eq $false -and $BBVal -eq "On") { $allSuccess = $false }
         if ($BBVal -eq "On") {
             if ($BSVal -eq "On" -and -not (Select-StudioEffectOption -OptionName "Standard blur")) { $allSuccess = $false }
             if ($BPVal -eq "On" -and -not (Select-StudioEffectOption -OptionName "Portrait blur")) { $allSuccess = $false }
         }
 
-        if (-not (Set-StudioEffectState -EffectName "Eye contact" -DesiredState $ECVal)) { $allSuccess = $false }
+        $ecResult = Set-StudioEffectState -EffectName "Eye contact" -DesiredState $ECVal
+        if ($ecResult -eq $false -and $ECVal -eq "On") { $allSuccess = $false }
         if ($ECVal -eq "On") {
             if ($ECSVal -eq "On" -and -not (Select-StudioEffectOption -OptionName "Standard")) { $allSuccess = $false }
             if ($ECTVal -eq "On" -and -not (Select-StudioEffectOption -OptionName "Teleprompter")) { $allSuccess = $false }
         }
 
-        if (-not (Set-StudioEffectState -EffectName "Portrait light" -DesiredState $PLVal)) { $allSuccess = $false }
+        # Portrait light and Creative filters may not exist on all devices
+        $plResult = Set-StudioEffectState -EffectName "Portrait light" -DesiredState $PLVal
+        if ($plResult -eq $false -and $PLVal -eq "On") {
+            Write-Log -Message "Portrait light not available on this device, skipping." -IsOutput
+        }
 
-        if (-not (Set-StudioEffectState -EffectName "Creative filters" -DesiredState $CF)) { $allSuccess = $false }
-        if ($CF -eq "On") {
+        $cfResult = Set-StudioEffectState -EffectName "Creative filters" -DesiredState $CF
+        if ($cfResult -eq $false -and $CF -eq "On") {
+            Write-Log -Message "Creative filters not available on this device, skipping." -IsOutput
+        }
+        if ($CF -eq "On" -and $cfResult) {
             if ($CFI -eq "On" -and -not (Select-StudioEffectOption -OptionName "Illustrated")) { $allSuccess = $false }
             if ($CFA -eq "On" -and -not (Select-StudioEffectOption -OptionName "Animated")) { $allSuccess = $false }
             if ($CFW -eq "On" -and -not (Select-StudioEffectOption -OptionName "Watercolor")) { $allSuccess = $false }

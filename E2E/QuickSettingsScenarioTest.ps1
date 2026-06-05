@@ -143,6 +143,7 @@ param (
 )
 .".\CheckInTest\Helper-library.ps1"
 InitializeTest 'QuickSettingsScenarioTesting'
+Import-QuickSettingsModules
 $voiceFocusExists = CheckVoiceFocusPolicy  
 if($voiceFocusExists -eq $false)
 {

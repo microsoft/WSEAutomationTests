@@ -115,7 +115,9 @@ function CameraAppTestQuickSettings($logFile,$token,$SPId,$initSetUpDone,$powerP
            -CFW    $(if($toggleEachAiEffect[13] -eq "True"){"On"}else{"Off"})
 
        if (-not $qsResult) {
-           Write-Warning "Some AI effects could not be set via Quick Settings. Test may be unreliable."
+           Write-Log -Message "FAILURE: AI effects could not be set via Quick Settings. Marking test as failed." -IsOutput
+           TestOutputMessage $scenarioLogFolder "Failed(Exception)" $startTime "Quick Settings toggle failed - AI effects not set correctly"
+           return
        }
        
        # Checks if frame server is stopped
