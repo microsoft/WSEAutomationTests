@@ -16,7 +16,7 @@ INPUT PARAMETERS:
     - devPowStat [string] :- The device power state (e.g., "PluggedIn", "OnBattery").
     - VF [string] :- Voice Focus setting ("On"/"Off"/"NA").
     - toggleEachAiEffect [array] :- Array containing AI effect toggles for various camera settings.
-    - powerProfile [string] :- The power profile to use for testing (Best Power Efficiency/Balanced/Best Performance/Recommended/Better Performance).
+    - powerProfile [string] :- The power profile to use for testing (Best Power Efficiency/Balanced/Best Performance).
 RETURN TYPE:
     - void 
 #>

@@ -193,19 +193,19 @@ RETURN TYPE:
 function AddToFailedTestsList($failedTests)
 {
    $splitEachTests = $failedTests -split "\\"
-   $camsnario = $splitEachTests[1]
    $logFolder = $splitEachTests[0] -split ". "
    $functionToCall = $logFolder[1]
    $logFile = $logFolder[1] + ".txt"
-   $vdoRes = $splitEachTests[2]
-   $ptoRes = $splitEachTests[3]
-   $devPowStat = $splitEachTests[4]
-   $VFdetails  = $splitEachTests[5] -split "-"
+   $powerProfile = $splitEachTests[1]
+   $camsnario = $splitEachTests[2]
+   $vdoRes = $splitEachTests[3]
+   $ptoRes = $splitEachTests[4]
+   $devPowStat = $splitEachTests[5]
+   $VFdetails  = $splitEachTests[6] -split "-"
    $VF = $VFdetails[1]
-   $togAiEfft = $splitEachTests[6]
+   $togAiEfft = $splitEachTests[7]
    $token = "111222"
    $SPID ="333444"
-   $powerProfile = $splitEachTests[7]
 
    if($functionToCall -eq  "CameraAppTest")
    {
