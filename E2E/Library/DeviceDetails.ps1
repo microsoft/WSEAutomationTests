@@ -207,15 +207,15 @@ function Filter-Resolutions {
         }
     }
 
-    Write-Host "`n=== $($resolutionType.ToUpper()) RESOLUTION SELECTION ===" -ForegroundColor Cyan
+    Write-Log -IsHost -Message "`n=== $($resolutionType.ToUpper()) RESOLUTION SELECTION ===" -ForegroundColor Cyan
 
     $filtered = New-Object System.Collections.Generic.List[String]
 
     # NO user requested resolutions: use your rules
     if ($requestedResolutions.Count -eq 0) {
         if ($availableResolutions.Count -eq 0) {
-            Write-Host "No available $resolutionType resolutions found." -ForegroundColor Red
-            Write-Host "==============================`n" -ForegroundColor Cyan
+            Write-Log -IsHost -Message "No available $resolutionType resolutions found." -ForegroundColor Red
+            Write-Log -IsHost -Message "==============================`n" -ForegroundColor Cyan
             return @()
         }
 
@@ -271,32 +271,32 @@ function Filter-Resolutions {
         }
         else {
             Write-Error "Unknown resolution type '$resolutionType'. Expected 'video' or 'photo'."
-            Write-Host "==============================`n" -ForegroundColor Cyan
+            Write-Log -IsHost -Message "==============================`n" -ForegroundColor Cyan
             exit 1
         }
 
         # Print defaults
         if ($filtered.Count -eq 0) {
-            Write-Host "Selected $resolutionType Resolutions (0): none" -ForegroundColor Yellow
+            Write-Log -IsHost -Message "Selected $resolutionType Resolutions (0): none" -ForegroundColor Yellow
         } else {
-            Write-Host "Selected $resolutionType Resolutions ($($filtered.Count)):" -ForegroundColor Yellow
+            Write-Log -IsHost -Message "Selected $resolutionType Resolutions ($($filtered.Count)):" -ForegroundColor Yellow
             foreach ($r in $filtered) {
-                Write-Host "  • $r" -ForegroundColor Green
+                Write-Log -IsHost -Message "  • $r" -ForegroundColor Green
             }
         }
         Write-Log -Message "No $resolutionType resolutions specified. Using strategic defaults: $($filtered -join ', ')" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-        Write-Host "==============================`n" -ForegroundColor Cyan
+        Write-Log -IsHost -Message "==============================`n" -ForegroundColor Cyan
         return $filtered.ToArray()
     }
 
     # Check for wildcard (all resolutions)
     if ($requestedResolutions -contains "All" -or $requestedResolutions -contains "*") {
         Write-Log -Message "Using ALL available $resolutionType resolutions as requested" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
-        Write-Host "Selected $resolutionType Resolutions ($($availableResolutions.Count)): ALL" -ForegroundColor Yellow
+        Write-Log -IsHost -Message "Selected $resolutionType Resolutions ($($availableResolutions.Count)): ALL" -ForegroundColor Yellow
         foreach ($r in $availableResolutions) {
-            Write-Host "  • $r" -ForegroundColor Green
+            Write-Log -IsHost -Message "  • $r" -ForegroundColor Green
         }
-        Write-Host "==============================`n" -ForegroundColor Cyan
+        Write-Log -IsHost -Message "==============================`n" -ForegroundColor Cyan
         return $availableResolutions
     }
 
@@ -341,19 +341,19 @@ function Filter-Resolutions {
         Write-Warning "The following $resolutionType resolutions are not available on this device:"
         $invalid | ForEach-Object { Write-Warning "  ✗ '$_'" }
 
-        Write-Host "`nAvailable $resolutionType resolutions on this device:" -ForegroundColor Cyan
+        Write-Log -IsHost -Message "`nAvailable $resolutionType resolutions on this device:" -ForegroundColor Cyan
         foreach ($availableRes in $availableResolutions) {
             $shortKey = RetrieveValue($availableRes)
             $displayText = if ($shortKey) { "$shortKey -> $availableRes" } else { $availableRes }
-            Write-Host "  • $displayText" -ForegroundColor Green
+            Write-Log -IsHost -Message "  • $displayText" -ForegroundColor Green
         }
     }
 
     # Validate we have at least one valid resolution
     if ($filtered.Count -eq 0) {
         Write-Error "CRITICAL: None of the requested $resolutionType resolutions are available on this device."
-        Write-Host "Please use one of the available $resolutionType resolutions listed above, or use -${resolutionType}Resolutions @('All') to test all available resolutions." -ForegroundColor Red
-        Write-Host "Example: .\ReleaseTest.ps1 -videoResolutions @('1080p', '720p') -photoResolutions @('12.2MP')" -ForegroundColor Yellow
+        Write-Log -IsHost -Message "Please use one of the available $resolutionType resolutions listed above, or use -${resolutionType}Resolutions @('All') to test all available resolutions." -ForegroundColor Red
+        Write-Log -IsHost -Message "Example: .\ReleaseTest.ps1 -videoResolutions @('1080p', '720p') -photoResolutions @('12.2MP')" -ForegroundColor Yellow
         exit 1
     }
 
@@ -361,11 +361,11 @@ function Filter-Resolutions {
     $selectedResolutionsText = $filtered.ToArray() -join ', '
     Write-Log -Message "Selected $resolutionType Resolutions: $selectedResolutionsText" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
 
-    Write-Host "Selected $resolutionType Resolutions ($($filtered.Count)):" -ForegroundColor Yellow
+    Write-Log -IsHost -Message "Selected $resolutionType Resolutions ($($filtered.Count)):" -ForegroundColor Yellow
     foreach ($r in $filtered) {
-        Write-Host "  • $r" -ForegroundColor Green
+        Write-Log -IsHost -Message "  • $r" -ForegroundColor Green
     }
-    Write-Host "==============================`n" -ForegroundColor Cyan
+    Write-Log -IsHost -Message "==============================`n" -ForegroundColor Cyan
 
     return $filtered.ToArray()
 }
