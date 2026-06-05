@@ -303,8 +303,19 @@ function Filter-Resolutions {
     # User passed requested resolutions: match against available
     $invalid = New-Object System.Collections.Generic.List[String]
     foreach ($requestedRes in $requestedResolutions) {
+        # Explicit format validation: accept WxH (e.g. 1920x1080), p-style (e.g. 1080p), MP (e.g. 12.2MP),
+        # or any key/value known to the lookup table.
         $full = $null
         try { $full = RetrieveValue($requestedRes) } catch {}
+        $isValidFormat = ($null -ne $full) -or
+                         ($requestedRes -match '\d+\s*[x×]\s*\d+') -or
+                         ($requestedRes -match '(^|\D)\d{3,4}p(\D|$)') -or
+                         ($requestedRes -match '\d+(?:\.\d+)?\s*(?:MP\b|MPs\b|megapixel\b|megapixels\b)')
+        if (-not $isValidFormat) {
+            Write-Warning "$resolutionType resolution '$requestedRes' is not in a recognised format (expected WxH e.g. '1920x1080', p-style e.g. '1080p', or MP e.g. '12.2MP')."
+            $invalid.Add($requestedRes)
+            continue
+        }
         $search = if ($full) { $full } else { $requestedRes }
 
         if ($availableResolutions -contains $search) {
