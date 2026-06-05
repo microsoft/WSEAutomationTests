@@ -318,6 +318,9 @@ function GetPowerProfiles
     FindAndClick $ui "ComboBox" "Plugged in"
     Start-Sleep -Seconds 3
     $pluggedInProfiles = FindAllElementsNameWithClassName $ui ComboBoxItem
+    # Filter to known Windows power profile names to avoid spurious items from other ComboBoxes on the page
+    $knownPowerProfiles = @("Best Power Efficiency", "Balanced", "Best Performance", "Better Performance", "Recommended")
+    $pluggedInProfiles = @($pluggedInProfiles | Where-Object { $knownPowerProfiles -contains $_ })
     Start-Sleep -Seconds 2
     Write-Log -Message "Available power profiles: $pluggedInProfiles" -IsOutput | Out-Null
     Stop-Process -Name 'systemsettings'
