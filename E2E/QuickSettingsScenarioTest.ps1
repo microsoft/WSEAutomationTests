@@ -1,18 +1,18 @@
 <#
 .SYNOPSIS
-    Executes Camera App scenario testing across multiple configurations.
+    Executes Camera App scenario testing with AI effects toggled via Quick Settings Studio Effects panel.
 
 .DESCRIPTION
-    This script tests Camera App functionality across multiple scenarios by configuring
-    video and photo resolutions, toggling AI camera effects, validating voice focus behavior,
-    and handling device power states.
+    This script is the Quick Settings variant of ScenarioTest.ps1. It tests Camera App functionality
+    by configuring video and photo resolutions, toggling AI camera effects through the Quick Settings
+    Studio Effects flyout (using OCR-based interaction), validating voice focus behavior, and handling
+    device power states.
 
-    It supports running tests for both Recording and Previewing scenarios, applies one or
-    more AI effect combinations per run, verifies required services and policies, logs results,
-    and generates a final report.
+    The Studio Effects flyout in Windows Quick Settings is not accessible via UI Automation,
+    so this script uses Windows.Media.Ocr to detect and interact with the panel controls.
 
-    The script can optionally retrieve all supported AI effects dynamically from the device
-    and executes test iterations for each AI effect combination provided.
+    Use this script instead of ScenarioTest.ps1 when you need to validate that effects toggled
+    from Quick Settings (rather than the Settings app) produce the same camera behavior.
 
 .PARAMETER token
     Authentication token required to control the smart plug for power state changes.
@@ -38,7 +38,7 @@
     combined using the "+" symbol.
 
     Supported AI Effects:
-        AF   - Auto Framing
+        AF   - Auto Framing (AFS/AFC for Standard/Cinematic)
         PL   - Portrait Light
         ECS  - Eye Contact (Standard)
         ECT  - Eye Contact (Teleprompter)
@@ -65,11 +65,9 @@
     Accepted values: "Recording", "Previewing".
 
 .PARAMETER VF
-    Voice Focus configuration.
-    Accepted values:
-        On  - Enable Voice Focus
-        Off - Disable Voice Focus
-        NA  - Not applicable (automatically set if policy is not present)
+    Voice Focus configuration. Note: Voice Focus is toggled via the Settings app
+    even in this Quick Settings variant, as it is not available in the Studio Effects flyout.
+    Accepted values: On, Off, NA
 
 .PARAMETER vdoRes
     Video resolution setting to be applied in the Camera App.
@@ -79,19 +77,20 @@
 
 .PARAMETER devPowStat
     Device power state during testing.
-    Accepted values:
-        Pluggedin
-        Unplugged
+    Accepted values: Pluggedin, Unplugged
+
+.PARAMETER powerProfile
+    Windows power mode setting used during the test.
 
 .EXAMPLE
     Run the script using all default values:
-        .\ScenarioTest.ps1
+        .\QuickSettingsScenarioTest.ps1
 
 .EXAMPLE
     Run with specific AI effects:
-        .\ScenarioTest.ps1 -toggleAIEffects AF+BBS+ECS AF+BBP+ECS
+        .\QuickSettingsScenarioTest.ps1 -toggleAIEffects "AF+BBS+ECS" , "AF+BBP+ECS"
 
-.RETURNVALUE
+.OUTPUTS
     None. This script does not return a value.
 #>
 
@@ -102,13 +101,13 @@ param (
    [string] $targetMepCameraVer = $null,
    [string] $targetMepAudioVer = $null,
    [string] $targetPerceptionCoreVer = $null,
-   [string] $logFile = "ScenarioTesting.txt",
+   [string] $logFile = "QuickSettingsScenarioTesting.txt",
    
    #AF:Auto-framing, PL:Portrait light, ECS:Eye contact(Standard), ECT:Eye Contact(Teleprompter), BBS:BackgroundBlur(Standard), BBP:BackgroundBlur(Portrait) 
    #CF-I:Creative filter-Illustrated, CF-A:Creative filter-Animated, CF-W:Creative filter-Watercolor
    #You can combine multiple effects using the "+" symbol. Here are some examples: 'AF+CF-I+PL+BBS', 'AF+CF-I+PL+BBP', 'AF+CF-I+ECS+BBS', 'AF+CF-I+ECS+BBP', 'AF+CF-I+ECT+BBS'
 
-   [string[]] $toggleAIEffects = @("AFS+BBS+ECS","AFC+BBP+ECS") ,  # Default if not provided
+   [string[]] $toggleAIEffects = @("AF+BBS+ECS","AF+BBP+ECS"),  # Default if not provided
    
    [ValidateSet("true" , "false")]
    [string] $initSetUpDone = "false",  # Default if not provided
@@ -138,14 +137,13 @@ param (
    [ValidateSet("Pluggedin", "Unplugged")]
    [string] $devPowStat = "Pluggedin",  # Default if not provided
 
-   # Power Profile options: Best Power Efficiency, Balanced, Best Performance
-   # This parameter controls the Windows power mode setting used during the test
    [ValidateSet("Best Power Efficiency", "Balanced", "Best Performance")]
    [string] $powerProfile = "Balanced"  # Default if not provided
 
 )
 .".\CheckInTest\Helper-library.ps1"
-InitializeTest 'ScenarioTesting'
+InitializeTest 'QuickSettingsScenarioTesting'
+Import-QuickSettingsModules
 $voiceFocusExists = CheckVoiceFocusPolicy  
 if($voiceFocusExists -eq $false)
 {
@@ -153,7 +151,7 @@ if($voiceFocusExists -eq $false)
 }
 
 # Set up Power Profile
-Write-Log -Message "Setting up Power Profile to $powerProfile" | Out-File -FilePath "$pathLogsFolder\ScenarioTesting.txt" -Append
+Write-Log -Message "Setting up Power Profile to $powerProfile" | Out-File -FilePath "$pathLogsFolder\QuickSettingsScenarioTesting.txt" -Append
 SetPowerProfileInSettingsPage -powerProfile $powerProfile
 Stop-Process -Name 'systemsettings'
 
@@ -164,7 +162,7 @@ if($toggleAIEffects -eq "All")
 }    
 foreach ($togAiEfft in $toggleAIEffects)
 {
-   CameraAppTest -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\ScenarioTesting.txt"
+   CameraAppTestQuickSettings -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -powerProfile $powerProfile -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\QuickSettingsScenarioTesting.txt"
 }
 
 [console]::beep(500,300)
