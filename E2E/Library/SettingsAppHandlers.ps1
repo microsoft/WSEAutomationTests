@@ -254,14 +254,13 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
 DESCRIPTION:
     This function opens the Settings page -> System -> Power & battery -> Power mode. It waits for the UI
     and attempts to set the specified power profile for both "Plugged in" and "On battery" modes. If the Power profile 
-    is unsupported, the test is skipped and logged.
+    is unsupported, the function returns $false and logs a warning.
 INPUT PARAMETERS:
-    - ui [object] :- The UI automation element representing the Settings page.
     - powerProfile [string] :- The desired Power profile (e.g., "Balanced"/"Best Power Efficiency"/"Best Performance").
 RETURN TYPE:
-    - [bool] (Returns `$false` if the Power profile is unsupported, otherwise closes the app without returning a value.)
+    - [bool] Returns $false if the Power profile is not available in the UI, $true on success.
 #>
-function SetPowerProfileInSettingsPage($ui,$powerProfile)
+function SetPowerProfileInSettingsPage($powerProfile)
 {
     Write-Log -Message "Opening Settings Page to set power profile..." -IsOutput
 
@@ -272,6 +271,15 @@ function SetPowerProfileInSettingsPage($ui,$powerProfile)
     # Expand "Show more settings"
     FindAndClick $ui "ExpanderToggleButton" "Show more settings"
     Start-Sleep -Seconds 3
+
+    # Check if the requested power profile is available before attempting to click
+    $availableItems = FindAllElementsNameWithClassName $ui "ComboBoxItem"
+    if ($availableItems -notcontains $powerProfile) {
+        Write-Log -Message "Power profile '$powerProfile' is not available on this device. Skipping." -IsOutput
+        Write-Warning "Power profile '$powerProfile' not found in Settings UI. Available: $($availableItems -join ', ')"
+        CloseApp 'systemsettings'
+        return $false
+    }
     
     # Set "Plugged in" power mode
     Write-Log -Message "Setting power profile to: $powerProfile" -IsOutput
@@ -288,4 +296,5 @@ function SetPowerProfileInSettingsPage($ui,$powerProfile)
     Start-Sleep -Seconds 3
     Write-Log -Message "On battery mode set to $powerProfile" -IsOutput
     Write-Log -Message "Power profile set to $powerProfile" -IsOutput
+    return $true
 }

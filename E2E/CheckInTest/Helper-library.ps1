@@ -43,6 +43,10 @@ function Import-QuickSettingsModules {
     if ($script:QuickSettingsModulesLoaded) { return }
     .".\Helper\ScreenCapture.ps1"
     .".\Library\OcrHelper.ps1"
+    # Fail fast if OCR types could not be loaded — downstream modules depend on them
+    if (-not $script:OcrAvailable) {
+        Write-Error "OCR WinRT types are not available. Quick Settings automation requires OCR support. Aborting." -ErrorAction Stop
+    }
     .".\Library\StudioEffectsHandler.ps1"
     .".\CheckInTest\CameraAppTestQuickSettings.ps1"
     $script:QuickSettingsModulesLoaded = $true

@@ -64,7 +64,9 @@ foreach ($currentPowerProfile in $powerProfilesToTest)
          $startTime = Get-Date 
          #Retrieve video resolution from hash table
          $vdoResDetails= RetrieveValue($vdoRes)
-         $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails" 
+         $powerProfileFolder = $currentPowerProfile -replace ' ', ''
+         $testFolderName = if ($useQuickSettings) { 'QuickSettingsCameraAppTest' } else { 'CameraAppTest' }
+         $scenarioName = "$testFolderName\$powerProfileFolder\$camsnario\$vdoResDetails" 
 
       Write-Log -Message "Setting up video Res to $vdoRes" | Out-File -FilePath "$pathLogsFolder\$logFileName" -Append
       
@@ -81,7 +83,7 @@ foreach ($currentPowerProfile in $powerProfilesToTest)
       {   
          #Retrieve photo resolution from hash table 
          $ptoResDetails= RetrieveValue($ptoRes)       
-         $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails" 
+         $scenarioName = "$testFolderName\$powerProfileFolder\$camsnario\$vdoResDetails\$ptoResDetails" 
 
          Write-Log -Message "Setting up Photo Res to $ptoRes" | Out-File -FilePath "$pathLogsFolder\$logFileName" -Append
 
