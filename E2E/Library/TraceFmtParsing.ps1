@@ -90,7 +90,9 @@ function Get-TraceFmtProviderStartStopCounts
         [Parameter(Mandatory = $true)]
         [string]$Path,
 
-        [string]$ProviderName = 'Microsoft.ASG.Perception'
+        [string]$ProviderName = 'Microsoft.ASG.Perception',
+
+        [string]$SourceProviderName = $ProviderName
     )
 
     $result = [ordered]@{
@@ -104,8 +106,9 @@ function Get-TraceFmtProviderStartStopCounts
     }
 
     $escaped = [Regex]::Escape($ProviderName)
-    $startPattern = '"text"\s*:\s*"starting ' + $escaped + ' provider (?<ptr>0x[0-9A-Fa-f]+) (?<id>0x[0-9A-Fa-f]+)"'
-    $stopPattern  = '"text"\s*:\s*"stopping '  + $escaped + ' provider (?<ptr>0x[0-9A-Fa-f]+) (?<id>0x[0-9A-Fa-f]+)"'
+    $escapedSource = [Regex]::Escape($SourceProviderName)
+    $startPattern = '^\[[^\]]+\][^\r\n]*\[' + $escapedSource + '\]\s+\[GenericVerbose\]\{"text":"starting ' + $escaped + ' provider (?<ptr>0x[0-9A-Fa-f]+) (?<id>0x[0-9A-Fa-f]+)"\}'
+    $stopPattern  = '^\[[^\]]+\][^\r\n]*\[' + $escapedSource + '\]\s+\[GenericVerbose\]\{"text":"stopping '  + $escaped + ' provider (?<ptr>0x[0-9A-Fa-f]+) (?<id>0x[0-9A-Fa-f]+)"\}'
 
     foreach ($line in Get-Content -LiteralPath $Path)
     {
@@ -194,7 +197,7 @@ function Get-TraceFmtPCStartAndFirstFrameTime
     )
 
     $path = "$pathLogsFolder\$SnarioName\AsgTraceFmt.txt"
-    $startPattern = '"text"\s*:\s*"starting Microsoft\.ASG\.Perception'
+    $startPattern = '^\[[^\]]+\][^\r\n]*\[Microsoft\.ASG\.Perception\]\s+\[GenericVerbose\]\{"text":"starting Microsoft\.ASG\.Perception provider '
     $firstPattern = '"text"\s*:\s*"First frame for PerceptionCore'
 
     return (Get-TraceFmtStartAndFirstFrameTime -Path $path -StartPattern $startPattern -FirstPattern $firstPattern)
@@ -509,11 +512,11 @@ function Invoke-PerceptionExtractorFromTraceFmt
 
     Write-Verbose "Calling extractor with InputFile=$pathAsgTraceFmtTxt, PerceptionScenario=$ExpectedScenario"
 
-    # If the trace file contains multiple appended runs, constrain matching to the most recent run.
-    # We derive run start as the LAST "starting Microsoft.ASG.Perception" timestamp in the trace.
+    # If the trace file contains multiple appended runs, constrain matching to the most recent
+    # Microsoft.ASG.Perception run. Ignore PerceptiveShell lines that reuse the same text payload.
     $minTsUtc = $null
     try {
-        $startPattern = '"text"\s*:\s*"starting Microsoft\.ASG\.Perception'
+        $startPattern = '^\[[^\]]+\][^\r\n]*\[Microsoft\.ASG\.Perception\]\s+\[GenericVerbose\]\{"text":"starting Microsoft\.ASG\.Perception provider '
         foreach ($line in Get-Content -LiteralPath $pathAsgTraceFmtTxt) {
             if ($line -match $startPattern) {
                 $t = Get-TraceFmtTimestamp -Line $line
