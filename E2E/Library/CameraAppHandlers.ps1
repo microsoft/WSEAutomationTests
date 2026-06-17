@@ -215,7 +215,7 @@ function StartVideoRecording
           
      [System.Windows.Forms.SendKeys]::SendWait(' ');
      Start-Sleep -s 2
-        Write-Log -Message "video recording stopped after $duration seconds" -IsOutput
+    Write-Log -Message "video recording stopped after $duration seconds" -IsOutput
      
      #restores photo mode for the next run(This line will be uncommented once camera issue is fixed)
      #SwitchModeInCameraApp $ui "Switch to photo mode" "Take photo"

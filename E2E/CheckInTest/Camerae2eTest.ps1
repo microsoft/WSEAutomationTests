@@ -9,10 +9,11 @@ INPUT PARAMETERS:
     - devPowStat [string] :- The power state of the device (e.g., "PluggedIn", "OnBattery").
     - token [string] :- Authentication token required to control the smart plug.
     - SPId [string] :- Smart plug ID used to control device power states.
+    - CameraType [string] :- The type or identifier of the camera to be tested.
 RETURN TYPE:
     - void
 #>
-function Camera-App-Playlist($devPowStat, $token, $SPId) 
+function Camera-App-Playlist($devPowStat, $token, $SPId, $CameraType) 
 {   
     $startTime = Get-Date    
     $ErrorActionPreference='Stop'
@@ -28,7 +29,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to toggle all effects On" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "On" -AFSVal "False" -AFCVal "True" -PLVal "On" -BBVal "On" -BSVal "False" -BPVal "True" `
                                      -ECVal "On" -ECSVal "True" -ECTVal "False" -VFVal "On" `
-                                     -CF "On" -CFI "False" -CFA "False" -CFW "True"
+                                     -CF "On" -CFI "False" -CFA "False" -CFW "True" -CameraType $CameraType
                  
         #Open Camera App and set default setting to "Use system settings" 
         Set-SystemSettingsInCamera
@@ -108,7 +109,7 @@ function Camera-App-Playlist($devPowStat, $token, $SPId)
         Write-Log -Message "Entering ToggleAIEffectsInSettingsApp function to Restore the default state for AI effects" -IsOutput
         ToggleAIEffectsInSettingsApp -AFVal "Off" -AFSVal "False" -AFCVal "False" -PLVal "Off" -BBVal "Off" -BSVal "False" -BPVal "False" `
                                      -ECVal "Off" -ECSVal "False" -ECTVal "False" -VFVal "Off" `
-                                     -CF "Off" -CFI "False" -CFA "False" -CFW "False"
+                                     -CF "Off" -CFI "False" -CFA "False" -CFW "False" -CameraType $CameraType
              
     }
     catch
