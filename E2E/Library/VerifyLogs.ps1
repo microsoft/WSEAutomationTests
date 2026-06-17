@@ -105,7 +105,7 @@ function PCStartandFirstFrameTime($snarioName, $snarioId)
         return $false
     }
 
-    $startPattern = '"text"\s*:\s*"starting Microsoft\.ASG\.Perception'
+    $startPattern = '^\[[^\]]+\][^\r\n]*\[Microsoft\.ASG\.Perception\]\s+\[GenericVerbose\]\{"text":"starting Microsoft\.ASG\.Perception provider '
     $firstPattern = '"text"\s*:\s*"First frame for PerceptionCore'
 
     return (Get-TraceFmtStartAndFirstFrameTime -Path $pathAsgTraceTxt -StartPattern $startPattern -FirstPattern $firstPattern)

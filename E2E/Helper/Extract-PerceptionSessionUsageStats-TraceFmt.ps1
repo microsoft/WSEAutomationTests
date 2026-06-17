@@ -202,18 +202,22 @@ if ($j.PSObject.Properties.Name -contains 'NumberOfProcessedFrames') {
     $Results.TotalNumberOfFrames = $j.NumberOfProcessedFrames
 }
 
-# Frames above 33ms (sum of histogram buckets >= 33ms)
-# PerceptionSessionUsageStats provides buckets such as:
-#   NumberOfFrames33msTo35ms, NumberOfFrames35msTo40ms, NumberOfFrames40msTo50ms, NumberOfFramesAbove50ms
+# Frames above 33ms. Legacy/current payloads usually provide NumberOfFramesAbove33ms directly;
+# newer split-bucket payloads may instead provide buckets such as NumberOfFrames33msTo35ms.
 $framesAbove33ms = 0L
-foreach ($bucketName in @(
-        'NumberOfFrames33msTo35ms',
-        'NumberOfFrames35msTo40ms',
-        'NumberOfFrames40msTo50ms',
-        'NumberOfFramesAbove50ms'
-    )) {
-    if ($j.PSObject.Properties.Name -contains $bucketName) {
-        try { $framesAbove33ms += [int64]$j.$bucketName } catch { }
+if ($j.PSObject.Properties.Name -contains 'NumberOfFramesAbove33ms') {
+    try { $framesAbove33ms = [int64]$j.NumberOfFramesAbove33ms } catch { $framesAbove33ms = 0L }
+}
+else {
+    foreach ($bucketName in @(
+            'NumberOfFrames33msTo35ms',
+            'NumberOfFrames35msTo40ms',
+            'NumberOfFrames40msTo50ms',
+            'NumberOfFramesAbove50ms'
+        )) {
+        if ($j.PSObject.Properties.Name -contains $bucketName) {
+            try { $framesAbove33ms += [int64]$j.$bucketName } catch { }
+        }
     }
 }
 $Results.FramesAbove33ms = $framesAbove33ms
