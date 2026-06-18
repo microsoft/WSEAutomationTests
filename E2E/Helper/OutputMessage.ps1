@@ -198,14 +198,8 @@ function AddToFailedTestsList($failedTests)
    $logFile = $logFolder[1] + ".txt"
    # The folder name has spaces stripped (e.g. "BestPowerEfficiency"); map back to the full profile name
    $powerProfileFolder = $splitEachTests[1]
-   $profileFolderToName = @{
-       "BestPowerEfficiency" = "Best Power Efficiency"
-       "Balanced"            = "Balanced"
-       "BestPerformance"     = "Best Performance"
-       "BetterPerformance"   = "Better Performance"
-       "Recommended"         = "Recommended"
-   }
-   $powerProfile = if ($profileFolderToName.ContainsKey($powerProfileFolder)) { $profileFolderToName[$powerProfileFolder] } else { $powerProfileFolder }
+   $powerProfile = RetrieveValue($powerProfileFolder)
+   if (-not $powerProfile) { $powerProfile = $powerProfileFolder }
    $camsnario = $splitEachTests[2]
    $vdoRes = $splitEachTests[3]
    $ptoRes = $splitEachTests[4]

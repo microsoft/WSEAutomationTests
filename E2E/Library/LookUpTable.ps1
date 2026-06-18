@@ -143,6 +143,13 @@ function RetrieveValue($inputValue)
    $returnValues.Add("0.1 megapixels, 11 by 9 aspect ratio,  352 by 288 resolution" , '0.1MP')
    $returnValues.Add("0.03 megapixels, 11 by 9 aspect ratio,  176 by 144 resolution" ,'0.03MP')
 
+   # Power profile folder name to display name mappings
+   $returnValues.Add("BestPowerEfficiency", "Best Power Efficiency")
+   $returnValues.Add("Balanced", "Balanced")
+   $returnValues.Add("BestPerformance", "Best Performance")
+   $returnValues.Add("BetterPerformance", "Better Performance")
+   $returnValues.Add("Recommended", "Recommended")
+
    
    $outputValue = $returnValues[$inputValue]
    return $outputValue

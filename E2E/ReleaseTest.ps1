@@ -45,11 +45,11 @@ foreach ($currentPowerProfile in $powerProfilesToTest)
    # Loop through Camera mode
    foreach($camsnario in $deviceData["CameraScenario"])
    {  
+      $initialSetupDone = "true" 
+      $startTime = Get-Date 
       # Loop through video resolutions
       foreach ($vdoRes in $filteredVideoResolutions)
       {
-         $initialSetupDone = "true" 
-         $startTime = Get-Date 
          #Retrieve video resolution from hash table
          $vdoResDetails= RetrieveValue($vdoRes)
          $scenarioName = "CameraAppTest\$camsnario\$vdoResDetails" 
