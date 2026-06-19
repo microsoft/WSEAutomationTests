@@ -21,9 +21,16 @@ public class QuickSettingsNative {
     [DllImport("user32.dll")]
     public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
 
+    [DllImport("user32.dll")]
+    public static extern bool SetCursorPos(int x, int y);
+
+    [DllImport("user32.dll")]
+    public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, int dwExtraInfo);
+
     public const byte VK_LWIN = 0x5B;
     public const byte VK_A = 0x41;
     public const uint KEYEVENTF_KEYUP = 0x0002;
+    public const uint MOUSEEVENTF_WHEEL = 0x0800;
 
     public static void OpenQuickSettings() {
         keybd_event(VK_LWIN, 0, 0, 0);
@@ -37,6 +44,13 @@ public class QuickSettingsNative {
         keybd_event(0x1B, 0, 0, 0);           // VK_ESCAPE
         System.Threading.Thread.Sleep(50);
         keybd_event(0x1B, 0, KEYEVENTF_KEYUP, 0);
+    }
+
+    // Scroll down at a given screen position (negative dwData = scroll down)
+    public static void ScrollDown(int x, int y, int clicks) {
+        SetCursorPos(x, y);
+        System.Threading.Thread.Sleep(100);
+        mouse_event(MOUSEEVENTF_WHEEL, 0, 0, (uint)(-120 * clicks), 0);
     }
 }
 "@
@@ -97,9 +111,17 @@ function Open-StudioEffects {
         Write-Log -Message "Looking for Studio Effects button (attempt $attempt/$MaxRetries)..." -IsOutput | Out-Null
 
         $ocrResults = Get-RightScreenOCR -Fraction 0.4
+
+        # Log all detected text for diagnostics
+        $allText = ($ocrResults | ForEach-Object { $_.Text }) -join ' | '
+        Write-Log -Message "OCR detected text: $allText" -IsOutput | Out-Null
+
         $studioMatch = Find-OCRText -OcrResults $ocrResults -SearchText "Studio effects"
         if (-not $studioMatch) {
             $studioMatch = Find-OCRText -OcrResults $ocrResults -SearchText "Studio Effects"
+        }
+        if (-not $studioMatch) {
+            $studioMatch = Find-OCRText -OcrResults $ocrResults -SearchText "Studio effect"
         }
 
         if ($studioMatch) {
@@ -120,7 +142,14 @@ function Open-StudioEffects {
             }
             Write-Log -Message "Studio Effects flyout not verified, retrying..." -IsOutput | Out-Null
         } else {
-            Write-Log -Message "Studio Effects button not found, retrying..." -IsOutput | Out-Null
+            Write-Log -Message "Studio Effects button not found in OCR results, scrolling down..." -IsOutput | Out-Null
+            # Scroll down in Quick Settings to reveal Studio Effects if below fold
+            $screenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width
+            $screenHeight = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height
+            $scrollX = $screenWidth - [int]($screenWidth * 0.2)  # center of right panel
+            $scrollY = [int]($screenHeight * 0.6)  # mid-lower area
+            [QuickSettingsNative]::ScrollDown($scrollX, $scrollY, 3)
+            Start-Sleep -Seconds 1
         }
         Start-Sleep -Seconds 1
     }
