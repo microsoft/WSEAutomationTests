@@ -40,7 +40,7 @@ foreach ($currentPowerProfile in $powerProfilesToTest)
 {
    Write-Log -Message "Setting up Power Profile to $currentPowerProfile" | Out-File -FilePath "$pathLogsFolder\CameraAppTest.txt" -Append
    SetPowerProfileInSettingsPage -powerProfile $currentPowerProfile
-   Stop-Process -Name 'systemsettings'
+   CloseApp 'systemsettings'
 
    # Loop through Camera mode
    foreach($camsnario in $deviceData["CameraScenario"])

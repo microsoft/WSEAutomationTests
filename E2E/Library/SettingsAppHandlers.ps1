@@ -261,7 +261,7 @@ RETURN TYPE:
 #>
 function SetPowerProfileInSettingsPage($powerProfile)
 {
-    Write-Log -Message "Opening Settings Page to set power profile..." -IsOutput
+    Write-Log -Message "Opening Settings Page to set power profile..." -IsOutput | Out-Null
 
     # Navigate directly to Power page via URI
     $ui = OpenApp 'ms-settings:powersleep' 'Settings'
@@ -272,18 +272,18 @@ function SetPowerProfileInSettingsPage($powerProfile)
     Start-Sleep -Seconds 3
     
     # Set "Plugged in" power mode
-    Write-Log -Message "Setting power profile to: $powerProfile" -IsOutput
+    Write-Log -Message "Setting power profile to: $powerProfile" -IsOutput | Out-Null
     FindAndClick $ui "ComboBox" "Plugged in"
     Start-Sleep -Seconds 3
     FindAndClick $ui "ComboBoxItem" -proptyNme $powerProfile
     Start-Sleep -Seconds 3
-    Write-Log -Message "Plugged in mode set to $powerProfile" -IsOutput
+    Write-Log -Message "Plugged in mode set to $powerProfile" -IsOutput | Out-Null
     
     # Set "On battery" power mode
     FindAndClick $ui "ComboBox" "On battery"
     Start-Sleep -Seconds 3
     FindAndClick $ui "ComboBoxItem" -proptyNme $powerProfile
     Start-Sleep -Seconds 3
-    Write-Log -Message "On battery mode set to $powerProfile" -IsOutput
-    Write-Log -Message "Power profile set to $powerProfile" -IsOutput
+    Write-Log -Message "On battery mode set to $powerProfile" -IsOutput | Out-Null
+    Write-Log -Message "Power profile set to $powerProfile" -IsOutput | Out-Null
 }

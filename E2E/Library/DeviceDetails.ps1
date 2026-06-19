@@ -323,7 +323,7 @@ function GetPowerProfiles
     $pluggedInProfiles = @($pluggedInProfiles | Where-Object { $knownPowerProfiles -contains $_ })
     Start-Sleep -Seconds 2
     Write-Log -Message "Available power profiles: $pluggedInProfiles" -IsOutput | Out-Null
-    Stop-Process -Name 'systemsettings'
+    CloseApp 'systemsettings'
     
     return $pluggedInProfiles
 }
