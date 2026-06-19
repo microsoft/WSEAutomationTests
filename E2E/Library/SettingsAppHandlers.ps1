@@ -266,3 +266,41 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
      #close settings app
      CloseApp 'systemsettings'
 }
+
+<#
+DESCRIPTION:
+    This function opens the Settings page -> System -> Power & battery -> Power mode. It waits for the UI
+    and attempts to set the specified power profile for both "Plugged in" and "On battery" modes.
+INPUT PARAMETERS:
+    - powerProfile [string] :- The desired Power profile (e.g., "Balanced"/"Best Power Efficiency"/"Best Performance").
+RETURN TYPE:
+    - void
+#>
+function SetPowerProfileInSettingsPage($powerProfile)
+{
+    Write-Log -Message "Opening Settings Page to set power profile..." -IsOutput | Out-Null
+
+    # Navigate directly to Power page via URI
+    $ui = OpenApp 'ms-settings:powersleep' 'Settings'
+    Start-Sleep -Seconds 3
+
+    # Expand "Show more settings"
+    FindAndClick $ui "ExpanderToggleButton" "Show more settings"
+    Start-Sleep -Seconds 3
+    
+    # Set "Plugged in" power mode
+    Write-Log -Message "Setting power profile to: $powerProfile" -IsOutput | Out-Null
+    FindAndClick $ui "ComboBox" "Plugged in"
+    Start-Sleep -Seconds 3
+    FindAndClick $ui "ComboBoxItem" -proptyNme $powerProfile
+    Start-Sleep -Seconds 3
+    Write-Log -Message "Plugged in mode set to $powerProfile" -IsOutput | Out-Null
+    
+    # Set "On battery" power mode
+    FindAndClick $ui "ComboBox" "On battery"
+    Start-Sleep -Seconds 3
+    FindAndClick $ui "ComboBoxItem" -proptyNme $powerProfile
+    Start-Sleep -Seconds 3
+    Write-Log -Message "On battery mode set to $powerProfile" -IsOutput | Out-Null
+    Write-Log -Message "Power profile set to $powerProfile" -IsOutput | Out-Null
+}
