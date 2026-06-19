@@ -20,6 +20,7 @@ if (-not ([System.Management.Automation.PSTypeName]'Windows.Media.Ocr.OcrEngine'
         $null = [Windows.Graphics.Imaging.BitmapDecoder, Windows.Foundation, ContentType = WindowsRuntime]
         $null = [Windows.Graphics.Imaging.SoftwareBitmap, Windows.Foundation, ContentType = WindowsRuntime]
         $null = [Windows.Storage.Streams.RandomAccessStream, Windows.Foundation, ContentType = WindowsRuntime]
+        $null = [Windows.Globalization.Language, Windows.Foundation, ContentType = WindowsRuntime]
     } catch {
         Write-Warning "OCR WinRT types could not be loaded. Quick Settings OCR automation will not be available. Error: $_"
         $script:OcrAvailable = $false
