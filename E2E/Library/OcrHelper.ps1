@@ -258,7 +258,7 @@ public class NativeMethods_OCR {
     }
 
     [NativeMethods_OCR]::ClickAt($X, $Y)
-    Write-Log -Message "Clicked at screen position ($X, $Y)" -IsOutput
+    Write-Log -Message "Clicked at screen position ($X, $Y)" -IsOutput | Out-Null
 }
 
 
@@ -294,7 +294,7 @@ function Find-AndClickOCR {
     $clickX = $match.ScreenX + [int]($match.Width / 2) + $OffsetX
     $clickY = $match.ScreenY + [int]($match.Height / 2) + $OffsetY
 
-    Write-Log -Message "OCR: Found '$SearchText' at ($($match.ScreenX), $($match.ScreenY)) size ($($match.Width)x$($match.Height)). Clicking at ($clickX, $clickY)" -IsOutput
+    Write-Log -Message "OCR: Found '$SearchText' at ($($match.ScreenX), $($match.ScreenY)) size ($($match.Width)x$($match.Height)). Clicking at ($clickX, $clickY)" -IsOutput | Out-Null
     Click-AtPosition -X $clickX -Y $clickY
 
     return $true

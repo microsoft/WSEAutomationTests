@@ -153,7 +153,7 @@ if($voiceFocusExists -eq $false)
 # Set up Power Profile
 Write-Log -Message "Setting up Power Profile to $powerProfile" | Out-File -FilePath "$pathLogsFolder\QuickSettingsScenarioTesting.txt" -Append
 SetPowerProfileInSettingsPage -powerProfile $powerProfile
-Stop-Process -Name 'systemsettings'
+CloseApp 'systemsettings'
 
 if($toggleAIEffects -eq "All")
 {

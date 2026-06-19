@@ -53,10 +53,10 @@ RETURN TYPE:
     - void
 #>
 function Open-QuickSettings {
-    Write-Log -Message "Opening Quick Settings (Win+A)..." -IsOutput
+    Write-Log -Message "Opening Quick Settings (Win+A)..." -IsOutput | Out-Null
     [QuickSettingsNative]::OpenQuickSettings()
     Start-Sleep -Seconds 2
-    Write-Log -Message "Quick Settings panel should be open." -IsOutput
+    Write-Log -Message "Quick Settings panel should be open." -IsOutput | Out-Null
 }
 
 
@@ -70,7 +70,7 @@ RETURN TYPE:
     - void
 #>
 function Close-QuickSettings {
-    Write-Log -Message "Closing Quick Settings (Escape)..." -IsOutput
+    Write-Log -Message "Closing Quick Settings (Escape)..." -IsOutput | Out-Null
     [QuickSettingsNative]::CloseQuickSettings()
     Start-Sleep -Milliseconds 500
 }
@@ -94,7 +94,7 @@ function Open-StudioEffects {
     Open-QuickSettings
 
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
-        Write-Log -Message "Looking for Studio Effects button (attempt $attempt/$MaxRetries)..." -IsOutput
+        Write-Log -Message "Looking for Studio Effects button (attempt $attempt/$MaxRetries)..." -IsOutput | Out-Null
 
         $ocrResults = Get-RightScreenOCR -Fraction 0.4
         $studioMatch = Find-OCRText -OcrResults $ocrResults -SearchText "Studio effects"
@@ -103,7 +103,7 @@ function Open-StudioEffects {
         }
 
         if ($studioMatch) {
-            Write-Log -Message "Found 'Studio Effects' at ($($studioMatch.ScreenX), $($studioMatch.ScreenY))" -IsOutput
+            Write-Log -Message "Found 'Studio Effects' at ($($studioMatch.ScreenX), $($studioMatch.ScreenY))" -IsOutput | Out-Null
             $clickX = $studioMatch.ScreenX + [int]($studioMatch.Width / 2)
             $clickY = $studioMatch.ScreenY + [int]($studioMatch.Height / 2)
             Click-AtPosition -X $clickX -Y $clickY
@@ -115,12 +115,12 @@ function Open-StudioEffects {
                         (Find-OCRText -OcrResults $verifyOcr -SearchText "Automatic framing") -or
                         (Find-OCRText -OcrResults $verifyOcr -SearchText "Eye contact")
             if ($verified) {
-                Write-Log -Message "Studio Effects flyout verified open." -IsOutput
+                Write-Log -Message "Studio Effects flyout verified open." -IsOutput | Out-Null
                 return $true
             }
-            Write-Log -Message "Studio Effects flyout not verified, retrying..." -IsOutput
+            Write-Log -Message "Studio Effects flyout not verified, retrying..." -IsOutput | Out-Null
         } else {
-            Write-Log -Message "Studio Effects button not found, retrying..." -IsOutput
+            Write-Log -Message "Studio Effects button not found, retrying..." -IsOutput | Out-Null
         }
         Start-Sleep -Seconds 1
     }
@@ -196,24 +196,24 @@ function Set-StudioEffectState {
     $screenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width
 
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
-        Write-Log -Message "Setting '$EffectName' to $DesiredState (attempt $attempt)..." -IsOutput
+        Write-Log -Message "Setting '$EffectName' to $DesiredState (attempt $attempt)..." -IsOutput | Out-Null
 
         $ocrResults = Get-RightScreenOCR -Fraction 0.4
         $match = Find-OCRText -OcrResults $ocrResults -SearchText $EffectName
         if (-not $match) {
-            Write-Log -Message "'$EffectName' not found on screen, retrying..." -IsOutput
+            Write-Log -Message "'$EffectName' not found on screen, retrying..." -IsOutput | Out-Null
             Start-Sleep -Seconds 1
             continue
         }
 
-        Write-Log -Message "Found '$EffectName' at ($($match.ScreenX), $($match.ScreenY))" -IsOutput
+        Write-Log -Message "Found '$EffectName' at ($($match.ScreenX), $($match.ScreenY))" -IsOutput | Out-Null
 
         # Check current state
         $currentState = Get-ToggleState -OcrResults $ocrResults -EffectMatch $match
-        Write-Log -Message "'$EffectName' current state: $currentState, desired: $DesiredState" -IsOutput
+        Write-Log -Message "'$EffectName' current state: $currentState, desired: $DesiredState" -IsOutput | Out-Null
 
         if ($currentState -eq $DesiredState) {
-            Write-Log -Message "'$EffectName' is already $DesiredState, no click needed." -IsOutput
+            Write-Log -Message "'$EffectName' is already $DesiredState, no click needed." -IsOutput | Out-Null
             return $true
         }
 
@@ -235,13 +235,13 @@ function Set-StudioEffectState {
             if ($verifyMatch) {
                 $newState = Get-ToggleState -OcrResults $verifyOcr -EffectMatch $verifyMatch
                 if ($newState -eq $DesiredState) {
-                    Write-Log -Message "'$EffectName' successfully set to $DesiredState (offset=$offset)." -IsOutput
+                    Write-Log -Message "'$EffectName' successfully set to $DesiredState (offset=$offset)." -IsOutput | Out-Null
                     return $true
                 }
-                Write-Log -Message "'$EffectName' state after click at offset $offset`: $newState (expected $DesiredState)" -IsOutput
+                Write-Log -Message "'$EffectName' state after click at offset $offset`: $newState (expected $DesiredState)" -IsOutput | Out-Null
             }
         }
-        Write-Log -Message "'$EffectName' toggle click did not achieve desired state, retrying full attempt..." -IsOutput
+        Write-Log -Message "'$EffectName' toggle click did not achieve desired state, retrying full attempt..." -IsOutput | Out-Null
     }
 
     Write-Warning "Could not set '$EffectName' to $DesiredState after $MaxRetries attempts."
@@ -272,10 +272,10 @@ function Verify-StudioEffectsState {
         if ($match) {
             $state = Get-ToggleState -OcrResults $ocrResults -EffectMatch $match
             $states[$name] = $state
-            Write-Log -Message "Verify: '$name' = $state" -IsOutput
+            Write-Log -Message "Verify: '$name' = $state" -IsOutput | Out-Null
         } else {
             $states[$name] = "NotFound"
-            Write-Log -Message "Verify: '$name' not found on screen" -IsOutput
+            Write-Log -Message "Verify: '$name' not found on screen" -IsOutput | Out-Null
         }
     }
 
@@ -303,7 +303,7 @@ function Select-StudioEffectOption {
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
         $result = Find-AndClickOCR -SearchText $OptionName -Fraction 0.4
         if ($result) {
-            Write-Log -Message "Selected Studio Effects option: '$OptionName'" -IsOutput
+            Write-Log -Message "Selected Studio Effects option: '$OptionName'" -IsOutput | Out-Null
             return $true
         }
         Start-Sleep -Seconds 1
@@ -360,7 +360,7 @@ function ToggleAIEffectsInQuickSettings {
         [string]$CFW    = "Off"
     )
 
-    Write-Log -Message "Entering ToggleAIEffectsInQuickSettings" -IsOutput
+    Write-Log -Message "Entering ToggleAIEffectsInQuickSettings" -IsOutput | Out-Null
     $allSuccess = $true
 
     try {
@@ -398,12 +398,12 @@ function ToggleAIEffectsInQuickSettings {
         # Portrait light and Creative filters may not exist on all devices
         $plResult = Set-StudioEffectState -EffectName "Portrait light" -DesiredState $PLVal
         if ($plResult -eq $false -and $PLVal -eq "On") {
-            Write-Log -Message "Portrait light not available on this device, skipping." -IsOutput
+            Write-Log -Message "Portrait light not available on this device, skipping." -IsOutput | Out-Null
         }
 
         $cfResult = Set-StudioEffectState -EffectName "Creative filters" -DesiredState $CF
         if ($cfResult -eq $false -and $CF -eq "On") {
-            Write-Log -Message "Creative filters not available on this device, skipping." -IsOutput
+            Write-Log -Message "Creative filters not available on this device, skipping." -IsOutput | Out-Null
         }
         if ($CF -eq "On" -and $cfResult) {
             if ($CFI -eq "On" -and -not (Select-StudioEffectOption -OptionName "Illustrated")) { $allSuccess = $false }
@@ -414,7 +414,7 @@ function ToggleAIEffectsInQuickSettings {
         # VFVal is intentionally not handled here — Voice Focus is not in the Quick Settings
         # Studio Effects panel. It must be toggled separately via VoiceFocusToggleSwitch.
         if ($VFVal -ne "Off") {
-            Write-Log -Message "Note: Voice Focus ($VFVal) is not available in Quick Settings. Use VoiceFocusToggleSwitch separately." -IsOutput
+            Write-Log -Message "Note: Voice Focus ($VFVal) is not available in Quick Settings. Use VoiceFocusToggleSwitch separately." -IsOutput | Out-Null
         }
 
     } finally {
@@ -423,7 +423,7 @@ function ToggleAIEffectsInQuickSettings {
     }
 
     if ($allSuccess) {
-        Write-Log -Message "All AI effects set successfully in Quick Settings." -IsOutput
+        Write-Log -Message "All AI effects set successfully in Quick Settings." -IsOutput | Out-Null
     } else {
         Write-Warning "Some effects could not be set in Quick Settings. Check logs for details."
     }
