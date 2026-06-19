@@ -34,6 +34,10 @@ function GetContentOfLogFileAndCopyToTestSpecificLogFile($scenarioLogFldr)
     $logCopyTo =  "$pathLogsFolder\$scenarioLogFldr\log.txt" 
     $search="Starting Test for "
     $linenumber = Get-Content $logCopyFrom | select-string $search | Select-Object -Last 1
-    $lne = $linenumber.LineNumber - 1
+    if ($linenumber -and $linenumber.LineNumber -gt 0) {
+        $lne = $linenumber.LineNumber - 1
+    } else {
+        $lne = 0
+    }
     Get-Content -Path $logCopyFrom | Select -Skip $lne > $logCopyTo 
 }
