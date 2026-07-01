@@ -23,6 +23,7 @@
 .".\Library\LookUpTable.ps1"
 .".\Library\DeviceDetails.ps1"
 .".\Library\SetupandCompleteTestRun"
+.".\Library\TeamsAppHandlers.ps1"
 
 .".\CheckInTest\CameraAppTest.ps1"
 .".\CheckInTest\SettingAppTest.ps1"
