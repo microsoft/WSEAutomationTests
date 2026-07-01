@@ -64,6 +64,7 @@ function GetVideoDetails($snarioName,$pathLogsFolder)
            # Rename-Item cannot overwrite an existing file; move to a unique destination avoids collisions.
            Move-Item -LiteralPath $videoPath -Destination $newVideoPath -Force -ErrorAction Stop
            $videoToAnalyzePath = $newVideoPath
+        Write-Log -Message "Video renamed from $videoFileName to: $newVideoName" -IsOutput
        }
        catch
        {
