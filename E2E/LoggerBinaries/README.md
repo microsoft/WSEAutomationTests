@@ -20,6 +20,8 @@ It also adds the tool directory to the user `PATH`. Open a new terminal after se
 
 ## Manual Trace Collection
 
+`collect.cmd` is intended for ad hoc manual trace collection. The E2E script tests use the same trace collection SDK, but this particular `.cmd` tool is for collecting traces manually outside the automated test flow.
+
 Run `collect.cmd` from an elevated Command Prompt or elevated PowerShell session:
 
 ```cmd
