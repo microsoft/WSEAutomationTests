@@ -200,23 +200,28 @@ RETURN TYPE:
 function AddToFailedTestsList($failedTests)
 {
    $splitEachTests = $failedTests -split "\\"
-   $camsnario = $splitEachTests[1]
    $logFolder = $splitEachTests[0] -split ". "
    $functionToCall = $logFolder[1]
    $logFile = $logFolder[1] + ".txt"
-   $vdoRes = $splitEachTests[2]
-   $ptoRes = $splitEachTests[3]
-   $devPowStat = $splitEachTests[4]
-   $VFdetails  = $splitEachTests[5] -split "-"
+   # The folder name has spaces stripped (e.g. "BestPowerEfficiency"); map back to the full profile name
+   $powerProfileFolder = $splitEachTests[1]
+   $powerProfile = RetrieveValue($powerProfileFolder)
+   if (-not $powerProfile) { $powerProfile = $powerProfileFolder }
+   $camsnario = $splitEachTests[2]
+   $vdoRes = $splitEachTests[3]
+   $ptoRes = $splitEachTests[4]
+   $devPowStat = $splitEachTests[5]
+   $VFdetails  = $splitEachTests[6] -split "-"
    $VF = $VFdetails[1]
-   $togAiEfft = $splitEachTests[6]
+   $togAiEfft = $splitEachTests[7]
    $token = "111222"
    $SPID ="333444"
+
    if($functionToCall -eq  "CameraAppTest")
    {
       $vdoRes = RetrieveValue($vdoRes)
       $ptoRes = RetrieveValue($ptoRes) 
-      Write-Output "$functionToCall -logFile `"$logFile`" $token $SPId -camsnario `"$camsnario`" -vdoRes `"$($vdoRes -join ', ')`" -ptoRes `"$($ptoRes -join ', ')`" -devPowStat `"$devPowStat`" -VF `"$VF`" -toggleEachAiEffect `"$togAiEfft`" >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
+      Write-Output "$functionToCall -logFile `"$logFile`" $token $SPId -camsnario `"$camsnario`" -vdoRes `"$($vdoRes -join ', ')`" -ptoRes `"$($ptoRes -join ', ')`" -devPowStat `"$devPowStat`" -VF `"$VF`" -toggleEachAiEffect `"$togAiEfft`" -powerProfile `"$powerProfile`" >> `$pathLogsFolder\CameraAppTest.txt" >> $pathLogsFolder\ReRunFailedTests.ps1
       Write-Output $failedTests >> $pathLogsFolder\failedTests.txt
    }
    else
