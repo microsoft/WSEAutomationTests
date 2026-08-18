@@ -18,7 +18,7 @@ jobs:
     steps:
       # Step 1: Checkout repository
       - name: Checkout repository
-        uses: actions/checkout@v2  # Checkout the code from the PR merge
+        uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
 
       # Step 2: Get current version from version.txt
       - name: Get current version from version.txt
@@ -119,7 +119,7 @@ jobs:
 
       # Step 7: Upload Artifact
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4.6.2  # Upload artifact action
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: e2e-tests-${{ env.NEW_VERSION }}  # Artifact name with the new version number
           path: artifact/*  # Path to the collected files
