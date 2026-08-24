@@ -22,6 +22,7 @@ function GetDeviceDetails()
    $deviceData.VideoResolutions = GetVideoResList
    $deviceData.PhotoResolutions = GetPhotoResList
    $deviceData.PowerStates      = @("Pluggedin", "Unplugged")
+   $deviceData.PowerProfiles = GetPowerProfiles
    $voiceFocusExists = CheckVoiceFocusPolicy 
    if($voiceFocusExists -eq $false)
    {
@@ -80,6 +81,8 @@ function Generate-Combinations {
     }
     return $combinations
 }
+
+
 <#
 DESCRIPTION:
     This function retrieves the list of supported video resolutions from the Camera app settings.
@@ -292,4 +295,35 @@ function Filter-Resolutions {
     Write-Host "==============================`n" -ForegroundColor Cyan
     
     return $filtered.ToArray()
+}
+
+
+<#
+DESCRIPTION:
+    This function retrieves the list of supported Power Profiles.
+    It opens the Settings app and checks the available Power Profiles options.
+
+RETURN TYPE:
+    - Array: List of supported Power Profiles.
+#>
+function GetPowerProfiles
+{
+    Add-Type -AssemblyName UIAutomationClient
+
+    # Navigate directly to Power page via URI
+    $ui = OpenApp 'ms-settings:powersleep' 'Settings'
+    Start-Sleep -Seconds 3
+    FindAndClick $ui "ExpanderToggleButton" "Show more settings"
+    Start-Sleep -Seconds 3
+    FindAndClick $ui "ComboBox" "Plugged in"
+    Start-Sleep -Seconds 3
+    $pluggedInProfiles = FindAllElementsNameWithClassName $ui ComboBoxItem
+    # Filter to known Windows power profile names to avoid spurious items from other ComboBoxes on the page
+    $knownPowerProfiles = @("Best Power Efficiency", "Balanced", "Best Performance", "Better Performance", "Recommended")
+    $pluggedInProfiles = @($pluggedInProfiles | Where-Object { $knownPowerProfiles -contains $_ })
+    Start-Sleep -Seconds 2
+    Write-Log -Message "Available power profiles: $pluggedInProfiles" -IsOutput | Out-Null
+    CloseApp 'systemsettings'
+    
+    return $pluggedInProfiles
 }
