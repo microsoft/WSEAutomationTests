@@ -438,9 +438,18 @@ function WseEnablingStatus($targetMepCameraVer, $targetMepAudioVer, $targetPerce
 		}
 
 		$externalCameraIsOptedIn = $parseResults.mepCameraOptedIn -ieq "explicit"
+		$Global:validatedCameraFriendlyName = $parseResults.optinCameraFriendlyName
 		# if the external camera is not opted in, enable it
 		if ($externalCameraIsAvailable -and -not $externalCameraIsOptedIn) {
 			Enable-ExternalCamera
+
+			Start-Sleep -Seconds 5
+			$parseResults = parseOptInCameraInfoFromDxDiagInfo -CameraType $CameraType
+			$externalCameraIsOptedIn = $parseResults.mepCameraOptedIn -ieq "explicit"
+			if (-not $externalCameraIsOptedIn) {
+				Write-Log -Message "External camera opt-in did not take effect (MEPOptedIn='$($parseResults.mepCameraOptedIn)')" -IsHost -ForegroundColor Red
+				return $false
+			}
 		}
 	}
 
