@@ -14,18 +14,27 @@ RETURN TYPE:
     - void (Performs exception handling, logging, and reporting without returning a value.)
 #>
 function Error-Exception($snarioName, $strttme, $rslts, $logFile, $token, $SPID)
-{  
+{
+   $originalError = $_
+
    Take-Screenshot "Error-Exception" $snarioName
 
    Write-Log -Message "Error occurred and entered catch statement" -IsOutput
    CloseApp 'systemsettings'
    CloseApp 'WindowsCamera'
    CloseApp 'Taskmgr'
-   StopTrace $snarioName
+   try
+   {
+      StopTrace $snarioName
+   }
+   catch
+   {
+      Write-Log -Message "Trace cleanup failed: $($_.Exception.Message)" -IsOutput
+   }
    CheckServiceState 'Windows Camera Frame Server'
-   Write-Output $_
-   TestOutputMessage $snarioName "Exception" $strttme $_.Exception.Message
-   Write-Output $_ >> $pathLogsFolder\ConsoleResults.txt
+   Write-Output $originalError
+   TestOutputMessage $snarioName "Exception" $strttme $originalError.Exception.Message
+   Write-Output $originalError >> $pathLogsFolder\ConsoleResults.txt
    Reporting $rslts "$pathLogsFolder\Report.txt"
    $getLogs = Get-Content -Path "$pathLogsFolder\$logFile" -Raw
    Write-Log -Message $getLogs -IsHost

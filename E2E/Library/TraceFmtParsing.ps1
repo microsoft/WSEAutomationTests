@@ -5,6 +5,7 @@ This centralizes:
 - Locating per-scenario AsgTraceFmt.txt
 - Extracting embedded JSON payload from tracefmt lines
 - Parsing the tracefmt timestamp format
+- Correlating scenario usage stats and first-frame events by process ID
 - Common queries (PerceptionScenario presence, provider start/stop pairing, GenericError lines)
 #>
 
@@ -58,6 +59,227 @@ function Get-TraceFmtTimestamp
     catch {
         return $null
     }
+}
+
+function Get-TraceFmtProcessId
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Line,
+
+        $Json
+    )
+
+    if ($null -eq $Json) {
+        $Json = Get-TraceFmtJsonFromLine -Line $Line
+    }
+
+    try {
+        if ($Json -and $Json.meta -and ($Json.meta.PSObject.Properties.Name -contains 'pid')) {
+            return [int64]$Json.meta.pid
+        }
+    }
+    catch { }
+
+    $m = [regex]::Match($Line, '^\[[^\]]+\](?<pid>[0-9A-Fa-f]+)\.')
+    if (-not $m.Success) {
+        return $null
+    }
+
+    try {
+        return [Convert]::ToInt64($m.Groups['pid'].Value, 16)
+    }
+    catch {
+        return $null
+    }
+}
+
+function Get-TraceFmtScenarioCandidates
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [int64]$ScenarioId
+    )
+
+    $ldcMask = 8388608L
+    $candidates = New-Object System.Collections.Generic.List[long]
+    $candidates.Add($ScenarioId) | Out-Null
+    $candidates.Add($ScenarioId + $ldcMask) | Out-Null
+
+    if (($ScenarioId -band 32) -ne 0)
+    {
+        $minus32 = $ScenarioId - 32
+        if ($minus32 -ge 0) {
+            $candidates.Add($minus32) | Out-Null
+            $candidates.Add($minus32 + $ldcMask) | Out-Null
+        }
+    }
+
+    return @($candidates | Select-Object -Unique)
+}
+
+function Get-PerceptionFrameThresholdCounts
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        $UsageStats
+    )
+
+    $framesAbove33ms = 0L
+    if ($UsageStats.PSObject.Properties.Name -contains 'NumberOfFramesAbove33ms') {
+        try { $framesAbove33ms = [int64]$UsageStats.NumberOfFramesAbove33ms } catch { $framesAbove33ms = 0L }
+    }
+    else {
+        foreach ($bucketName in @(
+                'NumberOfFrames33msTo35ms',
+                'NumberOfFrames35msTo40ms',
+                'NumberOfFrames40msTo50ms',
+                'NumberOfFramesAbove50ms'
+            )) {
+            if ($UsageStats.PSObject.Properties.Name -contains $bucketName) {
+                try { $framesAbove33ms += [int64]$UsageStats.$bucketName } catch { }
+            }
+        }
+    }
+
+    $framesAbove10ms = $null
+    if ($UsageStats.PSObject.Properties.Name -contains 'NumberOfFramesAbove10ms') {
+        try { $framesAbove10ms = [int64]$UsageStats.NumberOfFramesAbove10ms } catch { $framesAbove10ms = $null }
+    }
+    elseif ($UsageStats.PSObject.Properties.Name -contains 'NumberOfFrames10msTo23ms') {
+        $framesAbove10ms = 0L
+        foreach ($bucketName in @(
+                'NumberOfFrames10msTo23ms',
+                'NumberOfFrames23msTo25ms',
+                'NumberOfFrames25msTo27ms',
+                'NumberOfFrames27msTo29ms',
+                'NumberOfFrames29msTo31ms',
+                'NumberOfFrames31msTo33ms'
+            )) {
+            if ($UsageStats.PSObject.Properties.Name -contains $bucketName) {
+                try { $framesAbove10ms += [int64]$UsageStats.$bucketName } catch { }
+            }
+        }
+        $framesAbove10ms += $framesAbove33ms
+    }
+
+    return [pscustomobject]@{
+        FramesAbove10ms = $framesAbove10ms
+        FramesAbove33ms = $framesAbove33ms
+    }
+}
+
+function Get-TraceFmtScenarioProcess
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $true)]
+        [int64]$ScenarioId
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $null
+    }
+
+    $candidates = @(Get-TraceFmtScenarioCandidates -ScenarioId $ScenarioId)
+
+    foreach ($line in Get-Content -LiteralPath $Path)
+    {
+        if ($line -notmatch '\[Microsoft\.ASG\.Perception\]\s+\[PerceptionSessionUsageStats\]') {
+            continue
+        }
+
+        $json = Get-TraceFmtJsonFromLine -Line $line
+        if (-not $json -or -not ($json.PSObject.Properties.Name -contains 'PerceptionScenario')) {
+            continue
+        }
+
+        $matchedScenario = [int64]$json.PerceptionScenario
+        if ($candidates -notcontains $matchedScenario) {
+            continue
+        }
+
+        $processId = Get-TraceFmtProcessId -Line $line -Json $json
+        if ($null -eq $processId) {
+            continue
+        }
+
+        return [pscustomobject]@{
+            ProcessId = [int64]$processId
+            MatchedScenarioId = $matchedScenario
+            UsageStats = $json
+            Line = $line
+        }
+    }
+
+    return $null
+}
+
+function Get-TraceFmtFirstFrameForProcess
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $true)]
+        [int64]$ProcessId
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $null
+    }
+
+    foreach ($line in Get-Content -LiteralPath $Path)
+    {
+        if ($line -notmatch '\[Microsoft\.ASG\.Perception\]\s+\[GenericVerbose\]') {
+            continue
+        }
+
+        $json = Get-TraceFmtJsonFromLine -Line $line
+        if (-not $json -or -not ($json.PSObject.Properties.Name -contains 'text')) {
+            continue
+        }
+
+        $text = [string]$json.text
+        $m = [regex]::Match($text, '^First frame for PerceptionCore instance .+?, time to first frame (?<ns>\d+)$')
+        if (-not $m.Success) {
+            continue
+        }
+
+        $eventProcessId = Get-TraceFmtProcessId -Line $line -Json $json
+        if ($null -eq $eventProcessId -or [int64]$eventProcessId -ne $ProcessId) {
+            continue
+        }
+
+        return [pscustomobject]@{
+            ProcessId = $ProcessId
+            TimeToFirstFrameInNanoseconds = [int64]$m.Groups['ns'].Value
+            TimestampUtc = Get-TraceFmtTimestamp -Line $line
+            Line = $line
+        }
+    }
+
+    return $null
+}
+
+function Get-TraceFmtFirstFrameForScenario
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $true)]
+        [int64]$ScenarioId
+    )
+
+    $scenarioProcess = Get-TraceFmtScenarioProcess -Path $Path -ScenarioId $ScenarioId
+    if (-not $scenarioProcess) {
+        return $null
+    }
+
+    return Get-TraceFmtFirstFrameForProcess -Path $Path -ProcessId $scenarioProcess.ProcessId
 }
 
 function Test-TraceFmtContainsAnyPerceptionScenario
@@ -225,18 +447,16 @@ function Set-InitTimePCOnlyFromTraceFmt
         return $true
     }
 
-    $times = Get-TraceFmtPCStartAndFirstFrameTime -SnarioName $SnarioName
-    if ($times -eq $false)
+    $path = "$pathLogsFolder\$SnarioName\AsgTraceFmt.txt"
+    $firstFrame = Get-TraceFmtFirstFrameForScenario -Path $path -ScenarioId ([int64]$SnarioId)
+    if (-not $firstFrame)
     {
         Write-Log -Message "   No match found for PC Time To First Frame in AsgTraceFmt.txt for Scenario $SnarioId." -IsHost -ForegroundColor Yellow
         Write-Output "No match found for PC Time To First Frame in AsgTraceFmt.txt for Scenario $SnarioId." >> "$pathLogsFolder\ConsoleResults.txt"
         return $false
     }
 
-    $PCStartTime = $times[0]
-    $PCFirstFrameTime = $times[1]
-
-    $InitTimePCOnly = [math]::Round((New-TimeSpan -Start $PCStartTime -End $PCFirstFrameTime).TotalSeconds, 4)
+    $InitTimePCOnly = [math]::Round([double]$firstFrame.TimeToFirstFrameInNanoseconds / 1e9, 4)
     Write-Log -Message "PC Time To First Frame: ${InitTimePCOnly}secs" -IsOutput
 
     $Results.$resultPropertyName = $InitTimePCOnly
@@ -257,10 +477,11 @@ function Set-InitTimeCameraAppFromTraceFmt
         [datetime]$CameraAppStartTimeUtc
     )
 
-    $times = Get-TraceFmtPCStartAndFirstFrameTime -SnarioName $SnarioName
-    if ($times -eq $false) { return $false }
+    $path = "$pathLogsFolder\$SnarioName\AsgTraceFmt.txt"
+    $firstFrame = Get-TraceFmtFirstFrameForScenario -Path $path -ScenarioId ([int64]$SnarioId)
+    if (-not $firstFrame -or -not $firstFrame.TimestampUtc) { return $false }
 
-    $PCFirstFrameTime = $times[1]
+    $PCFirstFrameTime = $firstFrame.TimestampUtc
 
     Write-Output "Camera App Start Time: $CameraAppStartTimeUtc" >> "$pathLogsFolder\ConsoleResults.txt"
     Write-Output "PC First Frame Time: $PCFirstFrameTime" >> "$pathLogsFolder\ConsoleResults.txt"
@@ -287,10 +508,11 @@ function Set-InitTimeVoiceRecorderAppFromTraceFmt
         [datetime]$AudioRecordingStartTimeUtc
     )
 
-    $times = Get-TraceFmtPCStartAndFirstFrameTime -SnarioName $SnarioName
-    if ($times -eq $false) { return $false }
+    $path = "$pathLogsFolder\$SnarioName\AsgTraceFmt.txt"
+    $firstFrame = Get-TraceFmtFirstFrameForScenario -Path $path -ScenarioId ([int64]$SnarioId)
+    if (-not $firstFrame -or -not $firstFrame.TimestampUtc) { return $false }
 
-    $PCFirstFrameTime = $times[1]
+    $PCFirstFrameTime = $firstFrame.TimestampUtc
 
     $InitTimeFromVoiceRecorderAppStarts = [math]::Round((New-TimeSpan -Start $VoiceRecorderAppStartTimeUtc -End $PCFirstFrameTime).TotalSeconds, 4)
     Write-Log -Message "Time from voiceRecorder app started until PC trace first frame processed: ${InitTimeFromVoiceRecorderAppStarts}secs" -IsOutput
@@ -411,8 +633,7 @@ function Write-PerceptionFrameProcessingWarningsFromMetrics
     try { $avg = [double]$Metrics.AvgMs } catch { $avg = 0.0 }
     try { $max = [double]$Metrics.MaxMs } catch { $max = 0.0 }
 
-    # Print frame info ONLY when frames above 33ms is greater than 1
-    if ($n -gt 1) {
+    if ($n -gt 0) {
         $hostMessage = ("   {0}: {1}, TotalFrames: {2}, Min: {3}ms, Avg: {4}ms, Max: {5}ms" -f $HostCountLabel, $n, $total, $min, $avg, $max)
         Write-Log -Message $hostMessage -IsHost -ForegroundColor Red
 
@@ -431,6 +652,37 @@ function Write-PerceptionFrameProcessingWarningsFromMetrics
     Write-Log -Message "AsgTraceLog saved here: $resolved" -IsHost
     if ($ConsoleResultsPath) {
         Write-Output "AsgTraceLog saved here: $resolved" >> $ConsoleResultsPath
+    }
+}
+
+function ConvertFrom-MemoryUsageValue
+{
+    param($Value)
+
+    if ($null -eq $Value -or ("$Value").Trim() -eq '') {
+        return $null
+    }
+
+    $text = ("$Value").Trim()
+    $match = [regex]::Match($text, '^(?<used>\d+(?:\.\d+)?)\s*/\s*(?<total>\d+(?:\.\d+)?)$')
+    if ($match.Success) {
+        return [pscustomobject]@{
+            UsedGB = [double]$match.Groups['used'].Value
+            TotalGB = [double]$match.Groups['total'].Value
+            DisplayValue = $text
+        }
+    }
+
+    try {
+        $used = [double]$text
+        return [pscustomobject]@{
+            UsedGB = $used
+            TotalGB = $null
+            DisplayValue = $text
+        }
+    }
+    catch {
+        return $null
     }
 }
 
@@ -461,27 +713,26 @@ function Test-MemoryUsageFromResults
 
     $peakWS = $null
     $avgWS = $null
-    $avgMem = $null
+    $avgMem = ConvertFrom-MemoryUsageValue -Value $avgMemRaw
 
     try { if ($null -ne $peakWSRaw -and ("$peakWSRaw").Trim() -ne "") { $peakWS = [double]$peakWSRaw } } catch { $peakWS = $null }
     try { if ($null -ne $avgWSRaw -and ("$avgWSRaw").Trim() -ne "") { $avgWS = [double]$avgWSRaw } } catch { $avgWS = $null }
-    try { if ($null -ne $avgMemRaw -and ("$avgMemRaw").Trim() -ne "") { $avgMem = [double]$avgMemRaw } } catch { $avgMem = $null }
-
     # MemoryCounters may be missing or reported as all-zero in some legacy builds.
     # Treat both as "not present" to avoid false failures.
     $hasAnyCounter = ($null -ne $peakWS -or $null -ne $avgWS -or $null -ne $avgMem)
-    $hasAnyNonZeroCounter = (($null -ne $peakWS -and $peakWS -gt 0) -or ($null -ne $avgWS -and $avgWS -gt 0) -or ($null -ne $avgMem -and $avgMem -gt 0))
+    $hasAnyNonZeroCounter = (($null -ne $peakWS -and $peakWS -gt 0) -or ($null -ne $avgWS -and $avgWS -gt 0) -or ($null -ne $avgMem -and $avgMem.UsedGB -gt 0))
     if (-not $hasAnyCounter -or -not $hasAnyNonZeroCounter) {
         Write-Log -Message "Memory counters not present in trace for this run (or legacy counters reported as 0)." -IsOutput
         return
     }
 
-    Write-Log -Message ("PeakWorkingSetSize:{0}MBs, AvgWorkingSetSize:{1}MBs, AvgMemoryUsage:{2}GBs" -f $peakWS, $avgWS, $avgMem) -IsOutput
+    $avgMemDisplay = if ($avgMem) { $avgMem.DisplayValue } else { $null }
+    Write-Log -Message ("PeakWorkingSetSize:{0}MBs, AvgWorkingSetSize:{1}MBs, AvgMemoryUsage:{2}GBs" -f $peakWS, $avgWS, $avgMemDisplay) -IsOutput
 
     if ($null -ne $avgWS -and $avgWS -gt 0 -and [double]$avgWS -ge $AvgWorkingSetThresholdMb) {
-        Write-Log -Message "AvgWorkingSetSize is greater than 250MBs [PeakWorkingSetSize:${peakWS}MBs, AvgWorkingSetSize:${avgWS}MBs, AvgMemoryUsage:${avgMem}GBs]" -IsHost -BackgroundColor Red
+        Write-Log -Message "AvgWorkingSetSize is greater than 250MBs [PeakWorkingSetSize:${peakWS}MBs, AvgWorkingSetSize:${avgWS}MBs, AvgMemoryUsage:${avgMemDisplay}GBs]" -IsHost -BackgroundColor Red
         if ($ConsoleResultsPath) {
-            Write-Output "AvgWorkingSetSize is greater than 250MBs [PeakWorkingSetSize:${peakWS}MBs, AvgWorkingSetSize:${avgWS}MBs, AvgMemoryUsage:${avgMem}GBs]" >> $ConsoleResultsPath
+            Write-Output "AvgWorkingSetSize is greater than 250MBs [PeakWorkingSetSize:${peakWS}MBs, AvgWorkingSetSize:${avgWS}MBs, AvgMemoryUsage:${avgMemDisplay}GBs]" >> $ConsoleResultsPath
         }
     }
 }

@@ -21,12 +21,12 @@ function Get-CombinationReturnValues {
     # Define the base array (default values)
     $defaultReturnArray = @("Off","False","False","Off","Off","False","False","Off","False","False","Off","False","False","False","","")
     $wsev2PolicyState = CheckWSEV2Policy
-    $WSE8480Policy = Check8480Policy
+    $wsev2v3PolicyState = CheckWSEV2V3Policy
 
     # Define overrides with support check
     $overrides = @{
         'AFS'  = @{ supported = $true;                        data = @{ 0 = 'On';  1 = 'True'; 14  = 'AFS';    15 = 65536 } }
-        'AFC'  = @{ supported = $WSE8480Policy;               data = @{ 0 = 'On';  2 = 'True';  14 = 'AFC';    15 = 65536 } }
+        'AFC'  = @{ supported = $wsev2v3PolicyState;          data = @{ 0 = 'On';  2 = 'True';  14 = 'AFC';    15 = 65536 } }
         'ECS'  = @{ supported = $true;                        data = @{ 7 = 'On';  8 = 'True';  14 = 'ECS';    15 = 16 } }
         'ECT'  = @{ supported = $wsev2PolicyState;            data = @{ 7 = 'On';  9 = 'True';  14 = 'ECT';    15 = 131072 } }
         'PL'   = @{ supported = $wsev2PolicyState;            data = @{ 3 = 'On';               14 = 'PL';     15 = 524288 } }

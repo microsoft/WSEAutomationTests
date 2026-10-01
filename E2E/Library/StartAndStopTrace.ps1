@@ -8,6 +8,8 @@ RETURN TYPE:
     - void (Starts the trace session and logs output without returning a value.)
 #>
 
+$script:MepActiveTraceScenario = $null
+
 function Get-MepSdkToolPath {
     param(
         [Parameter(Mandatory = $true)][string]$EnvVar,
@@ -69,6 +71,8 @@ function StartTrace($snarioName)
             throw "Failed to start ETW session 'AsgTrace'. See $pathAsgTraceLogTxt for details. (This often happens if a previous AsgTrace session is still running or if not elevated.)"
          }
 
+         $script:MepActiveTraceScenario = $snarioName
+
          Start-Sleep -m 500
          Invoke-Tracelog -Args @('-systemrundown','AsgTrace') | Out-Null
          Start-Sleep -m 500
@@ -96,7 +100,12 @@ RETURN TYPE:
     - void (Stops the trace session and processes the logs without returning a value.)
 #>
 function StopTrace($snarioName)
-{   
+{
+    if ($script:MepActiveTraceScenario -ne $snarioName) {
+        Write-Log -Message "Skipping StopTrace because no AsgTrace session was started for '$snarioName'." -IsOutput
+        return
+    }
+
     $pathlogger = Get-MepSdkToolPath -EnvVar "TRACELOG_EXE" -CommandName "tracelog"
     $pathtracefmt = Get-MepSdkToolPath -EnvVar "TRACEFMT_EXE" -CommandName "tracefmt"
 
@@ -162,6 +171,7 @@ function StopTrace($snarioName)
         }
 
         & $pathlogger -stop AsgTrace 2>&1 | Out-File -Append -FilePath $pathAsgTraceLogTxt
+        $script:MepActiveTraceScenario = $null
         Start-Sleep -Seconds 2
         # Do not bail out if ETL is still flushing; rely on tracefmt retries (Collect-AsgTrace behavior).
 
@@ -185,7 +195,7 @@ function StopTrace($snarioName)
 
             while ((Get-Date) -lt $deadline) {
                 $attempt++
-                & $pathtracefmt $pathAsgTraceETL -preferJson -jsonMeta 0 -o $pathAsgTraceFmtTxt 2>&1 |
+                & $pathtracefmt $pathAsgTraceETL -preferJson -jsonMeta 0x10 -o $pathAsgTraceFmtTxt 2>&1 |
                     Out-File -Append -FilePath $pathAsgTraceLogTxt
 
                 $exit = $LASTEXITCODE
@@ -225,4 +235,3 @@ function StopTrace($snarioName)
         Write-Error "Windows SDK tooling missing. Ensure TRACELOG_EXE is set (run LoggerBinaries\Setup-WinSdk.ps1)." 
     }
 }
-

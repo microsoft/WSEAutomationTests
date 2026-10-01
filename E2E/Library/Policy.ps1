@@ -1,7 +1,7 @@
 ﻿<#
 DESCRIPTION:
-    This function checks whether the Voice Focus policy is supported on the system. 
-    It verifies the existence of the 'mep_audio_component.inf' file in the DriverStore 
+    This function checks whether the Voice Focus policy is supported on the system.
+    It verifies the existence of the 'mep_audio_component.inf' file in the DriverStore
     directory, which indicates the presence of the required audio component for Voice Focus.
 INPUT PARAMETERS:
     - None
@@ -17,15 +17,14 @@ function CheckVoiceFocusPolicy
    }
    else
    {
-      return $true  
+      return $true
    }
 }
 
 <#
 DESCRIPTION:
-    This function checks whether Windows Studio Effects V2 (WSEV2) policy is enabled 
-    on the system. It verifies the existence of the 'libSnpeHtpV73Skel.so' or 'libQnnHtpV81Skel.so' library 
-    file in the DriverStore directory, which is required for WSEV2 features.
+   This function checks whether Windows Studio Effects V2 (WSEV2) is supported.
+   Support is indicated by a V73 or V81 policy library, or a supported hardware ID.
 INPUT PARAMETERS:
     - None
 RETURN TYPE:
@@ -33,59 +32,55 @@ RETURN TYPE:
 #>
 function CheckWSEV2Policy
 {
-   $WSEV2Policy = @( "libSnpeHtpV73Skel" , "libQnnHtpV81Skel")
-   foreach($WSEV2PolicyMatch in $WSEV2Policy)
+   return Test-WSEPolicySupport -LibraryNames @(
+      "libSnpeHtpV73Skel"
+      "libQnnHtpV81Skel"
+   )
+}
+
+<#
+DESCRIPTION:
+   This function checks whether Windows Studio Effects V2/V3 features are supported.
+   Support is indicated by the V81 policy library or a supported hardware ID.
+INPUT PARAMETERS:
+   - None
+RETURN TYPE:
+   - [bool] (Returns $true if WSEV2/V3 features are supported, otherwise returns $false.)
+#>
+function CheckWSEV2V3Policy
+{
+   return Test-WSEPolicySupport -LibraryNames "libQnnHtpV81Skel"
+}
+
+function Test-WSEPolicySupport
+{
+   param(
+      [Parameter(Mandatory)]
+      [string[]]$LibraryNames
+   )
+
+   $driverStorePath = "C:\Windows\System32\DriverStore\FileRepository\microsofteffectpack_extension.inf*"
+   foreach($libraryName in $LibraryNames)
    {
-      $WSEV2PolicyPath = "C:\Windows\System32\DriverStore\FileRepository\microsofteffectpack_extension.inf*\$WSEV2PolicyMatch.so"
-      if(Test-path -Path $WSEV2PolicyPath)
+      if(Test-Path -Path "$driverStorePath\$libraryName.so")
       {
          return $true
       }
    }
-   return $false  
-     
+
+   return Test-WSEHardwareSupport
 }
-<#
-DESCRIPTION:
-    This function checks whether the 8380 policy is supported on the system.
-    It verifies the existence of the 'libSnpeHtpV73Skel.so' library file in the
-    DriverStore directory, which is required for this policy.
-INPUT PARAMETERS:
-    - None
-RETURN TYPE:
-    - [bool] (Returns $true if the 8380 policy is supported, otherwise returns $false.)
-#>
-function Check8380Policy
-{
-   $libSnpeHtpV73Skel = "C:\Windows\System32\DriverStore\FileRepository\microsofteffectpack_extension.inf*\libSnpeHtpV73Skel.so"
-   if(!(Test-path -Path $libSnpeHtpV73Skel))
-   {
-      return $false
-   }
-   else
-   {
-      return $true  
-   }
-} 
-<#
-DESCRIPTION:
-    This function checks whether the 8480 policy is supported on the system.
-    It verifies the existence of the 'libQnnHtpV81Skel.so' library file in the
-    DriverStore directory, which is required for this policy.
-INPUT PARAMETERS:
-    - None
-RETURN TYPE:
-    - [bool] (Returns $true if the 8480 policy is supported, otherwise returns $false.)
-#>
-function Check8480Policy
-{
-   $libQnnHtpV81Skel = "C:\Windows\System32\DriverStore\FileRepository\microsofteffectpack_extension.inf*\libQnnHtpV81Skel.so"
-   if(!(Test-path -Path $libQnnHtpV81Skel))
-   {
-      return $false
-   }
-   else
-   {
-      return $true  
-   }
-}  
+
+function Test-WSEHardwareSupport {
+    $hardwareIds = @(
+        'SWC\MEP_VEN_8086_DEV_D71D',
+        'SWC\MEP_VEN_1022_DEV_17F1'
+    )
+
+    $device = Get-PnpDevice -PresentOnly | Where-Object {
+        $_.Status -eq 'OK' -and
+        ($_.HardwareId | Where-Object { $_ -in $hardwareIds })
+    }
+
+    return [bool]$device
+}

@@ -18,35 +18,45 @@ function Take-Screenshot {
        [string]$FileName,
        [string]$ScnrName
    )
-   # Define the screenshot directory
-   $scenarioName ="$ScnrName\TaskManagerScreenshots"
-   CreateScenarioLogsFolder  $scenarioName
-   $ScreenshotDirectory = "$pathLogsFolder\$scenarioName"
-   $ScreenshotDirectoryPath = Resolve-path $ScreenshotDirectory
-   $FilePath = Join-Path -Path $ScreenshotDirectoryPath -ChildPath "$FileName.png"
+   try
+   {
+      # Define the screenshot directory
+      $scenarioName ="$ScnrName\TaskManagerScreenshots"
+      CreateScenarioLogsFolder  $scenarioName
+      $ScreenshotDirectory = "$pathLogsFolder\$scenarioName"
+      $ScreenshotDirectoryPath = Resolve-path $ScreenshotDirectory
+      $FilePath = Join-Path -Path $ScreenshotDirectoryPath -ChildPath "$FileName.png"
 
-   # Capture dimensions of all screens (for multi-monitor setup)
-   $ScreenWidth = [System.Windows.Forms.SystemInformation]::VirtualScreen.Width
-   $ScreenHeight = [System.Windows.Forms.SystemInformation]::VirtualScreen.Height
-   $ScreenX = [System.Windows.Forms.SystemInformation]::VirtualScreen.X
-   $ScreenY = [System.Windows.Forms.SystemInformation]::VirtualScreen.Y
+      # Capture dimensions of all screens (for multi-monitor setup)
+      $ScreenWidth = [System.Windows.Forms.SystemInformation]::VirtualScreen.Width
+      $ScreenHeight = [System.Windows.Forms.SystemInformation]::VirtualScreen.Height
+      $ScreenX = [System.Windows.Forms.SystemInformation]::VirtualScreen.X
+      $ScreenY = [System.Windows.Forms.SystemInformation]::VirtualScreen.Y
 
-   # Create a bitmap to store the screenshot
-   $Bitmap = New-Object System.Drawing.Bitmap($ScreenWidth, $ScreenHeight)
-   $Graphics = [System.Drawing.Graphics]::FromImage($Bitmap)
+      # Create a bitmap to store the screenshot
+      $Bitmap = New-Object System.Drawing.Bitmap($ScreenWidth, $ScreenHeight)
+      $Graphics = [System.Drawing.Graphics]::FromImage($Bitmap)
 
-   # Copy the screen content to the bitmap
-   $Graphics.CopyFromScreen($ScreenX, $ScreenY, 0, 0, [System.Drawing.Size]::new($ScreenWidth, $ScreenHeight))
+      # Copy the screen content to the bitmap
+      $Graphics.CopyFromScreen($ScreenX, $ScreenY, 0, 0, [System.Drawing.Size]::new($ScreenWidth, $ScreenHeight))
 
-   # Save the screenshot to the specified file
-   $Bitmap.Save($FilePath, [System.Drawing.Imaging.ImageFormat]::Png)
+      # Save the screenshot to the specified file
+      $Bitmap.Save($FilePath, [System.Drawing.Imaging.ImageFormat]::Png)
 
-   # Dispose of objects to free memory
-   $Graphics.Dispose()
-   $Bitmap.Dispose()
+      # Dispose of objects to free memory
+      $Graphics.Dispose()
+      $Bitmap.Dispose()
 
-   # Notify user
-   #Write-Host "Screenshot saved to $FilePath"
+      # Notify user
+      #Write-Host "Screenshot saved to $FilePath"
+   }
+   catch
+   {
+      # A screenshot failure (e.g. no interactive desktop/session available, or an invalid
+      # display handle) is best-effort diagnostics only; it must never abort the overall test
+      # run, so it is swallowed here and just logged.
+      Write-Log -Message "Take-Screenshot failed: $($_.Exception.Message)" -IsOutput
+   }
 }
 
 <#

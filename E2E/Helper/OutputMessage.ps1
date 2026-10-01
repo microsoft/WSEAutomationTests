@@ -23,19 +23,17 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
     switch ($tstReslt)
     {
         "Pass" {
-                  Write-Host -NoNewline "$currNum ${snario}: "; Write-Host -NoNewline "Passed " -ForegroundColor Green; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                  Write-Log -Message "$currNum ${snario}: Passed (${totalExecutionTimeInSeconds}s)" -IsHost -ForegroundColor Green
                   Write-Output "$currNum ${snario}:Passed (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
                   $Results.Status = "Pass"
                   $Results.ReasonForNotPass = $null
                }
         "Fail" {
-                 Write-Host -NoNewline "$currNum ${snario}: "; Write-Host -NoNewline "Failed " -ForegroundColor Red; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                 Write-Log -Message "$currNum ${snario}: Failed (${totalExecutionTimeInSeconds}s)" -IsHost -ForegroundColor Red
                  AddToFailedTestsList "$currNum ${snario}"
                  Write-Output "$currNum ${snario}:Failed (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
-                 
-                 # Reseting all field values to empty for failed case scenario exception for Status and ReasonForNotPass
-                 ResetFields
 
+                 ResetFields
                  $Results.ScenarioName = $snario
                  $Results.Status = "Fail"
                  $Results.ReasonForNotPass = $reasonForNotPass
@@ -43,13 +41,11 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
 
                
         "Exception" {
-                       Write-Host -NoNewline "$currNum ${snario}: "; Write-Host -NoNewline "Failed " -ForegroundColor Red; Write-Log -Message "(${totalExecutionTimeInSeconds}s)" -IsHost
+                       Write-Log -Message "$currNum ${snario}: Failed(Exception) (${totalExecutionTimeInSeconds}s)" -IsHost -ForegroundColor Red
                        AddToFailedTestsList "$currNum ${snario}"
                        Write-Output "$currNum ${snario}:Failed(Exception) (${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
 
-                       # Reseting all field values to empty for Exception case scenario exception for Status and ReasonForNotPass
                        ResetFields
-                       
                        $Results.ScenarioName = $snario
                        $Results.Status = "Fail"
                        $Results.ReasonForNotPass = "Exception: " + $reasonForNotPass # Prefix with "Exception:" to maintain the distinction
@@ -57,12 +53,10 @@ function TestOutputMessage($snario, $tstReslt, $strtTime, $reasonForNotPass)
                  
                     
         "Skipped"{
-                    Write-Host -NoNewline "$currNum ${snario}: "; Write-Host -NoNewline "Skipped " -ForegroundColor Yellow; Write-Log -Message "(${reasonForNotPass}) (${totalExecutionTimeInSeconds}s)" -IsHost
+                    Write-Log -Message "$currNum ${snario}: Skipped (${reasonForNotPass}) (${totalExecutionTimeInSeconds}s)" -IsHost -ForegroundColor Yellow
                     Write-Output "$currNum ${snario}:Skipped (${reasonForNotPass})(${totalExecutionTimeInSeconds}s)" >> $pathLogsFolder\ConsoleResults.txt
 
-                    # Reseting all field values to empty for skipped case scenario exception for Status and ReasonForNotPass
                     ResetFields
-
                     $Results.ScenarioName = $snario
                     $Results.Status = "Skipped"
                     $Results.ReasonForNotPass = $reasonForNotPass
@@ -98,6 +92,7 @@ function ResetFields {
    $Results.'VoiceRecorderInItTime(In secs)' = $null
    $Results.fps = $null
    $Results.'timetofirstframeForAudio(In secs)' = $null
+   $Results.FramesAbove10msForAudioBlur = $null
    $Results.FramesAbove33msForAudioBlur = $null
    $Results.'PeakWorkingSetSize(In MB)'= $null
    $Results.'AvgWorkingSetSize(In MB)' = $null

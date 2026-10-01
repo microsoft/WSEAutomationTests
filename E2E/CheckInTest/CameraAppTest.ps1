@@ -125,8 +125,8 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
              FindAndSetValue $ui RadioButton "Animated" $toggleEachAiEffect[12]
              FindAndSetValue $ui RadioButton "Watercolor" $toggleEachAiEffect[13]
           }
-          $wse8480PolicyState = Check8480Policy
-          if ($wse8480PolicyState -eq $true)
+          $wsev2v3PolicyState = CheckWSEV2V3Policy
+          if ($wsev2v3PolicyState -eq $true)
 		    {
             if($toggleEachAiEffect[0] -eq "On")
             {

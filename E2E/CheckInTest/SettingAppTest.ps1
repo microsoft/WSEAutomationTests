@@ -60,7 +60,11 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [str
       FindAndSetValue $ui ToggleSwitch "Automatic framing" $testScenario[0]
 
       if ($CameraType -ne "External Camera") {
-         FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[7]
+         $eyeContactToggleExists = CheckIfElementExists $ui ToggleSwitch "Eye contact"
+         if ($eyeContactToggleExists)
+         {
+            FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[7]
+         }
       }
 
       FindAndSetValue $ui ToggleSwitch "Background effects" $testScenario[4]
@@ -85,8 +89,8 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [str
             FindAndSetValue $ui RadioButton "Animated" $testScenario[12]
             FindAndSetValue $ui RadioButton "Watercolor" $testScenario[13]
          }
-         $wse8480PolicyState = Check8480Policy
-          if ($wse8480PolicyState -eq $true) {
+         $wsev2v3PolicyState = CheckWSEV2V3Policy
+         if ($wsev2v3PolicyState -eq $true) {
             if($testScenario[0] -eq "On")
             {
                 FindAndSetValue $ui RadioButton "Standard framing" $testScenario[1]
