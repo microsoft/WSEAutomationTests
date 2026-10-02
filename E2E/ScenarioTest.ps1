@@ -135,9 +135,11 @@ param (
                 "0.1 megapixels, 11 by 9 aspect ratio,  352 by 288 resolution" , "0.03 megapixels, 11 by 9 aspect ratio,  176 by 144 resolution")]
    [string] $ptoRes = "2.1 megapixels, 16 by 9 aspect ratio,  1920 by 1080 resolution",  # Default if not provided
 
-   [ValidateSet("Pluggedin", "Unplugged")]
-   [string] $devPowStat = "Pluggedin"  # Default if not provided
+   [ValidateSet("PluggedIn","Unplugged")]
+   [string[]] $devicePowerState = @("PluggedIn","Unplugged"),
 
+   [ValidateSet("All","Balanced","Best Power Efficiency","Best Performance")]
+   [string] $powerMode = "Balanced"
 )
 .".\CheckInTest\Helper-library.ps1"
 InitializeTest 'ScenarioTesting'
@@ -151,10 +153,28 @@ if($toggleAIEffects -eq "All")
    $deviceData = GetDeviceDetails
    $toggleAIEffects = $deviceData["ToggleAiEffect"]
 }    
-foreach ($togAiEfft in $toggleAIEffects)
-{
-   CameraAppTest -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\ScenarioTesting.txt"
+
+# Loop through device power states
+foreach($devPowStat in $devicePowerState) {
+    # Determine which power modes to test for this device state
+    $powerModesToTest = @()
+    if ($powerMode -eq "All") {
+        $powerModesToTest = Get-AvailablePowerModes -devicePowerState $devPowStat
+    } else {
+        $powerModesToTest = @($powerMode)
+    }
+
+    # Loop through power modes
+    foreach($powerModeToSet in $powerModesToTest) {
+        Set-PowerProfile -powerMode $powerModeToSet -devicePowerState $devPowStat
+
+        foreach ($togAiEfft in $toggleAIEffects)
+        {
+            CameraAppTest -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\ScenarioTesting.txt"
+        }
+    }
 }
+
 [console]::beep(500,300)
 if($token.Length -ne 0 -and $SPId.Length -ne 0)
 {

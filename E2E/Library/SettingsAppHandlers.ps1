@@ -192,6 +192,121 @@ Function VoiceFocusToggleSwitch($proptyVal)
 }
 
 <#
+.SYNOPSIS
+    Retrieves all available power modes for a specific device power state.
+.DESCRIPTION
+    Opens Settings, navigates to Power & Battery, and retrieves all available power mode options.
+.PARAMETER devicePowerState
+    The device power state context: "PluggedIn" or "Unplugged".
+.RETURN
+    Returns an array of available power mode names.
+#>
+function Get-AvailablePowerModes {
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet("PluggedIn", "Unplugged")]
+        [string]$devicePowerState
+    )
+
+    Write-Host "Opening Settings Page to retrieve available power modes..." -ForegroundColor Cyan
+
+    $ui = OpenApp 'ms-settings:' 'Settings'
+    Start-Sleep -Seconds 1
+
+    # Navigate to Power & Battery settings
+    FindAndClick -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.NavigationViewItem -proptyNme Apps
+    FindAndClick -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.NavigationViewItem -proptyNme System
+    FindAndClick -uiEle $ui -clsNme "ListViewItem" -proptyNme "Power & battery"
+    FindAndClick -uiEle $ui -clsNme "ExpanderToggleButton" -proptyNme "Show more settings"
+
+    $powerLabel = if ($devicePowerState -eq 'PluggedIn') { 'Plugged in' } else { 'On battery' }
+
+    Write-Host "Retrieving all available power modes for '$powerLabel'..." -ForegroundColor Cyan
+    $availableModes = GetAllComboBoxItems -uiEle $ui -comboBoxLabel $powerLabel
+    Write-Host "Available Power Modes: $($availableModes -join ', ')" -ForegroundColor Green
+
+    [void](CloseApp 'systemsettings')
+    return $availableModes
+}
+
+<#
+.SYNOPSIS
+    Sets the power profile for a specific device power state.
+.DESCRIPTION
+    Opens Settings, navigates to Power & Battery, and sets the power mode for the specified device power state.
+    Validates that the requested power mode is supported before applying it.
+.PARAMETER powerMode
+    The power mode to set (e.g., "Balanced", "Performance", "Power saver").
+.PARAMETER devicePowerState
+    The device power state context: "PluggedIn" or "Unplugged".
+.RETURN
+    Returns the previous power mode setting.
+#>
+function Set-PowerProfile {
+    param (
+        [Parameter(Mandatory)]
+        [string]$powerMode,
+        [Parameter(Mandatory)]
+        [ValidateSet("PluggedIn", "Unplugged")]
+        [string]$devicePowerState
+    )
+
+    Write-Host "Opening Settings Page to set power profile..." -ForegroundColor Cyan
+
+    $ui = OpenApp 'ms-settings:' 'Settings'
+    Start-Sleep -Seconds 1
+
+    # Navigate to Power & Battery settings
+    FindAndClick -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.NavigationViewItem -proptyNme Apps
+    FindAndClick -uiEle $ui -clsNme Microsoft.UI.Xaml.Controls.NavigationViewItem -proptyNme System
+    FindAndClick -uiEle $ui -clsNme "ListViewItem" -proptyNme "Power & battery"
+    FindAndClick -uiEle $ui -clsNme "ExpanderToggleButton" -proptyNme "Show more settings"
+
+    $powerLabel = if ($devicePowerState -eq 'PluggedIn') { 'Plugged in' } else { 'On battery' }
+
+    $currentPowerMode = FindComboBoxSelectedItemText -uiEle $ui -comboBoxLabel $powerLabel
+    Write-Host "Current Power Mode ($powerLabel): $currentPowerMode" -ForegroundColor Yellow
+
+    if ($currentPowerMode -eq $powerMode) {
+        Write-Host "Power mode is already set to $powerMode. Skipping update." -ForegroundColor Green
+        CloseApp 'systemsettings'
+        return $currentPowerMode
+    }
+
+    Start-Sleep -Seconds 1
+
+    FindAndClick -uiEle $ui -clsNme "ComboBox" -proptyNme $powerLabel
+    Start-Sleep -Milliseconds 500
+
+    Write-Host "Requested Power Mode: $powerMode" -ForegroundColor Yellow
+
+    $powerModeItem = CheckIfElementExists -uiEle $ui -clsNme "ComboBoxItem" -proptyNme $powerMode
+
+    if (-not $powerModeItem -and $powerMode -eq 'Balanced') {
+        Write-Host "Power mode 'Balanced' is not available on this device. Falling back to 'Recommended'." -ForegroundColor Yellow
+        $powerMode = 'Recommended'
+        $powerModeItem = CheckIfElementExists -uiEle $ui -clsNme "ComboBoxItem" -proptyNme $powerMode
+    }
+
+    if (-not $powerModeItem) {
+        CloseApp 'systemsettings'
+        Write-Error "Power mode '$powerMode' is not supported on this device." -ErrorAction Stop
+    }
+
+    FindAndClick -uiEle $ui -clsNme "ComboBoxItem" -proptyNme $powerMode
+    Start-Sleep -Milliseconds 500
+
+    $updatedPowerMode = FindComboBoxSelectedItemText -uiEle $ui -comboBoxLabel $powerLabel
+    Write-Host "Updated Power Mode ($powerLabel): $updatedPowerMode" -ForegroundColor Green
+
+    CloseApp 'systemsettings'
+
+    if ($updatedPowerMode -ne $powerMode) {
+        Write-Error "Power mode verification failed. Requested: $powerMode | Applied: $updatedPowerMode" -ErrorAction Stop
+    }
+}
+
+<#
 DESCRIPTION:
     This function toggles various AI camera effects and audio enhancements in the Settings app. 
     It handles different combinations of settings based on whether WSEV2 is supported.
