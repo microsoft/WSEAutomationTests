@@ -9,6 +9,16 @@ RETURN TYPE:
     - void (Performs UI navigation and clicking without returning a value.)
 #>
 function FindCameraEffectsPage($uiEle){
+    # On some OS builds the Settings app's left navigation pane is collapsed/hidden by
+    # default (e.g. after being opened via a deep link or if a previous session left it
+    # collapsed), so the "Bluetooth & devices" nav item isn't present in the UI tree until
+    # the navigation pane is expanded via the "Open Navigation" button.
+    $navItemExists = CheckIfElementExists $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem "Bluetooth & devices"
+    if (-not $navItemExists)
+    {
+        FindAndClick $uiEle Button "Open Navigation"
+        Start-Sleep -m 500
+    }
     FindAndClick $uiEle Microsoft.UI.Xaml.Controls.NavigationViewItem "Bluetooth & devices"
     FindAndClick $uiEle ListViewItem Cameras
     $exists = CheckIfElementExists $uiEle Button More
@@ -18,11 +28,20 @@ function FindCameraEffectsPage($uiEle){
     }
     else
     {
-        FindAndClick $uiEle Button "Connected enabled camera $Global:validatedCameraFriendlyName"
+         FindAndClick $uiEle Button "Connected enabled camera $Global:validatedCameraFriendlyName"
     }
     Start-Sleep -s 1
-    [System.Windows.Forms.SendKeys]::SendWait('{END}') 
-    Start-Sleep -s 1   
+    try {
+        # On some environments/OS builds SendKeys::SendWait throws a spurious
+        # "The operation completed successfully." exception even though the
+        # keystroke was delivered correctly. Swallow this benign failure so it
+        # doesn't abort the whole scenario.
+        [System.Windows.Forms.SendKeys]::SendWait('{END}')
+    }
+    catch {
+        Write-Log "SendKeys SendWait '{END}' reported an error (likely benign): $($_.Exception.Message)"
+    }
+    Start-Sleep -s 1
 }
 
 <#
@@ -53,7 +72,6 @@ function ClickFrontCamera($uiEle, $clsNme, $proptyNme){
        if (!$exists)
 	   {
           FindAndClick $uiEle Button Back
-          
        }
        else
        {
@@ -106,7 +124,7 @@ function FindVoiceFocusPage($uiEle){
     else
     {
        Write-Error " $Global:validatedSoundCaptureDeviceFriendlyName not found in Sound setting Page " -ErrorAction Stop
-    } 
+    }
     FindAndClick $uiEle ComboBox "Audio enhancements"
     Start-Sleep -m 500
 
@@ -212,9 +230,14 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
 
      Write-Log -Message "Toggle camera effects in setting Page" -IsOutput
      FindAndSetValue $ui ToggleSwitch "Automatic framing" $AFVal
+     $eyeContactToggleExists = $false
      if($CameraType -ne "External Camera")
      {
-        FindAndSetValue $ui ToggleSwitch "Eye contact" $ECVal
+        $eyeContactToggleExists = CheckIfElementExists $ui ToggleSwitch "Eye contact"
+        if($eyeContactToggleExists)
+        {
+           FindAndSetValue $ui ToggleSwitch "Eye contact" $ECVal
+        }
      }
      FindAndSetValue $ui ToggleSwitch "Background effects" $BBVal
 
@@ -237,16 +260,16 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
            FindAndSetValue $ui RadioButton "Watercolor" $CFW
 
         }
-        if($ECVal -eq "On") 
-        {  
+        if($ECVal -eq "On" -and $eyeContactToggleExists)
+        {
            if($CameraType -ne "External Camera")
            {
               FindAndSetValue $ui RadioButton "Standard" $ECSVal
               FindAndSetValue $ui RadioButton "Teleprompter" $ECTVal
            }
         }
-        $wse8480PolicyState = Check8480Policy
-        if ($wse8480PolicyState -eq $true)
+        $wsev2v3PolicyState = CheckWSEV2V3Policy
+        if ($wsev2v3PolicyState -eq $true)
 		{
            if($AFVal -eq "On")
            {   
@@ -261,8 +284,6 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
      {
         VoiceFocusToggleSwitch $VFVal
      }
-     
-          
      #close settings app
      CloseApp 'systemsettings'
 }

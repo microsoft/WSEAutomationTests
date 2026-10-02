@@ -1,22 +1,25 @@
 ﻿<#
 .SYNOPSIS
   Extract PerceptionSessionUsageStats JSON events from a tracefmt/text log and populate $Global:Results,
-  accepting either BASE scenario, BASE+LDC, (optional) BASE-32, and (optional) (BASE-32)+LDC.
+  accepting BASE scenario, BASE+1 (FDMetadata), BASE+LDC, (optional) BASE-32, and (optional) (BASE-32)+LDC.
 
 .DESCRIPTION
   - Test input provides the BASE scenario id (e.g., 65536).
   - We consider a match valid if the log contains:
       1) base
-      2) base + LDC_MASK (8388608)
-      3) if base has bit 32 set: base - 32
-      4) if base has bit 32 set: (base - 32) + LDC_MASK
+      2) base + 1 (FDMetadata)
+      3) base + LDC_MASK (8388608)
+      4) if base has bit 32 set: base - 32
+      5) if base has bit 32 set: (base - 32) + LDC_MASK
   - By default we mimic old behavior: keep the LAST match found.
   - If -FirstMatchOnly is set, we stop at the FIRST match.
+  - Time to first frame is read from the GenericVerbose first-frame event whose PID matches
+    the selected PerceptionSessionUsageStats event. It is not read from the usage-stats payload.
 
   Populates fields on the existing $Global:Results object (InitializeTest must create it):
     - PerceptionScenarioId     : requested base scenario
-    - MatchedScenarioId        : scenario value found in log (could be base or base+LDC or base-32 variants)
-    - ScenarioMatchMode        : "Base", "LDC", "Minus32", "Minus32+LDC"
+    - MatchedScenarioId        : scenario value found in log
+    - ScenarioMatchMode       : "Base", "FDMetadata", "LDC", "Minus32", "Minus32+LDC"
     - SessionName
     - TotalNumberOfFrames
     - Avg/Max/MinProcessingTimePerFrame(In ms)
@@ -71,10 +74,18 @@ if (-not $Global:Results) {
 
 Set-Variable -Name Results -Scope Global -Value $Global:Results
 
+if (-not (Get-Command Get-TraceFmtFirstFrameForProcess -ErrorAction SilentlyContinue))
+{
+    $traceFmtParsing = Join-Path (Split-Path -Parent $PSScriptRoot) 'Library\TraceFmtParsing.ps1'
+    if (-not (Test-Path -LiteralPath $traceFmtParsing)) {
+        throw "TraceFmt parsing helpers not found: $traceFmtParsing"
+    }
+    . $traceFmtParsing
+}
+
 # ---------------------------------------
 # Clear extracted fields (avoid fill-forward)
 # ---------------------------------------
-# Always reset fields this script owns before populating from the matched JSON.
 $Results.PerceptionScenarioId = $null
 $Results.MatchedScenarioId = $null
 $Results.ScenarioMatchMode = $null
@@ -88,17 +99,30 @@ $Results.'MinProcessingTimePerFrame(In ms)' = $null
 $Results.'PeakWorkingSetSize(In MB)' = $null
 $Results.'AvgWorkingSetSize(In MB)' = $null
 
-
 # ---------------------------------------
 # Scenario candidate generation
 # ---------------------------------------
 $LDC_MASK = 8388608
 $base = [int64]$PerceptionScenario
 
+if ($base -eq 512) {
+    $Results.'timetofirstframeForAudio(In secs)' = $null
+    $Results.FramesAbove10msForAudioBlur = $null
+}
+else {
+    $Results.'timetofirstframe(In secs)' = $null
+}
+
 $candidatesList = New-Object System.Collections.Generic.List[long]
 
-# base + base+LDC
+# base
 $candidatesList.Add($base) | Out-Null
+
+# <<< NEW: FDMetadata scenario = BASE + 1
+$fdMetadata = $base + 1
+$candidatesList.Add($fdMetadata) | Out-Null
+
+# base + LDC
 $candidatesList.Add($base + $LDC_MASK) | Out-Null
 
 # If base has bit 32 set, also try base-32 and (base-32)+LDC
@@ -128,6 +152,7 @@ Write-Verbose "[Extractor] Candidates: $($candidates -join ', ')"
 # ---------------------------------------
 $lastMatch = $null
 $lastScenarioMatched = $null
+$lastMatchProcessId = $null
 $linesScanned = 0
 $jsonLinesSeen = 0
 $matchesFound = 0
@@ -143,7 +168,8 @@ foreach ($line in Get-Content -LiteralPath $InputFile) {
 
     try {
         $j = $jsonText | ConvertFrom-Json -ErrorAction Stop
-    } catch {
+    }
+    catch {
         Write-Verbose ("[Extractor] JSON parse error on line {0}: {1}" -f $linesScanned, $_.Exception.Message)
         continue
     }
@@ -155,6 +181,7 @@ foreach ($line in Get-Content -LiteralPath $InputFile) {
 
     $lastMatch = $j
     $lastScenarioMatched = $ps
+    $lastMatchProcessId = Get-TraceFmtProcessId -Line $line -Json $j
     $matchesFound++
 
     if ($FirstMatchOnly) { break }
@@ -179,7 +206,12 @@ $Results.MatchedScenarioId = $matched
 
 # Determine match mode
 $Results.ScenarioMatchMode = "Base"
-if ($matched -eq ($base + $LDC_MASK)) {
+
+# <<< NEW: Identify BASE + 1 as FDMetadata
+if ($matched -eq $fdMetadata) {
+    $Results.ScenarioMatchMode = "FDMetadata"
+}
+elseif ($matched -eq ($base + $LDC_MASK)) {
     $Results.ScenarioMatchMode = "LDC"
 }
 elseif ($null -ne $minus32 -and $matched -eq $minus32) {
@@ -202,25 +234,11 @@ if ($j.PSObject.Properties.Name -contains 'NumberOfProcessedFrames') {
     $Results.TotalNumberOfFrames = $j.NumberOfProcessedFrames
 }
 
-# Frames above 33ms. Legacy/current payloads usually provide NumberOfFramesAbove33ms directly;
-# newer split-bucket payloads may instead provide buckets such as NumberOfFrames33msTo35ms.
-$framesAbove33ms = 0L
-if ($j.PSObject.Properties.Name -contains 'NumberOfFramesAbove33ms') {
-    try { $framesAbove33ms = [int64]$j.NumberOfFramesAbove33ms } catch { $framesAbove33ms = 0L }
+$frameThresholdCounts = Get-PerceptionFrameThresholdCounts -UsageStats $j
+$Results.FramesAbove33ms = $frameThresholdCounts.FramesAbove33ms
+if ($base -eq 512) {
+    $Results.FramesAbove10msForAudioBlur = $frameThresholdCounts.FramesAbove10ms
 }
-else {
-    foreach ($bucketName in @(
-            'NumberOfFrames33msTo35ms',
-            'NumberOfFrames35msTo40ms',
-            'NumberOfFrames40msTo50ms',
-            'NumberOfFramesAbove50ms'
-        )) {
-        if ($j.PSObject.Properties.Name -contains $bucketName) {
-            try { $framesAbove33ms += [int64]$j.$bucketName } catch { }
-        }
-    }
-}
-$Results.FramesAbove33ms = $framesAbove33ms
 
 # Timing (guard each field)
 if ($j.PSObject.Properties.Name -contains 'AverageProcessingTimePerFrameInNanoseconds') {
@@ -238,14 +256,17 @@ if ($j.PSObject.Properties.Name -contains 'MinimumProcessingTimePerFrameInNanose
         [math]::Round([double]$j.MinimumProcessingTimePerFrameInNanoseconds / 1e6, 2)
 }
 
-if ($j.PSObject.Properties.Name -contains 'TimeToProcessedFrameInNanoseconds') {
-    $timeToFirstFrame = [math]::Round([double]$j.TimeToProcessedFrameInNanoseconds / 1e9, 4)
+if ($null -ne $lastMatchProcessId) {
+    $firstFrame = Get-TraceFmtFirstFrameForProcess -Path $InputFile -ProcessId ([int64]$lastMatchProcessId)
+    if ($firstFrame) {
+        $timeToFirstFrameSeconds = [math]::Round([double]$firstFrame.TimeToFirstFrameInNanoseconds / 1e9, 4)
 
-    if ($base -eq 512) {
-        $Results.'timetofirstframeForAudio(In secs)' = $timeToFirstFrame
-    }
-    else {
-        $Results.'timetofirstframe(In secs)' = $timeToFirstFrame
+        if ($base -eq 512) {
+            $Results.'timetofirstframeForAudio(In secs)' = $timeToFirstFrameSeconds
+        }
+        else {
+            $Results.'timetofirstframe(In secs)' = $timeToFirstFrameSeconds
+        }
     }
 }
 
@@ -281,5 +302,6 @@ Write-Verbose "--------------------------------------------"
 # Optional output file
 # ---------------------------------------
 if ($OutputFile) {
-    ($Results | ConvertTo-Json -Depth 6 -Compress) | Add-Content -LiteralPath $OutputFile
+    ($Results | ConvertTo-Json -Depth 6 -Compress) |
+        Add-Content -LiteralPath $OutputFile
 }

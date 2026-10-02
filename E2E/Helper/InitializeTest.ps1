@@ -61,7 +61,7 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
     $Global:Results = '' | Select-Object ScenarioName, SessionName, PerceptionScenarioId, MatchedScenarioId, ScenarioMatchMode, ScenarioMatchOk, fps,TotalNumberOfFrames,FramesAbove33ms,
         'AvgProcessingTimePerFrame(In ms)','MaxProcessingTimePerFrame(In ms)','MinProcessingTimePerFrame(In ms)',
         'timetofirstframe(In secs)','CameraAppInItTime(In secs)','VoiceRecorderInItTime(In secs)',
-        'timetofirstframeForAudio(In secs)',FramesAbove33msForAudioBlur,
+        'timetofirstframeForAudio(In secs)',FramesAbove10msForAudioBlur,FramesAbove33msForAudioBlur,
         'PeakWorkingSetSize(In MB)','AvgWorkingSetSize(In MB)',
         'AvgNPUUsage(In %)','AvgCPUUsage(In %)' ,'AvgMemoryUsage(In GB)',
         'BeforeNPUUsage(In %)','BeforeCPUUsage(In %)','BeforeMemoryUsage(In GB)',
@@ -99,5 +99,3 @@ function InitializeTest($TstsetNme, $targetMepCameraVer, $targetMepAudioVer, $ta
         }
     }
 }
-
-

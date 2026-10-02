@@ -24,7 +24,31 @@ function OpenApp($cmd, $titleNme)
     $settingsWindowId = ((Get-Process).where{$_.MainWindowTitle -eq $titleNme})[0].Id
     $root = [Windows.Automation.AutomationElement]::RootElement
     $condition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ProcessIdProperty, $settingsWindowId)
-    return $root.FindFirst([Windows.Automation.TreeScope]::Children, $condition)
+    $appWindow = $root.FindFirst([Windows.Automation.TreeScope]::Children, $condition)
+
+    # -WindowStyle Maximized above only takes effect when a brand new process is started.
+    # If the app was already running (e.g. a single-instance UWP app like ms-settings:),
+    # its window keeps whatever size it last had, which can be too small to reveal all
+    # toggles/controls. Force-maximize the window every time via the WindowPattern so
+    # UI Automation always has the full set of elements available regardless of prior state.
+    if ($appWindow -ne $null)
+    {
+        try
+        {
+            $windowPattern = $appWindow.GetCurrentPattern([Windows.Automation.WindowPattern]::Pattern)
+            if ($windowPattern.Current.WindowVisualState -ne [Windows.Automation.WindowVisualState]::Maximized)
+            {
+                $windowPattern.SetWindowVisualState([Windows.Automation.WindowVisualState]::Maximized)
+                Start-Sleep -Milliseconds 500
+            }
+        }
+        catch
+        {
+            Write-Log -Message "Unable to force-maximize $titleNme window: $($_.Exception.Message)" -IsOutput
+        }
+    }
+
+    return $appWindow
 }
 
 <#

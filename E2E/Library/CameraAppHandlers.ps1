@@ -208,12 +208,15 @@ function StartVideoRecording
      
      #record video inbetween space presses
     Write-Log -Message "Start recording a video for $duration seconds" -IsOutput
-     [System.Windows.Forms.SendKeys]::SendWait(' ');
+     # SendKeys::SendWait can throw a spurious "The operation completed successfully."
+     # exception in some environments even though the keystroke was delivered, so this
+     # is guarded to avoid aborting the whole scenario on a benign failure.
+     try { [System.Windows.Forms.SendKeys]::SendWait(' '); } catch { Write-Log "SendKeys SendWait ' ' reported an error (likely benign): $($_.Exception.Message)" }
    
      #Capture Resource Utilization while test is running
      Monitor-Resources -Scenario $snarioName -duration $duration -executionState "During" -logPath $logPath 
           
-     [System.Windows.Forms.SendKeys]::SendWait(' ');
+     try { [System.Windows.Forms.SendKeys]::SendWait(' '); } catch { Write-Log "SendKeys SendWait ' ' reported an error (likely benign): $($_.Exception.Message)" }
      Start-Sleep -s 2
     Write-Log -Message "video recording stopped after $duration seconds" -IsOutput
      
@@ -246,7 +249,7 @@ function StartPhotoCapturing
     Start-Sleep -Seconds 2
 
     # Take a photo
-    [System.Windows.Forms.SendKeys]::SendWait(' ')
+    try { [System.Windows.Forms.SendKeys]::SendWait(' ') } catch { Write-Log "SendKeys SendWait ' ' reported an error (likely benign): $($_.Exception.Message)" }
     Start-Sleep -Seconds 2
 
     # Close Camera App
