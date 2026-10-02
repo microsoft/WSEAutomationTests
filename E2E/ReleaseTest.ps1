@@ -4,7 +4,11 @@
    [string] $targetMepCameraVer = $null,
    [string] $targetMepAudioVer = $null,
    [string] $targetPerceptionCoreVer = $null,
-   [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null
+   [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null,
+   [ValidateSet("PluggedIn","Unplugged")]
+   [string[]] $devicePowerState = @("PluggedIn","Unplugged"),
+   [ValidateSet("All","Balanced","Best Power Efficiency","Best Performance")]
+   [string] $powerMode = "Balanced"
 )
 .".\CheckInTest\Helper-library.ps1"
 
@@ -22,12 +26,24 @@ $filteredPhotoResolutions = Filter-Resolutions -requestedResolutions @() -availa
 # OneTime Setting- Open Camera App and set default setting to "Use system settings" 
 Set-SystemSettingsInCamera  >> "$pathLogsFolder\CameraAppTest.txt"
 
-# Loop through Camera mode
-foreach($camsnario in $deviceData["CameraScenario"])
-{  
-   # Loop through video resolutions
-   foreach ($vdoRes in $filteredVideoResolutions)
-   {  
+# Loop through device power states
+foreach($devPowStat in $devicePowerState) {
+   # Determine which power modes to test for this device state
+   $powerModesToTest = @()
+   if ($powerMode -eq "All") {
+      $powerModesToTest = Get-AvailablePowerModes -devicePowerState $devPowStat
+   } else {
+      $powerModesToTest = @($powerMode)
+   }
+
+   # Loop through power modes
+   foreach($powerModeToSet in $powerModesToTest) {
+      Set-PowerProfile -powerMode $powerModeToSet -devicePowerState $devPowStat
+
+      # Loop through Camera mode
+      foreach($camsnario in $deviceData["CameraScenario"]) {
+         # Loop through video resolutions
+         foreach ($vdoRes in $filteredVideoResolutions) {
       $initialSetupDone = "true" 
       $startTime = Get-Date 
       #Retrieve video resolution from hash table
@@ -184,6 +200,8 @@ foreach($camsnario in $deviceData["CameraScenario"])
             }
          } 
       }
+   }
+}
    }
 }
 

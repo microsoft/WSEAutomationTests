@@ -5,7 +5,11 @@ param (
    [string] $targetMepAudioVer = $null,
    [string] $targetPerceptionCoreVer = $null,
    [ValidateSet("Both", "PluggedInOnly", "UnpluggedOnly")][string] $runMode = $null,
-   [ValidateRange(1, 100)][int] $maxTests = 20
+   [ValidateRange(1, 100)][int] $maxTests = 20,
+   [ValidateSet("PluggedIn","Unplugged")]
+   [string[]] $devicePowerState = @("PluggedIn","Unplugged"),
+   [ValidateSet("All","Balanced","Best Power Efficiency","Best Performance")]
+   [string] $powerMode = "Balanced"
 )
 
 .".\CheckInTest\Helper-library.ps1"
@@ -98,10 +102,22 @@ Write-Log -Message "Mini release selection: Scenarios=[$($selectedCameraScenario
 
 Set-SystemSettingsInCamera >> "$pathLogsFolder\CameraAppTest.txt"
 
-:cameraScenarioLoop foreach ($camsnario in $selectedCameraScenarios)
-{
-   :videoResolutionLoop foreach ($vdoRes in $filteredVideoResolutions)
-   {
+# Loop through device power states
+foreach($devPowStat in $devicePowerState) {
+    # Determine which power modes to test for this device state
+    $powerModesToTest = @()
+    if ($powerMode -eq "All") {
+        $powerModesToTest = Get-AvailablePowerModes -devicePowerState $devPowStat
+    } else {
+        $powerModesToTest = @($powerMode)
+    }
+
+    # Loop through power modes
+    foreach($powerModeToSet in $powerModesToTest) {
+        Set-PowerProfile -powerMode $powerModeToSet -devicePowerState $devPowStat
+
+        :cameraScenarioLoop foreach ($camsnario in $selectedCameraScenarios) {
+            :videoResolutionLoop foreach ($vdoRes in $filteredVideoResolutions) {
       $initialSetupDone = "true"
       $startTime = Get-Date
       $vdoResDetails = RetrieveValue($vdoRes)
@@ -304,6 +320,8 @@ Set-SystemSettingsInCamera >> "$pathLogsFolder\CameraAppTest.txt"
       }
    }
 }
+}  # Close power mode loop
+}  # Close device power state loop
 
 Write-Log -Message "Mini release finished after executing $script:testsExecuted test(s)." -IsHost -ForegroundColor Green
 
