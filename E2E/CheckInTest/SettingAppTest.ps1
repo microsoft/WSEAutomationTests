@@ -13,14 +13,14 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void
 #>
-function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [string]$CameraType = "Internal Camera")
+function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, $powerMode, [string]$CameraType = "Internal Camera")
 {
    try
    {
       $startTime = Get-Date
       $ErrorActionPreference = 'Stop'
-      $scenarioName = "$devPowStat\$testScenario"
-      $logFile = "$devPowStat-SettingAppTest.txt"
+      $scenarioName = "$devPowStat\$powerMode\$testScenario"
+      $logFile = "$devPowStat-$powerMode-SettingAppTest.txt"
       #Check device Power state
       $devState = CheckDevicePowerState $devPowStat $token $SPId
       if ($devState -eq $false)

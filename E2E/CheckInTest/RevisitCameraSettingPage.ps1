@@ -59,12 +59,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void 
 #>
-function RevisitCameraSettingPage($devPowStat, $token, $SPId)
+function RevisitCameraSettingPage($devPowStat, $token, $SPId, $powerMode)
 {
     $startTime = Get-Date 
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\RevisitCameraSettingPage"
-    $logFile = "$devPowStat-RevisitCameraSettingPage.txt"
+    $scenarioName = "$devPowStat\$powerMode\RevisitCameraSettingPage"
+    $logFile = "$devPowStat-$powerMode-RevisitCameraSettingPage.txt"
     
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)
@@ -130,7 +130,7 @@ function RevisitCameraSettingPage($devPowStat, $token, $SPId)
         
         # Create scenario specific folder for collecting logs
         Write-Log -Message "Creating folder for capturing logs" -IsOutput
-        $scenarioName = "$devPowStat\RevisitCameraSettingPage-ValidateScenarioID"
+        $scenarioName = "$devPowStat\$powerMode\RevisitCameraSettingPage-ValidateScenarioID"
         CreateScenarioLogsFolder $scenarioName
                       
         # Starting to collect Traces

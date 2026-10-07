@@ -12,12 +12,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void
 #>
-function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId)
+function VoiceRecorderApp-Hibernation($devPowStat, $token, $SPId, $powerMode)
 {
     $startTime = Get-Date 
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\VoiceRecorderAppHibernation"
-    $logFile = "$devPowStat-VoiceRecorderAppHibernation.txt"
+    $scenarioName = "$devPowStat\$powerMode\VoiceRecorderAppHibernation"
+    $logFile = "$devPowStat-$powerMode-VoiceRecorderAppHibernation.txt"
 
     $voiceFocusExists = CheckVoiceFocusPolicy 
     if($voiceFocusExists -eq $false)

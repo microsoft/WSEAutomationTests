@@ -12,12 +12,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void 
 #>
-function CameraApp-Hibernation($devPowStat, $token, $SPId)
+function CameraApp-Hibernation($devPowStat, $token, $SPId, $powerMode)
 {
     $startTime = Get-Date 
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\CameraAppHibernation"
-    $logFile = "$devPowStat-CameraAppHibernation.txt"
+    $scenarioName = "$devPowStat\$powerMode\CameraAppHibernation"
+    $logFile = "$devPowStat-$powerMode-CameraAppHibernation.txt"
     
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)

@@ -4,6 +4,10 @@ param (
    [string] $targetMepCameraVer = $null,
    [string] $targetMepAudioVer = $null,
    [string] $targetPerceptionCoreVer = $null,
+   [ValidateSet("PluggedIn","Unplugged")]
+   [string[]] $devicePowerState = @("PluggedIn","Unplugged"),
+   [ValidateSet("All","Balanced","Best Power Efficiency","Best Performance")]
+   [string] $powerMode = "Balanced",
    [int]    $iteration = 0
 )
 
@@ -16,10 +20,10 @@ Set-Variable -Name "VIDEO_RECORDING_DURATION"               -Option ReadOnly -Va
 Set-Variable -Name "NUMBER_OF_ITERATION"                    -Option ReadOnly -Value 10
 
 function VerifyVideoMode {
-    param ($assessmentScenario, $videoResName, $iter)
+    param ($assessmentScenario, $videoResName, $iter, $powerMode)
 
     $timeStamp = Get-Date
-    $scenarioLogFolder = "CameraReliabilityTest\$assessmentScenario\iteration_$iter"
+    $scenarioLogFolder = "CameraReliabilityTest\$powerMode\$assessmentScenario\iteration_$iter"
     $wsev2PolicyState = CheckWSEV2Policy
 
     # Start collecting traces
@@ -43,10 +47,10 @@ function VerifyVideoMode {
 }
 
 function VerifyPhotoMode {
-    param ($iter)
+    param ($iter, $powerMode)
 
     $timeStamp = Get-Date
-    $scenarioLogFolder = "CameraReliabilityTest\photo\iteration_$iter"
+    $scenarioLogFolder = "CameraReliabilityTest\$powerMode\photo\iteration_$iter"
 
     # Start collecting traces
     StartTrace $scenarioLogFolder $timeStamp
@@ -64,7 +68,7 @@ function VerifyPhotoMode {
 }
 
 function CameraReliabilityTest {
-    param ($iteration)
+    param ($iteration, $powerMode)
 
     $wsev2PolicyState = CheckWSEV2Policy
 
@@ -92,13 +96,13 @@ function CameraReliabilityTest {
     for ($iter = 1; $iter -le $iteration; $iter++) {
         Write-Log -Message "`nCameraReliabilityTest [$iter / $iteration] rounds" -IsHost
 
-        if (-not (VerifyVideoMode $assessmentScenario $videoResName $iter)) {
+        if (-not (VerifyVideoMode $assessmentScenario $videoResName $iter $powerMode)) {
             Write-Log -Message "Video mode for run ${iter}: FAIL" -IsHost -ForegroundColor Red
         } else {
             Write-Log -Message "Video mode for run ${iter}: PASS" -IsHost -ForegroundColor Green
         }
 
-        if (-not (VerifyPhotoMode $iter)) {
+        if (-not (VerifyPhotoMode $iter $powerMode)) {
             Write-Log -Message "Photo mode for run ${iter}: FAIL" -IsHost -ForegroundColor Red
         } else {
             Write-Log -Message "Photo mode for run ${iter}: PASS" -IsHost -ForegroundColor Green
@@ -129,4 +133,20 @@ if ($iteration -eq 0) {
 }
 
 Set-SystemSettingsInCamera
-CameraReliabilityTest $iteration
+
+# Loop through device power states
+foreach($devPowStat in $devicePowerState) {
+   # Determine which power modes to test for this device state
+   $powerModesToTest = @()
+   if ($powerMode -eq "All") {
+      $powerModesToTest = Get-AvailablePowerModes -devicePowerState $devPowStat
+   } else {
+      $powerModesToTest = @($powerMode)
+   }
+
+   # Loop through power modes
+   foreach($powerModeToSet in $powerModesToTest) {
+      Set-PowerProfile -powerMode $powerModeToSet -devicePowerState $devPowStat
+      CameraReliabilityTest $iteration $powerModeToSet
+   }
+}

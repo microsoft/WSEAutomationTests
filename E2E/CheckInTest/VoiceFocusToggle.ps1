@@ -12,12 +12,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void
 #>
-function VoiceFocus-Playlist($devPowStat, $token, $SPId) 
+function VoiceFocus-Playlist($devPowStat, $token, $SPId, $powerMode) 
 {   
     $startTime = Get-Date    
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\VoiceFocus"
-    $logFile = "$devPowStat-VoiceFocus.txt"
+    $scenarioName = "$devPowStat\$powerMode\VoiceFocus"
+    $logFile = "$devPowStat-$powerMode-VoiceFocus.txt"
     $voiceFocusExists = CheckVoiceFocusPolicy 
     if($voiceFocusExists -eq $false)
     {

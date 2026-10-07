@@ -345,3 +345,102 @@ function FindAndClickList
       Write-Error "Could not locate element in this list: $($proptyNmeLst -join ', ')" -ErrorAction Stop
    }
 }
+
+<#
+.SYNOPSIS
+    Retrieves the currently selected item text from a ComboBox by its associated label.
+.DESCRIPTION
+    Finds a ComboBox with the specified label and extracts the currently selected item's text.
+.PARAMETER uiEle
+    The root UI element to search within (typically the Settings window).
+.PARAMETER comboBoxLabel
+    The label associated with the ComboBox (e.g., "Plugged in" or "On battery").
+.RETURN
+    Returns the text of the currently selected ComboBox item, or $null if not found.
+#>
+function FindComboBoxSelectedItemText {
+    param (
+        [Parameter(Mandatory)]
+        [object]$uiEle,
+        [Parameter(Mandatory)]
+        [string]$comboBoxLabel
+    )
+
+    try {
+        $comboBox = CheckIfElementExists -uiEle $uiEle -clsNme "ComboBox" -proptyNme $comboBoxLabel
+
+        if ($null -eq $comboBox) {
+            Write-Error "ComboBox with label '$comboBoxLabel' not found." -ErrorAction Stop
+        }
+
+        $selectionPattern = $comboBox.GetCurrentPattern([Windows.Automation.SelectionPattern]::Pattern)
+
+        if ($null -eq $selectionPattern) {
+            Write-Error "SelectionPattern not available for ComboBox '$comboBoxLabel'." -ErrorAction Stop
+        }
+
+        $selectedItems = $selectionPattern.Current.GetSelection()
+
+        if ($selectedItems.Count -eq 0) {
+            Write-Error "No item selected in ComboBox '$comboBoxLabel'." -ErrorAction Stop
+        }
+
+        return $selectedItems[0].Current.Name
+    }
+    catch {
+        Write-Error "Error retrieving selected item text: $_" -ErrorAction Stop
+    }
+}
+
+<#
+.SYNOPSIS
+    Retrieves all available ComboBox items for a given ComboBox label.
+.DESCRIPTION
+    Finds a ComboBox with the specified label and extracts all available ComboBoxItem options.
+.PARAMETER uiEle
+    The root UI element to search within (typically the Settings window).
+.PARAMETER comboBoxLabel
+    The label associated with the ComboBox (e.g., "Plugged in" or "On battery").
+.RETURN
+    Returns an array of available ComboBox item names, or empty array if none found.
+#>
+function GetAllComboBoxItems {
+    param (
+        [Parameter(Mandatory)]
+        [object]$uiEle,
+        [Parameter(Mandatory)]
+        [string]$comboBoxLabel
+    )
+
+    try {
+        $comboBox = CheckIfElementExists -uiEle $uiEle -clsNme "ComboBox" -proptyNme $comboBoxLabel
+
+        if ($null -eq $comboBox) {
+            Write-Error "ComboBox with label '$comboBoxLabel' not found." -ErrorAction Stop
+        }
+
+        $expandPattern = $comboBox.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern)
+        if ($null -ne $expandPattern -and $expandPattern.Current.ExpandCollapseState -ne [Windows.Automation.ExpandCollapseState]::Expanded) {
+            $expandPattern.Expand()
+            Start-Sleep -Milliseconds 500
+        }
+
+        $condition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ClassNameProperty, "ComboBoxItem")
+        $items = $comboBox.FindAll([System.Windows.Automation.TreeScope]::Children, $condition)
+
+        $itemNames = @()
+        foreach ($item in $items) {
+            $itemNames += $item.Current.Name
+        }
+
+        if ($null -ne $expandPattern -and $expandPattern.Current.ExpandCollapseState -eq [Windows.Automation.ExpandCollapseState]::Expanded) {
+            $expandPattern.Collapse()
+            Start-Sleep -Milliseconds 300
+        }
+
+        return $itemNames
+    }
+    catch {
+        Write-Error "Error retrieving ComboBox items: $_" -ErrorAction Stop
+    }
+}

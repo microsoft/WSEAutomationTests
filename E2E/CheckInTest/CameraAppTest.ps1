@@ -19,7 +19,7 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void 
 #>
-function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$ptoRes,$devPowStat,$VF,$toggleEachAiEffect)
+function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$ptoRes,$devPowStat,$VF,$toggleEachAiEffect,$powerMode)
 {
    try
    {  
@@ -27,7 +27,7 @@ function CameraAppTest($logFile,$token,$SPId,$initSetUpDone,$camsnario,$vdoRes,$
        $VFdetails= "VF-$VF"
 	   $vdoResDetails= RetrieveValue($vdoRes)
 	   $ptoResDetails= RetrieveValue($ptoRes)       
-       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$VFdetails\$toggleEachAiEffect"
+       $scenarioLogFolder = "CameraAppTest\$camsnario\$vdoResDetails\$ptoResDetails\$devPowStat\$powerMode\$VFdetails\$toggleEachAiEffect"
        Write-Log -Message "`nStarting Test for $scenarioLogFolder`n" -IsOutput
        Write-Log -Message "Creating the log folder" -IsOutput       
        CreateScenarioLogsFolder $scenarioLogFolder

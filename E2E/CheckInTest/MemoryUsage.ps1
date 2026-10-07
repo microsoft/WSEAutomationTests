@@ -26,12 +26,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void 
 #>
-function MemoryUsage-Playlist($devPowStat, $token, $SPId) 
+function MemoryUsage-Playlist($devPowStat, $token, $SPId, $powerMode) 
 {   
     $startTime = Get-Date    
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\MemoryUsage"
-    $logFile = "$devPowStat-MemoryUsage.txt"
+    $scenarioName = "$devPowStat\$powerMode\MemoryUsage"
+    $logFile = "$devPowStat-$powerMode-MemoryUsage.txt"
 
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)

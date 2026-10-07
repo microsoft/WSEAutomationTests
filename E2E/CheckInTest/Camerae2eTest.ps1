@@ -13,12 +13,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void
 #>
-function Camera-App-Playlist($devPowStat, $token, $SPId, $CameraType) 
+function Camera-App-Playlist($devPowStat, $token, $SPId, $powerMode, $CameraType) 
 {   
     $startTime = Get-Date    
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\Camerae2eTest"
-    $logFile = "$devPowStat-Camerae2eTest.txt"
+    $scenarioName = "$devPowStat\$powerMode\Camerae2eTest"
+    $logFile = "$devPowStat-$powerMode-Camerae2eTest.txt"
         
     try
 	{  
