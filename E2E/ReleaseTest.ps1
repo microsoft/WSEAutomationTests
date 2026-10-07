@@ -108,7 +108,7 @@ foreach($devPowStat in $devicePowerState) {
                         $pluggedInLast++
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
-                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                        CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft -powerMode $powerModeToSet >> "$pathLogsFolder\CameraAppTest.txt"
                         $batteryPercentage = Get-BatteryPercentage
                      }
                   } else {
@@ -121,7 +121,7 @@ foreach($devPowStat in $devicePowerState) {
                         $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                         $devPowStat = "PluggedIn"
                      }
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft -powerMode $powerModeToSet >> "$pathLogsFolder\CameraAppTest.txt"
                   }
 
                   if ($unpluggedLast -eq ($deviceData["ToggleAiEffect"].Count - 1) -and $pluggedInLast -eq ($deviceData["ToggleAiEffect"].Count - 1)) {
@@ -160,7 +160,7 @@ foreach($devPowStat in $devicePowerState) {
                      $unpluggedLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$unpluggedLast]
                      $devPowStat = "Unplugged"
-                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -token $token -SPId $SPId -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft -powerMode $powerModeToSet >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "Completed all Unplugged AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break
@@ -180,7 +180,7 @@ foreach($devPowStat in $devicePowerState) {
                      $pluggedInLast++
                      $togAiEfft = $deviceData["ToggleAiEffect"][$pluggedInLast]
                      $devPowStat = "PluggedIn"
-                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\CameraAppTest.txt"
+                     CameraAppTest -logFile "CameraAppTest.txt" -initSetUpDone $initialSetupDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft -powerMode $powerModeToSet >> "$pathLogsFolder\CameraAppTest.txt"
                   } else {
                      Write-Host "Completed all PluggedIn AI effects for current combination: $camsnario | $vdoResDetails | $ptoResDetails | $VF" -ForegroundColor Green
                      break

@@ -181,6 +181,7 @@ foreach($devPowStat in $devicePowerState) {
                         $devPowStat = "PluggedIn"
 
                         $cameraAppTestParameters = @{
+                           powerMode = $powerModeToSet
                            logFile = "CameraAppTest.txt"
                            token = $token
                            SPId = $SPId
@@ -216,6 +217,7 @@ foreach($devPowStat in $devicePowerState) {
                      }
 
                      $cameraAppTestParameters = @{
+                        powerMode = $powerModeToSet
                         logFile = "CameraAppTest.txt"
                         token = $token
                         SPId = $SPId
@@ -264,6 +266,7 @@ foreach($devPowStat in $devicePowerState) {
                      $devPowStat = "Unplugged"
 
                      $cameraAppTestParameters = @{
+                        powerMode = $powerModeToSet
                         logFile = "CameraAppTest.txt"
                         token = $token
                         SPId = $SPId
@@ -292,6 +295,7 @@ foreach($devPowStat in $devicePowerState) {
                      $devPowStat = "PluggedIn"
 
                      $cameraAppTestParameters = @{
+                        powerMode = $powerModeToSet
                         logFile = "CameraAppTest.txt"
                         initSetUpDone = $initialSetupDone
                         camsnario = $camsnario

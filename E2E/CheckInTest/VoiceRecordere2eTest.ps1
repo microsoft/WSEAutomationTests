@@ -12,12 +12,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void 
 #>
-function Voice-Recorder-Playlist($devPowStat, $token, $SPId) 
+function Voice-Recorder-Playlist($devPowStat, $token, $SPId, $powerMode) 
 {   
     $startTime = Get-Date    
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\VoiceRecordere2eTest"
-    $logFile = "$devPowStat-VoiceRecordere2eTest.txt"
+    $scenarioName = "$devPowStat\$powerMode\VoiceRecordere2eTest"
+    $logFile = "$devPowStat-$powerMode-VoiceRecordere2eTest.txt"
     $voiceFocusExists = CheckVoiceFocusPolicy 
     if($voiceFocusExists -eq $false)
     {

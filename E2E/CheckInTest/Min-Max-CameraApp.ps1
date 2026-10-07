@@ -12,12 +12,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void (Logs outputs and results to files without returning a value.)
 #>
-function Min-Max-CameraApp($devPowStat, $token, $SPId)
+function Min-Max-CameraApp($devPowStat, $token, $SPId, $powerMode)
 {
     $startTime = Get-Date 
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\MinMaxCameraApp"
-    $logFile = "$devPowStat-MinMaxCameraApp.txt"
+    $scenarioName = "$devPowStat\$powerMode\MinMaxCameraApp"
+    $logFile = "$devPowStat-$powerMode-MinMaxCameraApp.txt"
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)
     {   
@@ -66,7 +66,7 @@ function Min-Max-CameraApp($devPowStat, $token, $SPId)
 
         # Create scenario specific folder for collecting logs
         Write-Log -Message "Creating folder for capturing logs" -IsOutput
-        $scenarioName = "$devPowStat\Min-Max-CameraApp-ValidateScenarioID"
+        $scenarioName = "$devPowStat\$powerMode\Min-Max-CameraApp-ValidateScenarioID"
         CreateScenarioLogsFolder $scenarioName
                       
         # Starting to collect Traces to Validate ScenarioID 

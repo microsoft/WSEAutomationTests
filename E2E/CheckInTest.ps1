@@ -26,13 +26,13 @@ foreach($devPowStat in $devicePowerState) {
   foreach($powerModeToSet in $powerModesToTest) {
      Set-PowerProfile -powerMode $powerModeToSet -devicePowerState $devPowStat
      foreach($testScenario in 'AFS', 'AFC','BBS', 'BBP', 'ECS', 'ECT', 'PL', 'CF-I', 'CF-A', 'CF-W') {
-        SettingAppTest-Playlist -devPowStat $devPowStat -testScenario $testScenario -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-$powerModeToSet-SettingAppTest.txt"
+        SettingAppTest-Playlist -devPowStat $devPowStat -testScenario $testScenario -token $token -SPId $SPId -powerMode $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-SettingAppTest.txt"
      }
-     VoiceFocus-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-$powerModeToSet-VoiceFocus.txt"
+     VoiceFocus-Playlist -devPowStat $devPowStat -token $token -SPId $SPId -powerMode $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-VoiceFocus.txt"
 
-     Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-$powerModeToSet-Camerae2eTest.txt"
+     Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId -powerMode $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-Camerae2eTest.txt"
 
-     Voice-Recorder-Playlist -devPowStat $devPowStat -token $token -SPId $SPId >> $pathLogsFolder\"$devPowStat-$powerModeToSet-VoiceRecordere2eTest.txt"
+     Voice-Recorder-Playlist -devPowStat $devPowStat -token $token -SPId $SPId -powerMode $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-VoiceRecordere2eTest.txt"
   }
 }
 #Turn on the smart plug 

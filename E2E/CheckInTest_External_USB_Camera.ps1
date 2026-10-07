@@ -28,10 +28,10 @@ foreach($devPowStat in $devicePowerState) {
    foreach($powerModeToSet in $powerModesToTest) {
       Set-PowerProfile -powerMode $powerModeToSet -devicePowerState $devPowStat
       foreach($testScenario in 'AFS', 'AFC' , 'BBS', 'BBP', 'PL', 'CF-I', 'CF-A', 'CF-W') {
-         SettingAppTest-Playlist -devPowStat $devPowStat -testScenario $testScenario -token $token -SPId $SPId -CameraType "External Camera" >> $pathLogsFolder\"$devPowStat-SettingAppTest.txt"
+         SettingAppTest-Playlist -devPowStat $devPowStat -testScenario $testScenario -token $token -SPId $SPId -powerMode $powerModeToSet -CameraType "External Camera" >> $pathLogsFolder\"$devPowStat-$powerModeToSet-SettingAppTest.txt"
       }
 
-      Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId -CameraType "External Camera" >> $pathLogsFolder\"$devPowStat-Camerae2eTest.txt"
+      Camera-App-Playlist -devPowStat $devPowStat -token $token -SPId $SPId -powerMode $powerModeToSet -CameraType "External Camera" >> $pathLogsFolder\"$devPowStat-$powerModeToSet-Camerae2eTest.txt"
    }
 }
 

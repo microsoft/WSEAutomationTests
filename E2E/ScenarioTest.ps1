@@ -170,7 +170,7 @@ foreach($devPowStat in $devicePowerState) {
 
         foreach ($togAiEfft in $toggleAIEffects)
         {
-            CameraAppTest -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft >> "$pathLogsFolder\ScenarioTesting.txt"
+            CameraAppTest -token $token -SPId $SPId -logFile $logFile -initSetUpDone $initSetUpDone -camsnario $camsnario -VF $VF -vdoRes $vdoRes -ptoRes $ptoRes -devPowStat $devPowStat -toggleEachAiEffect $togAiEfft -powerMode $powerModeToSet >> "$pathLogsFolder\ScenarioTesting.txt"
         }
     }
 }

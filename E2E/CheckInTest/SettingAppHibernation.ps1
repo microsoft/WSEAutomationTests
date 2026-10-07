@@ -12,12 +12,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void 
 #>
-function SettingApp-Hibernation($devPowStat, $token, $SPId)
+function SettingApp-Hibernation($devPowStat, $token, $SPId, $powerMode)
 {
     $startTime = Get-Date 
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\SettingAppHibernation"
-    $logFile = "$devPowStat-SettingAppHibernation.txt"
+    $scenarioName = "$devPowStat\$powerMode\SettingAppHibernation"
+    $logFile = "$devPowStat-$powerMode-SettingAppHibernation.txt"
     
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)

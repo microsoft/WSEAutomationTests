@@ -24,7 +24,7 @@ foreach($devPowStat in $devicePowerState) {
 
     foreach($powerModeToSet in $powerModesToTest) {
         Set-PowerProfile -powerMode $powerModeToSet -devicePowerState $devPowStat
-        MemoryUsage-Playlist "$devPowStat" $token $SPId >> $pathLogsFolder\"$devPowStat-MemoryUsage.txt"
+        MemoryUsage-Playlist "$devPowStat" $token $SPId $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-MemoryUsage.txt"
     }
 }
 

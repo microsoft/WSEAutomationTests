@@ -26,7 +26,7 @@ foreach($devPowStat in $devicePowerState) {
         Set-PowerProfile -powerMode $powerModeToSet -devicePowerState $devPowStat
         $i = 1
         while($i -le 10) {
-            Camera-App-Playlist "$i-$devPowStat" $token $SPId >> $pathLogsFolder\"$i-$devPowStat-Camerae2eTest.txt"
+            Camera-App-Playlist "$i-$devPowStat" $token $SPId $powerModeToSet >> $pathLogsFolder\"$i-$devPowStat-$powerModeToSet-Camerae2eTest.txt"
             $i++
         }
     }

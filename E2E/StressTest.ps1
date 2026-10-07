@@ -24,17 +24,17 @@ foreach($devPowStat in $devicePowerState) {
 
     foreach($powerModeToSet in $powerModesToTest) {
         Set-PowerProfile -powerMode $powerModeToSet -devicePowerState $devPowStat
-        CameraApp-Hibernation $devPowStat $token $SPId >> $pathLogsFolder\"$devPowStat-CameraAppHibernation.txt"
+        CameraApp-Hibernation $devPowStat $token $SPId $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-CameraAppHibernation.txt"
 
-        SettingApp-Hibernation $devPowStat $token $SPId >> $pathLogsFolder\"$devPowStat-SettingAppHibernation.txt"
+        SettingApp-Hibernation $devPowStat $token $SPId $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-SettingAppHibernation.txt"
 
-        VoiceRecorderApp-Hibernation $devPowStat $token $SPId >> $pathLogsFolder\"$devPowStat-VoiceRecorderAppHibernation.txt"
+        VoiceRecorderApp-Hibernation $devPowStat $token $SPId $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-VoiceRecorderAppHibernation.txt"
 
-        RevisitCameraSettingPage $devPowStat $token $SPId >> $pathLogsFolder\"$devPowStat-RevisitCameraSettingPage.txt"
+        RevisitCameraSettingPage $devPowStat $token $SPId $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-RevisitCameraSettingPage.txt"
 
-        ToggleAIEffectsMultipleTimes $devPowStat $token $SPId >> $pathLogsFolder\"$devPowStat-ToggleAIEffectsMultipleTimes.txt"
+        ToggleAIEffectsMultipleTimes $devPowStat $token $SPId $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-ToggleAIEffectsMultipleTimes.txt"
 
-        Min-Max-CameraApp $devPowStat $token $SPId >> $pathLogsFolder\"$devPowStat-MinMaxCameraApp.txt"
+        Min-Max-CameraApp $devPowStat $token $SPId $powerModeToSet >> $pathLogsFolder\"$devPowStat-$powerModeToSet-MinMaxCameraApp.txt"
     }
 }
 

@@ -36,12 +36,12 @@ INPUT PARAMETERS:
 RETURN TYPE:
     - void
 #>
-function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
+function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId, $powerMode)
 {
     $startTime = Get-Date 
     $ErrorActionPreference='Stop'
-    $scenarioName = "$devPowStat\ToggleAIEffectsMultipleTimes"
-    $logFile = "$devPowStat-ToggleAIEffectsMultipleTimes.txt"
+    $scenarioName = "$devPowStat\$powerMode\ToggleAIEffectsMultipleTimes"
+    $logFile = "$devPowStat-$powerMode-ToggleAIEffectsMultipleTimes.txt"
     $devState = CheckDevicePowerState $devPowStat $token $SPId
     if($devState -eq $false)
     {   
@@ -188,7 +188,7 @@ function ToggleAIEffectsMultipleTimes($devPowStat, $token, $SPId)
 
         # Create scenario specific folder for collecting logs
         Write-Log -Message "Creating folder for capturing logs" -IsOutput
-        $scenarioName = "$devPowStat\ToggleAIEffectsMultipleTimes-ValidateScenarioID"
+        $scenarioName = "$devPowStat\$powerMode\ToggleAIEffectsMultipleTimes-ValidateScenarioID"
         CreateScenarioLogsFolder $scenarioName
                       
         # Starting to collect Traces
