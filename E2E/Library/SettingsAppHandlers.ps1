@@ -230,14 +230,9 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
 
      Write-Log -Message "Toggle camera effects in setting Page" -IsOutput
      FindAndSetValue $ui ToggleSwitch "Automatic framing" $AFVal
-     $eyeContactToggleExists = $false
      if($CameraType -ne "External Camera")
      {
-        $eyeContactToggleExists = CheckIfElementExists $ui ToggleSwitch "Eye contact"
-        if($eyeContactToggleExists)
-        {
-           FindAndSetValue $ui ToggleSwitch "Eye contact" $ECVal
-        }
+        FindAndSetValue $ui ToggleSwitch "Eye contact" $ECVal
      }
      FindAndSetValue $ui ToggleSwitch "Background effects" $BBVal
 
@@ -260,7 +255,7 @@ Function ToggleAIEffectsInSettingsApp($AFVal,$AFSVal,$AFCVal,$PLVal,$BBVal,$BSVa
            FindAndSetValue $ui RadioButton "Watercolor" $CFW
 
         }
-        if($ECVal -eq "On" -and $eyeContactToggleExists)
+        if($ECVal -eq "On")
         {
            if($CameraType -ne "External Camera")
            {
