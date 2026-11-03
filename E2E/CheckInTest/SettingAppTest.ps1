@@ -60,11 +60,7 @@ function SettingAppTest-Playlist($devPowStat, $testScenario, $token, $SPId, [str
       FindAndSetValue $ui ToggleSwitch "Automatic framing" $testScenario[0]
 
       if ($CameraType -ne "External Camera") {
-         $eyeContactToggleExists = CheckIfElementExists $ui ToggleSwitch "Eye contact"
-         if ($eyeContactToggleExists)
-         {
-            FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[7]
-         }
+         FindAndSetValue $ui ToggleSwitch "Eye contact" $testScenario[7]
       }
 
       FindAndSetValue $ui ToggleSwitch "Background effects" $testScenario[4]
